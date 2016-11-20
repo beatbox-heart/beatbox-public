@@ -1,0 +1,117 @@
+Version 1.7.982
+
+- "configure" is included in distribution so autotools not needed for installation, if only compilation is required
+
+- k_paintgl device added, which paints 2D fields using OpenGL extension of X11
+
+Version 1.6.953
+
+- "ionic" cell model format extended to include Markov Chain (MC) channel descriptions;
+  rushlarsen device now can do Matrix Rush-Larsen (MRL) timestepping for MCs.
+  This involved also inclusion of an extract of GNU Scientific Library (GSL).
+
+- New ionic models illustrating handling of MC and work of MRL. 
+
+- rk4 device added for Runge-Kutta 4th order solver. 
+
+- MPI version now does not create separate "log" file and instead
+  prints full messages to standard output.
+
+- A bug in singz.c fixed: it was not properly parallelized. The
+  previous more accurate tip orientation finding alg still available
+  for sequential runs. Also, it now saves information about found tips
+  into k-variables.
+
+- Multiple minor errors and inaccuracies corrected.
+
+- Documentation completed and edited accordingly. 
+
+Version 1.5.830
+
+- Major change: new device 'rushlarsen', the associated model format
+  'ionic' and two ionic models in this format, br77 (Beeler-Reuter
+  1977) and crn98 (Courtemanche Ramirez Nattel 1998). The ionic crn98
+  is quicker than Courtemanche's original code, mostly due to
+  tabulation of Vm-dependent functions.
+
+- New device 'diffstep' added
+
+- A typo in diff.c fixed which would have cased wront result if
+  diffusion nonuniform in y direction.
+
+- Several smaller changes, mostly of technical nature not concerning
+  the front-side.
+
+
+Version 1.4.818
+
+- Major changes: new devices 'adi3d' and 'elliptic' for implicit
+  diffusion timestepping and bidomain respectively.
+
+- Several bugs fixed, format of stdout and log file improved,
+  documentation updated.
+
+Version 1.3.567
+
+ - Major change: now it is possible to not allocate processes to empty
+  subdomains (essential when treating 'thin' geometries with high
+  degree of parallelization.
+
+ - The method of domain decomposition can be now chosen from command
+   line, including explicit decomposition formula.
+
+ - New cell models added (mouse, mousevent, crnach)
+
+ - Improvements were made in reporting information to standard output
+   and to the log file, particularly concerning domain partitioning
+   and domain/process allocation.
+
+ - Improvements were made in the manual example scripts, including
+   change of directory structure (they are now classified by cell
+   models).
+
+ - A few bugs fixed, including a major bug when 'euler' device was
+   incorrectly filling its space with standard initial conditions when
+   in parallel mode.
+
+Subversion 1.2.490
+
+ - New device added (pause)
+
+ - New cell model added (b02)
+
+ - Improvements were made in the documenation, logging/error reporting
+   and example scripts
+
+ - Several bug fixes
+
+ - The standard output and log file now report the revision
+   ("subversion") number in addition to the main version number.
+
+Version 1.2
+
+ - A few new devices (k_imgout, activation, vtkout2, ecg) were added.
+
+ - A few new cell models (FKMOD, TNNP, TTNNP04, TTP06) were included.
+
+ - Documentation was improved.
+
+ - Several minor improvements were made in functionality in a number 
+   of modules and bug fixes.
+
+Version 1.1
+
+ - Installation instructions were checked and corrected. 
+
+ - Existing documentation was updated and corrected, some more 
+   documentation was written. 
+
+ - A number of unused source files were removed. 
+
+ - Profiling of devices improved. 
+
+ - Minor improvements in functionality in a number of modules. 
+
+Version 1.0.313
+
+ - Initial public release.

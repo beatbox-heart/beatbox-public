@@ -1,0 +1,57 @@
+#! BeatBox 1.1 Sequential version compiled Feb 12 2013 09:59:18
+#------------------------------------------------------------------------------------
+execution begin at Wed Feb 13 21:03:46 2013 $
+Input file benchmark.bbs with additional arguments "0.1.bbg" "0.1" "0.005" "0.1_0.005.dat" $
+with options: noappend nodebug nograph noprofile verbose logname=0.1_0.005.log
+def int narg 4$def str 0 benchmark$def str 1 0.1.bbg$def str 2 0.1$def str 3 0.005$def str 4 0.1_0.005.dat$def str geom 0.1.bbg$def real hx 0.1$def real ht 0.005$def str out 0.1_0.005.dat$def str outdir 0.1_0.005.dat.dir$def str Volt 0$def str Cai 1$def str CaSR 2$def str CaSS 3$def str Nai 4$def str Ki 5$def str M 6$def str H 7$def str J 8$def str Xr1 9$def str Xr2 10$def str Xs 11$def str R 12$def str S 13$def str D 14$def str F 15$def str F2 16$def str FCass 17$def str RR 18$def int vmin 0$def int vmax 18$def str i 19$def str p 20$def str a 21$def real Vact 0$def real chi 140$def real Cm 0.01$def real sigmaix 0.17$def real sigmaiy 0.019$def real sigmaex 0.62$def real sigmaey 0.24$def real sigmax 0.133418$def real sigmay 0.0176062$def real Dx 0.0952984$def real Dy 0.0125758$def real Dmax 0.0952984$def real Astim 50$def real Istim 35.7143$def real Xstim 1.5$def real xstim 15$def real Tstim 2$def real tstim 400$
+state geometry="0.1.bbg" anisotropy=1 normaliseVectors=0! 	Using geometry from 0.1.bbg.
+	Anisotropy is on.
+vmax=22 	Simulation medium (203 x 73 x 33)
+	Loading geometry data...done.
+$
+shell when="never" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="shell"! advance=1 echo="1" cmd="mkdir 0.1_0.005.dat.dir" code="t"! t=0 shell returned code 256
+$
+def int nx 201$def int ny 71$def int nz 31$def int xc 101$def int yc 36$def int zc 16$def str P1 x0=1  y0=1  z0=1 $def str P2 x0=nx y0=1  z0=1 $def str P3 x0=1  y0=1  z0=nz$def str P4 x0=nx y0=1  z0=nz$def str P5 x0=1  y0=ny z0=1 $def str P6 x0=nx y0=ny z0=1 $def str P7 x0=1  y0=ny z0=nz$def str P8 x0=nx y0=ny z0=nz$def str P9 x0=xc y0=yc z0=zc$def str p1 1  ,1  ,1 $def str p2 nx ,1  ,1 $def str p3 1  ,1  ,nz$def str p4 nx ,1  ,nz$def str p5 1  ,ny ,1 $def str p6 nx ,ny ,1 $def str p7 1  ,ny ,nz$def str p8 nx ,ny ,nz$def str p9 xc ,yc ,zc$def real V1 0$def real V2 0$def real V3 0$def real V4 0$def real V5 0$def real V6 0$def real V7 0$def real V8 0$def real V9 0$def real T1 0$def real T2 0$def real T3 0$def real T4 0$def real T5 0$def real T6 0$def real T7 0$def real T8 0$def real T9 0$def long t_screen 200$def long t_file 2000$def long t_dump 10000$def long t_end 40000$def real T 0$def real begin 0$def real stim 0$def real screentime 0$def real filetime 0$def real dumptime 0$def real end 0$
+k_func when="always"! nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="timing" pgm={
+} $
+dump when="dumptime" nowhere=0! x0=1! x1=201! y0=1! y1=71! z0=1! z1=31! v0=0 v1=18 row0=0! row1=0! col0=0! col1=0! color=15! name="dump"! append=0! file="0.1_0.005.dat.dir/dump.dat" $
+k_func when="begin" nowhere=0! x0=1! x1=201! y0=1! y1=71! z0=1! z1=31! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="initial" pgm={
+u0=	-85.23;
+u1=	0.000126;
+u2=	3.64;
+u3=	0.00036;
+u4=	8.604;
+u5=	136.89;
+u6=		0.00172;
+u7=		0.7444;
+u8=		0.7045;
+u9=	0.00621;
+u10=	0.4712;
+u11=	0.0095;
+u12=		2.42e-8;
+u13=		0.999998;
+u14=		3.373e-5;
+u15=		0.7888;
+u16=	0.9755;
+u17=	0.9953;
+u18=	0.9073;
+} $
+diff when="always"! nowhere=0! x0=1! x1=201! y0=1! y1=71! z0=1! z1=31! v0=0 v1=19 row0=0! row1=0! col0=0! col1=0! color=15! name="diff"! Dpar=0.0952984 Dtrans=0.0125758 hx=0.1 $
+k_func when="stim" nowhere=0! x0=1 x1=15 y0=1 y1=15 z0=1 z1=15 v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="k_func"! pgm={
+u19=u19+Istim;
+} $
+euler when="always"! nowhere=0! x0=1! x1=201! y0=1! y1=71! z0=1! z1=31! v0=0 v1=18 row0=0! row1=0! col0=0! col1=0! color=15! name="euler"! ht=0.005 ode="ttp06" par={
+Ko=5.4! Cao=2! Nao=140! Vc=0.016404! Vsr=0.001094! Vss=5.468e-05! Bufc=0.2! Kbufc=0.001! Bufsr=10! Kbufsr=0.3! Bufss=0.4! Kbufss=0.00025! Vmaxup=0.006375! Kup=0.00025! Vrel=0.102! k1_=0.15! k2_=0.045! k3=0.06! k4=0.005! EC=1.5! maxsr=2.5! minsr=1! Vleak=0.00036! Vxfer=0.0038! R=8314.47! F=96485.3! T=310! RTONF=26.7138! CAPACITANCE=0.185! Gkr=0.153! pKNa=0.03! Gks=0.392! GK1=5.405! Gto=0.294! GNa=14.838! GbNa=0.00029! KmK=1! KmNa=40! knak=2.724! GCaL=3.98e-05! GbCa=0.000592! knaca=1000! KmNai=87.5! KmCa=1.38! ksat=0.1! n=0.35! GpCa=0.1238! KpCa=0.0005! GpK=0.0146! IV=@19 ht=0.005 } rest=0! 
+/* Resting state: -86.2 7e-05 1.3 7e-05 7.67 138.3 0 0.75 0.75 0 1 0 0 1 0 1 1 1 1 */$
+
+Unknown device name activation
+Error occurred in input file "benchmark.bbs" command "activation" ending at line 174 pos 57
+Failure in reading input file
+
+TIMING INFO:
+This run took 1.205518 seconds.
+
+
+BeatBox 1.1 finished at t=0 by device 0 "init"
+Wed Feb 13 21:03:47 2013
+======================================================

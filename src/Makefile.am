@@ -1,0 +1,213 @@
+# If this file is modified you need to run:
+#
+# autoreconf --install
+#
+# To propagate the changes to the Makefile.in files.
+#
+
+#common_cppflags = -g
+GSL = gsl-1.16.extract
+SUBDIRS = $(GSL)
+
+bin_PROGRAMS = Beatbox Beatbox_SEQ
+Beatbox_CPPFLAGS = -D MPI -D NO_TMPFILES ${common_cppflags} -I$(builddir)/$(GSL)
+Beatbox_LDADD = ${LDFLAGS}
+Beatbox_LDADD +=  $(GSL)/.libs/libgsl.a $(GSL)/cblas/.libs/libgslcblas.a
+Beatbox_SEQ_LDADD = ${Beatbox_LDADD}
+Beatbox_SEQ_CPPFLAGS = ${common_cppflags} -I$(builddir)/$(GSL)/
+
+common_sources = \
+	beatbox.c beatbox.h \
+	activation.c \
+	ap.c \
+        AP.on \
+	b02.c \
+        B02.on \
+	bgi.c \
+	bgi.h \
+	bikt.c \
+	bikt.h \
+	hh52.c hh52_other.h hh52_tgate.h hh52_par.h hh52_ftab.h\
+	hh52m.c hh52m_ik.h hh52m_ina.h\
+	br77.c br77_fddt.h br77_ftab.h br77_fun.h br77_ngate.h br77_other.h br77_par.h br77_tgate.h  br77_const.h\
+	byte.c \
+	byte.h \
+	bzoregon.c \
+	bzr.c \
+        BZ.on \
+	cgle.c \
+        CGLE.on \
+	cglel.c \
+	cglep.c \
+	channel.h \
+	chrecruit.c \
+	chrecruitpar.h \
+	chrecruitvar.h \
+	chtb.c \
+	chtbpar.h \
+	chtbvar.h \
+	clock.c \
+	crn98.c crn98_fun.h  crn98_ngate.h crn98_other.h crn98_par.h crn98_tgate.h crn98_const.h crn98_ftab.h crn98_fddt.h \
+	crn.c crn_par.h crn_step.h crn_var.h crnach.on \
+	crnach.c crnach_par.h crnach_step.h crnach_var.h \
+	ctlpoint.c \
+	ctlpoint.h \
+	d_dt.c \
+	device.c \
+	device.h \
+	devlist.h \
+	diff.c \
+	diff2dv.c \
+	diff3dv.c \
+	diffstep.c \
+	displayName.h \
+	dump.c \
+	dump_types.h \
+	dynamic.c \
+	dynamic.h \
+	ecg.c \
+	elliptic.c \
+	error.h \
+	euler.c \
+	extern.h \
+	fhncub.c \
+	FHNBKL.on \
+	fhnbkl.c \
+	fhncubpar.c \
+        FHNCUB.on \
+	fk.c \
+        FK.on \
+	fk.h \
+	FKMOD.on \
+	fkmod.c \
+	fkmod.h \
+	flow2d.c \
+	front.c \
+        FRONT.on \
+	geometry.c \
+	geometry.h \
+	gpcell.c \
+	gpcell.h \
+        gpc_var.h \
+	gpv_cur.h \
+	gpv_par.h \
+	gpv_un.h \
+	gpv_var.h \
+	grad2d.c \
+	ha.c \
+        HA.on \
+	ha_cur.h \
+	ha_par.h \
+	ha_un.h \
+	ha_var.h \
+	hh.c \
+        HH.on \
+	hh.h \
+	init.c init.h \
+	ionic.h ioniclist.h \
+	channel.h\
+	k_.c \
+	k_.h \
+	k_calc.h \
+	k_code.h \
+	k_comp.c \
+	k_comp.h \
+	k_def.h \
+	k_errors.h \
+	k_exec.c \
+	k_exec.h \
+	k_expr.h \
+	k_free.h \
+	k_func.c \
+	k_poincare.c \
+	k_print.c \
+	load.c \
+	lrd.c \
+        LRD.on \
+	lrd_par.h \
+	lrd_step.h \
+	lrd_var.h \
+	mchtb.c \
+	mchtb.h \
+	mchtbpar.h \
+	mchtbvar.h \
+	mpi_io_choice.h \
+	n62.c \
+        N62.on \
+	n62.h \
+	noble.c \
+        NOBLE.on \
+	noble.h \
+	noble2.c \
+	noble2.h \
+	noblecns.h \
+	nobleft1.h \
+	nobleft2.h \
+	nobleft3.h \
+	nobleftn.c \
+	nobleftn.h \
+	nobleglb.h \
+	nobleini.h \
+	nobleloc.h \
+	noblen.c \
+	noblen.h \
+	noblest2.c \
+	noblest2.h \
+	noblestu.c \
+	noblestu.h \
+	noble_gbk.c \
+	on.h \
+	ord.c ord.on ord_par.h ord_step.h ord_init.h \
+	p2clib.c p2c.h \
+	pause.c \
+	pipe.c pipe.h \
+        PLANKTON.on \
+	poincare.c \
+	ppmout.c \
+	qpp.c qpp.h \
+	record.c \
+	skrecord.c \
+	reduce.c \
+	rhs.h rhslist.h \
+	rk4.c \
+	rushlarsen.c \
+	sample.c \
+	scr.h \
+	screen.c screen.h \
+	singz.c \
+	sequence.c sequence.h \
+	shell.c \
+	state.c state.h \
+	stop.c \
+	system.c system.h \
+	tb.c tbpar.h tbvar.h \
+	ttnp.c ttnp.on ttnp_par.h ttnp_step.h ttnp_init.h ttnnp04.c ttnnp04_par.h ttnnp04_var.h ttnnp04_step.h ttnnp04.on\
+	ttp06.c  ttp06.on ttp06_par.h ttp06_step.h ttp06_var.h\
+	ttp2006.c ttp2006_const.h ttp2006_fddt.h ttp2006_ftab.h ttp2006_fun.h ttp2006_ngate.h ttp2006_other.h ttp2006_par.h ttp2006_tgate.h\
+	trivial.c\
+	update.c \
+	vtkout2.c \
+	windraw.c \
+	windraw.h \
+        ZEEMAN.on \
+	zeeman.c \
+	zfk.c ZFK.on \
+	mouse.c  mouse_init.h  mouse_par.h  mouse_step.h  mouse.on \
+	mousevent.c  mousevent_init.h  mousevent_par.h  mousevent_step.h  mousevent.on
+
+Beatbox_SOURCES = \
+	${common_sources} \
+	decomp.c \
+	decomp.h
+
+Beatbox_SEQ_SOURCES = \
+	${common_sources} \
+	adi3d.c \
+	imgout.c \
+	k_clock.c \
+	k_draw.c \
+	k_imgout.c \
+	k_paint.c \
+	k_paintgl.c \
+	k_plot.c \
+	screen_dump.c

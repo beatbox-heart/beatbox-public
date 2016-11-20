@@ -1,0 +1,121 @@
+/* Beatbox example bbs script for FHN 1D simulation to demonstrate the load device.
+ */
+
+// Include the file fhn.par with input parameters.
+<fhn.par>
+
+def int nx 100; // the size of 1D strand
+
+// The size of the model is xmax*ymax*zmax*vmax, where vmax=3 is the number 
+// of the reserved dynamical variables: 
+// 2 dynamical variables for the FHN model + 1 dynamical variable reserved 
+// for the Laplacian.
+/* The size of the model is xmax*ymax*zmax*vmax 
+ * where vmax is the number of dynamical variables in the cell model of ODEs. 
+ * xmax=1, ymax=1, zmax=1 represents a cell (OD) model, while 
+ * all other values of xmax, ymax, zmax represent tissue models. 
+ */ 
+state xmax=nx+2 ymax=1 zmax=1 vmax=3; // Set up the simulation box for Beatbox.
+
+// Get the pacelength from the file fhn0.rec.
+def real pacelength `wc fhn0.rec | awk '{print $1}'`;
+
+// Define the timing variables:
+/* Declare global timing variables. In general: 
+ * begin is for when the simulation begins, 
+ * often, seldom, once, paceout are for output rates (see the k_func device), 
+ * end is often used in the examples to set up the stopping criterion using stop device, 
+ * stop is the variable used to indicate time for end of simulation not using the stop device. 
+ */ 
+def real begin;
+def real end;
+def real stop;
+def real paceout;
+
+// Define the output point on the 1D fiber where the state variables 
+// will be recorded.
+def real xout nx*3/4;
+
+
+// Schedule parameters:
+def real odd;
+def real even;
+def real notzero;
+
+// Use the k_func to assign values to the timing variables:
+/* Assign values to the timing parameters using Beatbox functions for 
+ * greater than (ge), less than (le), modulus (mod), etc. 
+ */ 
+k_func name=timing nowhere=1 pgm={
+	begin   = eq(t,0);
+	odd     = eq(mod(t,2),1);
+	even    = eq(mod(t,2),0);
+	notzero = gt(t,0);
+};
+
+// Define a sample point for the dynamical variable u at xout. 
+/* Allocation of layers to the state varables. */ 
+def str samplepoint x0=xout x1=xout y0=0 y1=0 z0=0 z1=0 v0=[u];
+
+/* Load a state using the load device */
+load when=begin v0=0 v1=2 file=fhn1.dmp;
+
+// Computations
+// Compute the Laplacian
+/* Compute the Laplacian. */ 
+diff v0=0 v1=2 hx=hx D=D;
+
+// Update the time step using the Laplacian stored at Iu=@2.
+/* Computation of 1 time step update. 
+ * In spatial simulations, the Laplacian is stored at Iu=@vmax. 
+ */ 
+euler name=ode1 v0=0 v1=1 ht=ht ode=fhncub rest=50
+       par={eps=eps bet=bet gam=gam Iu=@2};
+
+// Output the timing parameters.
+def real front;
+def real tfront;
+def int nfront;
+
+// Look for positive crossing of umid at [samplepoint]. 
+// Counting the propagations.
+def real oddsample;
+def real evensample;
+reduce [samplepoint] when=odd  name=odd  operation=max result=oddsample;
+reduce [samplepoint] when=even name=even operation=max result=evensample;
+def real oddcross;
+def real evencross;
+def real o;
+def real e;
+k_func name=poinc when=notzero nowhere=1 pgm={
+	o = oddsample;
+	e = evensample;
+	oddcross = (odd  * lt(evensample,umid) * gt(oddsample, umid));
+	evencross = (even * lt(oddsample, umid) * gt(evensample,umid));
+	front =	 oddcross + evencross;
+	tfront = if(front,t,tfront);
+};
+
+// The front counts.
+k_func name=count when=front nowhere=1 debug=stdout pgm={
+	nfront=nfront+1;
+	paceout=eq(nfront,5);
+	end=gt(nfront,5);
+};
+
+k_func when=end nowhere=1 pgm={
+	stop=eq(stop,0)*eq(end,1);
+};
+
+// Output the record of dynamical variables u and v at the "samplepoint" 
+// at the instant "paceout" into the file fhn1.rec.
+/* Record all or sampled variables in your simulation. */ 
+record when=paceout file=[0].rec append=0 [samplepoint] v1=[v];
+
+// Dump into the file fhn1.dmp.
+/* Dump all state variables from all nodes into a binary file for future use. */ 
+dump append=0 file=[0].dmp;
+
+/* Stopping criterion. This is mandatory.*/ 
+stop when=end;
+end;

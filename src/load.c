@@ -1,0 +1,184 @@
+/**
+ * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * (see ../AUTHORS for the full list of contributors)
+ *
+ * This file is part of Beatbox.
+ *
+ * Beatbox is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Beatbox is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+/* 
+ * Load contents of a 4D subset from a binary file
+ */
+
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "system.h"
+#include "beatbox.h"
+#include "bikt.h"
+#include "state.h"
+#include "device.h"
+#include "qpp.h"
+#include "mpi_io_choice.h"
+
+typedef struct {
+	char filename[MAXPATH];
+#if MPI
+	MPI_File file;
+	MPI_Datatype sourceType;
+#else
+	FILE *file;
+#endif
+	int rewind;
+} STR;
+
+/* "Respectful" alias, to tell apart from eponymous parameter */
+void (*Rewind) (FILE *stream) = rewind;
+ 
+RUN_HEAD(load)
+#if MPI
+	DEVICE_CONST(MPI_File, file)
+	DEVICE_CONST(MPI_Datatype, sourceType)
+	DEVICE_CONST(int, rewind)
+	if (!file) return 1;
+	
+	/*  Can I get a rewind? */
+	if(rewind) MPI_File_seek(file,0,MPI_SEEK_SET);
+	
+	if(blocking_or_contiguous==0)
+	mpi_errno = MPI_File_read(file, New, 1, sourceType, MPI_STATUS_IGNORE);
+	else
+	mpi_errno = MPI_File_read_all(file, New, 1, sourceType, MPI_STATUS_IGNORE); // in the hope that the read works the same as the write!
+
+	CHECK_MPI_SUCCESS("Couldn't read from file.")
+	
+#else /*  Sequential Version */
+	DEVICE_CONST(FILE *,file)
+	DEVICE_CONST(int, rewind)
+	int x, y, z, v;
+	if (!file) return 1;
+	if (rewind) Rewind(file);
+	if (s.x0==0 && s.x1==xmax-1 && s.y0==0 && s.y1==ymax-1 && s.z0==0 && s.z1==zmax-1 && s.v0==0 && s.v1==vmax-1){
+		fread(New,sizeof(real),xmax*ymax*zmax*vmax,file);
+	}else{
+		for(x=s.x0;x<=s.x1;x++){
+			for(y=s.y0;y<=s.y1;y++){
+				for(z=s.z0;z<=s.z1;z++){
+					for(v=s.v0;v<=s.v1;v++){
+						fread(New+ind(x,y,z,v),sizeof(real),1,file);
+					}
+				}
+			}
+		}
+	}
+#endif	
+RUN_TAIL(load)
+
+DESTROY_HEAD(load)
+#if MPI
+	if(s.runHere){ /*  No file to close if the device isn't active. */
+		if(S->file){
+			MPI_File_close(&(S->file));
+			S->file = NULL;
+		}
+	}
+#else
+	if (S->file) fclose(S->file); S->file=NULL;
+#endif
+DESTROY_TAIL(load)
+
+long load_file_size,  field_size;
+
+CREATE_HEAD(load)
+
+	ACCEPTI(rewind,0,0,1);
+	
+#if MPI /*  Prepare for collective reading. */
+
+	/*  File */
+	MPI_File file;
+	MPI_Offset filesize;
+
+	/*  Communicator for active dump instances. */
+	MPI_Comm comm_load;
+	
+	if (!deviceCommunicator(dev->s.runHere, &comm_load))
+	  ABORT("Could not create communicator.\n");
+
+	/*  Set up the file	 */
+	if(dev->s.runHere){ /*  Active devices only!	 */
+		
+		/*	Only define types on active instances,
+		 *	as inactive instances will give invalid
+		 *	subarray dimensions. */
+		#include "dump_types.h"
+		
+		/*  Get filename */
+		if (!accepts("file=",&(S->filename[0]),NULL,w)) return(0);
+		
+		field_size = (dev->s.v1-dev->s.v0+1)
+				   * (dev->s.global_x1-dev->s.global_x0+1)
+				   * (dev->s.global_y1-dev->s.global_y0+1)
+				   * (dev->s.global_z1-dev->s.global_z0+1);
+		
+		/*  Open file and set view */
+		mpi_errno = MPI_File_open(comm_load, S->filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
+		mpi_errno = MPI_File_set_view(file, 0, MPI_DOUBLE, filetype, "native", MPI_INFO_NULL);
+		
+		if(MPI_File_seek(file, 0, MPI_SEEK_END) != MPI_SUCCESS){
+		  ABORT("Process %d could not find end of file %s",mpi_rank, S->filename);
+		}
+		
+		MPI_File_seek(file,0,MPI_SEEK_SET); /*  Equivalent to rewind() */
+		
+		MPI_File_get_size(file, &filesize);
+		if(filesize == 0){
+			MESSAGE("/* WARNING empty file %s */",S->filename);
+		}
+		
+		if(filesize%field_size!=0) MESSAGE(
+		  "/* WARNING field size %ld is not divisor of file size %ld %s */",
+		  field_size, 
+		  filesize,
+		  S->filename
+		);
+		
+		/*  Assign file to the parameter structure. */
+		S->file = file;
+		S->sourceType = sourceType;
+	}
+	
+#else /*  Sequential Version */
+	ACCEPTF(file,"rb",NULL);
+	
+	field_size = (dev->s.v1-dev->s.v0+1)
+			   * (dev->s.x1-dev->s.x0+1)
+			   * (dev->s.y1-dev->s.y0+1)
+			   * (dev->s.z1-dev->s.z0+1);
+	ASSERT(field_size>0);
+	
+	if (0!=fseek(S->file,0,SEEK_END)) ABORT("could not find end of file %s",S->filename);
+	load_file_size=ftell(S->file);
+	MESSAGE("/* size of %s is %ld */",S->filename,load_file_size);
+	Rewind(S->file);
+	if(load_file_size==0) MESSAGE("/* WARNING empty file %s */",S->filename);
+	if(load_file_size%field_size!=0) MESSAGE(
+	  "/* WARNING field size %ld is not divisor of file size %ld %s */",
+	  field_size, 
+	  load_file_size
+	);
+#endif
+CREATE_TAIL(load,0)

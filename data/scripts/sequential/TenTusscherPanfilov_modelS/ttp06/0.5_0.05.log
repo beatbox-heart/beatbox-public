@@ -1,0 +1,198 @@
+#! BeatBox 1.2 Sequential version compiled Feb 13 2013 21:04:12
+#------------------------------------------------------------------------------------
+execution begin at Wed Feb 13 21:08:20 2013 $
+Input file benchmark.bbs with additional arguments "0.5.bbg" "0.5" "0.05" "0.5_0.05.dat" $
+with options: noappend nodebug graph noprofile verbose logname=0.5_0.05.log
+def int narg 4$def str 0 benchmark$def str 1 0.5.bbg$def str 2 0.5$def str 3 0.05$def str 4 0.5_0.05.dat$def str geom 0.5.bbg$def real hx 0.5$def real ht 0.05$def str out 0.5_0.05.dat$def str outdir 0.5_0.05.dat.dir$def str Volt 0$def str Cai 1$def str CaSR 2$def str CaSS 3$def str Nai 4$def str Ki 5$def str M 6$def str H 7$def str J 8$def str Xr1 9$def str Xr2 10$def str Xs 11$def str R 12$def str S 13$def str D 14$def str F 15$def str F2 16$def str FCass 17$def str RR 18$def int vmin 0$def int vmax 18$def str i 19$def str p 20$def str a 21$def real Vact 0$def real chi 140$def real Cm 0.01$def real sigmaix 0.17$def real sigmaiy 0.019$def real sigmaex 0.62$def real sigmaey 0.24$def real sigmax 0.133418$def real sigmay 0.0176062$def real Dx 0.0952984$def real Dy 0.0125758$def real Dmax 0.0952984$def real Astim 50$def real Istim 35.7143$def real Xstim 1.5$def real xstim 3$def real Tstim 2$def real tstim 40$
+state geometry="0.5.bbg" anisotropy=1 normaliseVectors=0! 	Using geometry from 0.5.bbg.
+	Anisotropy is on.
+vmax=22 	Simulation medium (43 x 17 x 9)
+	Loading geometry data...done.
+$
+shell when="never" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="shell"! advance=1 echo="1" cmd="mkdir 0.5_0.05.dat.dir" code="t"! t=0 shell returned code 256
+$
+def int nx 41$def int ny 15$def int nz 7$def int xc 21$def int yc 8$def int zc 4$def str P1 x0=1  y0=1  z0=1 $def str P2 x0=nx y0=1  z0=1 $def str P3 x0=1  y0=1  z0=nz$def str P4 x0=nx y0=1  z0=nz$def str P5 x0=1  y0=ny z0=1 $def str P6 x0=nx y0=ny z0=1 $def str P7 x0=1  y0=ny z0=nz$def str P8 x0=nx y0=ny z0=nz$def str P9 x0=xc y0=yc z0=zc$def str p1 1  ,1  ,1 $def str p2 nx ,1  ,1 $def str p3 1  ,1  ,nz$def str p4 nx ,1  ,nz$def str p5 1  ,ny ,1 $def str p6 nx ,ny ,1 $def str p7 1  ,ny ,nz$def str p8 nx ,ny ,nz$def str p9 xc ,yc ,zc$def real V1 0$def real V2 0$def real V3 0$def real V4 0$def real V5 0$def real V6 0$def real V7 0$def real V8 0$def real V9 0$def real T1 0$def real T2 0$def real T3 0$def real T4 0$def real T5 0$def real T6 0$def real T7 0$def real T8 0$def real T9 0$def long t_screen 20$def long t_file 200$def long t_dump 1000$def long t_end 4000$def real T 0$def real begin 0$def real stim 0$def real screentime 0$def real filetime 0$def real dumptime 0$def real end 0$
+k_func when="always"! nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="timing" pgm={
+} $
+dump when="dumptime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0 v1=18 row0=0! row1=0! col0=0! col1=0! color=15! name="dump"! append=0! file="0.5_0.05.dat.dir/dump.dat" $
+k_func when="begin" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="initial" pgm={
+u0=	-85.23;
+u1=	0.000126;
+u2=	3.64;
+u3=	0.00036;
+u4=	8.604;
+u5=	136.89;
+u6=		0.00172;
+u7=		0.7444;
+u8=		0.7045;
+u9=	0.00621;
+u10=	0.4712;
+u11=	0.0095;
+u12=		2.42e-8;
+u13=		0.999998;
+u14=		3.373e-5;
+u15=		0.7888;
+u16=	0.9755;
+u17=	0.9953;
+u18=	0.9073;
+} $
+diff when="always"! nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0 v1=19 row0=0! row1=0! col0=0! col1=0! color=15! name="diff"! Dpar=0.0952984 Dtrans=0.0125758 hx=0.5 $
+k_func when="stim" nowhere=0! x0=1 x1=3 y0=1 y1=3 z0=1 z1=3 v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="k_func"! pgm={
+u19=u19+Istim;
+} $
+euler when="always"! nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0 v1=18 row0=0! row1=0! col0=0! col1=0! color=15! name="euler"! ht=0.05 ode="ttp06" par={
+Ko=5.4! Cao=2! Nao=140! Vc=0.016404! Vsr=0.001094! Vss=5.468e-05! Bufc=0.2! Kbufc=0.001! Bufsr=10! Kbufsr=0.3! Bufss=0.4! Kbufss=0.00025! Vmaxup=0.006375! Kup=0.00025! Vrel=0.102! k1_=0.15! k2_=0.045! k3=0.06! k4=0.005! EC=1.5! maxsr=2.5! minsr=1! Vleak=0.00036! Vxfer=0.0038! R=8314.47! F=96485.3! T=310! RTONF=26.7138! CAPACITANCE=0.185! Gkr=0.153! pKNa=0.03! Gks=0.392! GK1=5.405! Gto=0.294! GNa=14.838! GbNa=0.00029! KmK=1! KmNa=40! knak=2.724! GCaL=3.98e-05! GbCa=0.000592! knaca=1000! KmNai=87.5! KmCa=1.38! ksat=0.1! n=0.35! GpCa=0.1238! KpCa=0.0005! GpK=0.0146! IV=@19 ht=0.05 } rest=0! 
+/* Resting state: -86.2 7e-05 1.3 7e-05 7.67 138.3 0 0.75 0.75 0 1 0 0 1 0 1 1 1 1 */$
+activation when="always"! nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0 v1=21 row0=0! row1=0! col0=0! col1=0! color=15! name="activation"! threshold=0 sign=1 vd=20 $
+sample when="always" nowhere=0! x0=1 x1=41! y0=1 y1=15! z0=1 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V1" $
+sample when="always" nowhere=0! x0=41 x1=41! y0=1 y1=15! z0=1 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V2" $
+sample when="always" nowhere=0! x0=1 x1=41! y0=1 y1=15! z0=7 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V3" $
+sample when="always" nowhere=0! x0=41 x1=41! y0=1 y1=15! z0=7 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V4" $
+sample when="always" nowhere=0! x0=1 x1=41! y0=15 y1=15! z0=1 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V5" $
+sample when="always" nowhere=0! x0=41 x1=41! y0=15 y1=15! z0=1 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V6" $
+sample when="always" nowhere=0! x0=1 x1=41! y0=15 y1=15! z0=7 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V7" $
+sample when="always" nowhere=0! x0=41 x1=41! y0=15 y1=15! z0=7 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V8" $
+sample when="always" nowhere=0! x0=21 x1=41! y0=8 y1=15! z0=4 z1=7! v0=0 v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="sample"! result="V9" $
+def real act 0$
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+k_poincare when="always" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_poincare"! pgm={
+} which=0 sign=1 $
+def real Vmin -87$def real Vmax 17$def real Vmid -35$def real fmin 0.2$def real fmax 0.67$def real fmid 0.435$def real xrmin 0.25$def real xrmax 0.93$def real xrmid 0.59$def real amin 0$def real amax 2560$def real amid 1280$def int grain 14$def int col0 10$def int col1 586$def int row0 30$def int row1 242$def int row2 252$def int row3 464$def str win1 col0=col0 col1=col1 row0=row0 row1=row1 color=15*16+15$def str win2 col0=col0 col1=col1 row0=row2 row1=row3 color=15*16+15 N=nx lines=1 linewidth=3$
+screen XMAX=596 YMAX=474 WINX=-10 WINY=10 online=0! $
+clock when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=1 row1=0! col0=1 col1=0! color=15 name="clock"! $
+k_clock when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=1 row1=0! col0=10 col1=0! color=15 name="k_clock"! format="T=%.3f" code="T" $
+def str aslant abs,ord,nz*(abs*0.5/nx+ord*0.5/ny)$
+k_paint when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=30 row1=242 col0=10 col1=586 color=255 name="k_paint"! pgm={
+col=
+  LIGHTRED*ge(u(abs,ord,nz*(abs*0.5/nx+ord*0.5/ny),0),Vmid )+
+     GREEN*ge(u(abs,ord,nz*(abs*0.5/nx+ord*0.5/ny),15   ),fmid )+
+      BLUE*ge(u(abs,ord,nz*(abs*0.5/nx+ord*0.5/ny),21   ),amid)
+;
+} nabs=41 absmin=0! absmax=40! nord=15 ordmin=0! ordmax=14! appmin=0! appmax=0! append=1! ver=0! file="null"! $
+def str along_diag 1+abs,1+abs*(ny-1)*1.0/(nx-1),1+abs*(nz-1)*1.0/(nx-1)$
+k_plot when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=252 row1=464 col0=10 col1=586 color=255 name="k_plot"! pgm={
+ord=u(1+abs,1+abs*(ny-1)*1.0/(nx-1),1+abs*(nz-1)*1.0/(nx-1),0);
+col=LIGHTRED;
+} lines=1 linewidth=3 clean=1 N=41 absmin=0! absmax=40! ordmin=-87 ordmax=17 $
+k_plot when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=252 row1=464 col0=10 col1=586 color=255 name="k_plot"! pgm={
+ord=u(1+abs,1+abs*(ny-1)*1.0/(nx-1),1+abs*(nz-1)*1.0/(nx-1),15);
+col=LIGHTGREEN;
+} lines=1 linewidth=3 clean=0 N=41 absmin=0! absmax=40! ordmin=0.2 ordmax=0.67 $
+k_plot when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=252 row1=464 col0=10 col1=586 color=255 name="k_plot"! pgm={
+ord=u(1+abs,1+abs*(ny-1)*1.0/(nx-1),1+abs*(nz-1)*1.0/(nx-1),9);
+col=LIGHTBLUE;
+} lines=1 linewidth=3 clean=0 N=41 absmin=0! absmax=40! ordmin=0.25 ordmax=0.93 $
+update when="screentime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="update"! $
+ppmout when="filetime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="ppmout"! append=0! file="0.5_0.05.dat.dir/%06d.ppm" file="0.5_0.05.dat.dir/%06d.ppm",0="0.5_0.05.dat.dir/000000.ppm" r=0 r0=-87 r1=17 g=15 g0=0.2 g1=0.67 b=21 b0=0 b1=2560 bgr=255! bgg=255! bgb=255! $
+imgout when="filetime" nowhere=0! x0=1 x1=41 y0=1 y1=15 z0=4 z1=4 v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="imgout"! filter="pnmflip -tb | pnmtopng > 0.5_0.05.dat.dir/c%06.0f.png" code="T" r=0 g=15 b=21 autoscale=0! r0=-87 r1=17 g0=0.2 g1=0.67 b0=0 b1=2560 bgr=255! bgg=255! bgb=255! $
+def str askew 1+i,1+j,1+(nz-1)*(i*0.5/(nx-1)+j*0.5/(ny-1))$
+k_imgout when="filetime" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="k_imgout"! filter="pnmflip -tb | pnmtopng > 0.5_0.05.dat.dir/a%06.0f.png" filtercode="t*ht" width=41 height=15 pgm={
+r=(u(1+i,1+j,1+(nz-1)*(i*0.5/(nx-1)+j*0.5/(ny-1)),0)-Vmin)/(Vmax-Vmin);
+g=(u(1+i,1+j,1+(nz-1)*(i*0.5/(nx-1)+j*0.5/(ny-1)),15)-fmin)/(fmax-fmin);
+b=(u(1+i,1+j,1+(nz-1)*(i*0.5/(nx-1)+j*0.5/(ny-1)),21)-amin)/(amax-amin);
+} $
+k_print when="end" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_print"! append=1! file="stdout" N=1! list={
+
+ T1;
+ T2;
+ T3;
+ T4;
+ T5;
+ T6;
+ T7;
+ T8;
+ T9;} valuesep="	" fieldsep=" "! recordsep="
+"! $
+k_print when="end" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_print"! append=0 file="0.5_0.05.dat" N=1! list={
+
+ T1;
+ T2;
+ T3;
+ T4;
+ T5;
+ T6;
+ T7;
+ T8;
+ T9;} valuesep="	" fieldsep=" "! recordsep="
+"! $
+k_print when="end" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_print"! append=1! file="stdout" N=1! list={
+
+ 
+  ht*u(1  ,1  ,1 ,21);
+ ht*u(nx ,1  ,1 ,21);
+ ht*u(1  ,1  ,nz,21);
+ 
+  ht*u(nx ,1  ,nz,21);
+ ht*u(1  ,ny ,1 ,21);
+ ht*u(nx ,ny ,1 ,21);
+ 
+  ht*u(1  ,ny ,nz,21);
+ ht*u(nx ,ny ,nz,21);
+ ht*u(xc ,yc ,zc,21)
+;} valuesep="	" fieldsep=" "! recordsep="
+"! $
+k_print when="end" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_print"! append=0 file="0.5_0.05.dat.other" N=1! list={
+
+ 
+  ht*u(1  ,1  ,1 ,21);
+ ht*u(nx ,1  ,1 ,21);
+ ht*u(1  ,1  ,nz,21);
+ 
+  ht*u(nx ,1  ,nz,21);
+ ht*u(1  ,ny ,1 ,21);
+ ht*u(nx ,ny ,1 ,21);
+ 
+  ht*u(1  ,ny ,nz,21);
+ ht*u(nx ,ny ,nz,21);
+ ht*u(xc ,yc ,zc,21)
+;} valuesep="	" fieldsep=" "! recordsep="
+"! $
+k_imgout when="end" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="k_imgout"! filter="pnmflip -tb > 0.5_0.05.dat.dir/activation.ppm" filtercode="t"! width=41 height=15 pgm={
+r=u(1+i,1+j,1+(nz-1)*(i*0.5/(nx-1)+j*0.5/(ny-1)),21)*ht/128.0;
+g=r;
+b=r;
+} $
+def int Np 200$def real Lx 20$def real Ly 7$def real Lz 3$def real Ls 21.4009$def real ds 0.107542$def real dx 0.201005$def real dy 0.0703518$def real dz 0.0301508$
+k_print when="end" nowhere=1 row0=0! row1=0! col0=0! col1=0! color=15! name="k_print"! append=1! file="0.5_0.05.dat.dir/actdiag.txt" N=200 list={
+
+ i*ds;
+  u(1+i*dx,1+i*dy,1+i*dz,21)*ht;} valuesep="	" fieldsep="
+" recordsep="
+"! $
+stop when="end" nowhere=0! x0=1! x1=41! y0=1! y1=15! z0=1! z1=7! v0=0! v1=0! row0=0! row1=0! col0=0! col1=0! color=15! name="stop"! $
+end of input file $
+Loop of 43 devices created:
+   (0)shell (1)timing (2)dump (3)initial (4)diff
+   (5)k_func (6)euler (7)activation (8)sample (9)sample
+   (10)sample (11)sample (12)sample (13)sample (14)sample
+   (15)sample (16)sample (17)k_poincare (18)k_poincare (19)k_poincare
+   (20)k_poincare (21)k_poincare (22)k_poincare (23)k_poincare (24)k_poincare
+   (25)k_poincare (26)clock (27)k_clock (28)k_paint (29)k_plot
+   (30)k_plot (31)k_plot (32)update (33)ppmout (34)imgout
+   (35)k_imgout (36)k_print (37)k_print (38)k_print (39)k_print
+   (40)k_imgout (41)k_print (42)stop $
+STOP AT 4000[0]
+
+
+TIMING INFO:
+This run took 43.509596 seconds.
+
+
+BeatBox 1.2 finished at t=4000 by device 42 "stop"
+Wed Feb 13 21:09:05 2013
+======================================================
