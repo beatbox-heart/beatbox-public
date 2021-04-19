@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -33,10 +33,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "ttnnp04.on"
-
-#if TTNNP04
-
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -130,5 +126,3 @@ RHS_HEAD(ttnnp04,N) {
   #undef _
 
 } RHS_TAIL(ttnnp04)
-
-#endif /* TRTNP */

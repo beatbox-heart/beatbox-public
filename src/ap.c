@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* Aliev & Panfilov 2-var model of cardiac AP
  * CSF 7(3):293-301, 1996
  */
@@ -29,9 +28,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "AP.on"
-
-#if AP
 
 #include "device.h"
 #include "state.h"
@@ -68,5 +64,3 @@ RHS_CREATE_HEAD(ap) {
   ACCEPTP(Iu ,   0,RNONE,RNONE);
   ACCEPTP(Iv ,   0,RNONE,RNONE);
 } RHS_CREATE_TAIL(ap,2)
-
-#endif

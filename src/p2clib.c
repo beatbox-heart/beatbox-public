@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -20,9 +20,6 @@
 
 #include <stdio.h>
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "system.h"
 
 #ifdef IBMPC
@@ -1105,7 +1102,3 @@ unsigned long DiskFree(unsigned char drive) {
 }*/
 
 #endif /* IBMPC */
-
-
-
-#endif /* QHEART */

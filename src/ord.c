@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -43,10 +43,6 @@ that is being coded in. The final ord.on is specific to this cell model.
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "ord.on"
-
-#if ORD
-
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -187,5 +183,3 @@ for(somelocaln=0;somelocaln<N;somelocaln++)
 */
 
 } RHS_TAIL(ord)
-
-#endif /* ORD */

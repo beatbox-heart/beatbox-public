@@ -29,9 +29,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "B02.on"
-
-#if B02
 
 #include "device.h"
 #include "state.h"
@@ -40,7 +37,7 @@
 #include "qpp.h"
 
 typedef struct {
-  real ENa, EK, tau;
+  real Em, Eh, tau;
   real IE,  Ih;
 } STR;
 
@@ -48,27 +45,25 @@ typedef struct {
 
 
 RHS_HEAD(b02,2) {
-
-  DEVICE_CONST(real,ENa)
-  DEVICE_CONST(real,EK)
-  DEVICE_CONST(real,tau)
-  DEVICE_CONST(real,IE)
-  DEVICE_CONST(real,Ih)
+  DEVICE_CONST(real,Em);
+  DEVICE_CONST(real,Eh);
+  DEVICE_CONST(real,tau);
+  DEVICE_CONST(real,IE);
+  DEVICE_CONST(real,Ih);
 
   real E = u[0];
   real h = u[1];
 
-  du[0] = theta(E-ENa)*h + IE;
-  du[1] = (theta(EK-E)-h)/tau + Ih;
+  du[0] = theta(E-Em)*h + IE;
+  du[1] = (theta(Eh-E)-h)/tau + Ih;
 
-} RHS_TAIL(b02)
+} RHS_TAIL(b02);
 
-RHS_CREATE_HEAD(b02)
-  ACCEPTP(ENa,RNONE,RNONE,RNONE);
-  ACCEPTP(EK,RNONE,RNONE,RNONE);
+RHS_CREATE_HEAD(b02) {
+  ACCEPTP(Em,1.0,RNONE,RNONE);
+  ACCEPTP(Eh,0.0,RNONE,RNONE);
   ACCEPTP(tau,RNONE,RSUCC(0.),RNONE);
-  ACCEPTP(IE,0,RNONE,RNONE);
-  ACCEPTP(Ih,0,RNONE,RNONE);
-RHS_CREATE_TAIL(b02,2)
+  ACCEPTP(IE,0.0,RNONE,RNONE);
+  ACCEPTP(Ih,0.0,RNONE,RNONE);
+} RHS_CREATE_TAIL(b02,2);
 
-#endif

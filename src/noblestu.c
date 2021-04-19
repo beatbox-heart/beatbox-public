@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -20,9 +20,7 @@
 
 #include <math.h>
 #include "beatbox.h"
-#include "NOBLE.on"
 
-#if NOBLE
 /* - how to do this on mips?
 #if MAXREAL != MAXDOUBLE && defined(NOBLE)
   #error QHEART needs double precisioni !!
@@ -1114,4 +1112,3 @@ Calls: NAISS, CAISS, IZERO
 
 
 /* End. */
-#endif

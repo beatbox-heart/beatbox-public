@@ -2,10 +2,11 @@
  * Purpose of this script: Example bbs script for 0-dimensional FHN 
  * single cell AP simulation.
  *
- * Inputs: none.
+ * Inputs: fhn.par
  *
- * Outputs: onscreen graphics if used with graphics, and a record 
- * file called fhn0.rec
+ * Outputs: 
+ *   onscreen graphics if used;
+ *   a record file called fhn0.rec.
  *
  * This bbs script demonstrates the use of the following devices:
  *
@@ -33,39 +34,33 @@
  * the cell model of ODEs. 
  */
 
+// Include the file fhn.par with common parameters.
+<fhn.par>
+
 // xmax=1, ymax=1, zmax=1 represents a cell (OD) model 
 // vmax=2 represents the number of dynamical variables in the FHN model.
 
-// Allocation of layers to the state varables: u in layer 0, v in layer 1.
-def str u 0; 
-def str v 1; 
 state xmax=1 ymax=1 zmax=1 vmax=[v]+1; // that means, vmax=1+1=2
 
 // Computational parameters
 
 // The simulation time step.
-// ht is the constant time step used by the Euler device. 
-def real ht   0.0005;
-
-// FHN model kinetics parameters beta=0.71, epsilon=0.30, gamma=0.50.
-def real eps 0.30; def real bet 0.71; // rigid rotation, positive filament tension
-//def real eps 0.20; def real bet 0.71;  // meander
-//def real eps 0.3; def real bet 0.77; // negative filament tension
-def real gam 0.50;
-
-// Expected limits of the variables, for visualization
-def real Umin -2.5; def real Umax 2.0;
-def real Vmin -1.0; def real Vmax 1.5;
+// ht0d is the constant time step used by the Euler device in this 0D simulation.
+// Note this value is 10x smaller than the "standard" one in fhn.par,
+// hence in the end we output every 10th timestep into fhn0.rec
+def real ht0d ht*0.1;
 
 // Declare the device control variables
 def real begin; // Will be non-zero at the first step of simultion.
-def real often; // Will be non-zero at the steps when the output is done.
+def real often; // Will be non-zero at the steps when the text output is done.
+def real seldom; // Will be non-zero at the steps when the graph output is done.
 def real end;   // Will be non-zero when it is time to stop. 
 
 // Use k_func to assign values to the device control variables
 k_func name=timing nowhere=1 pgm={
   begin = eq(t,0);          // 1 when t is equal to zero, 0 otherwise. 
-  often = eq(mod(t,10),0);  // 1 if t is divisible by 10, 0 otherwise.
+  often = eq(mod(t,10),0);  // look for every 10th timestep for output to fhn0.rec
+  seldom = eq(mod(t,100),0);  // 1 if t is divisible by 100, 0 otherwise.
   end   = ge(t,100000);	    // 1 if t is greater or equal than 100000, 
                             // 0 otherwise.
 };
@@ -94,7 +89,7 @@ def real chosenpulse;  // 1 during the selected pulse, 0 otherwise
 // given eps, bet, gam will be calculated and assigned, by taking 10000 
 // Euler steps for this model from some arbitrarily chosen initial 
 // conditions. 
-euler name=ode1 v0=[u] v1=[v] ht=ht ode=fhncub rest=10000 
+euler name=ode1 v0=[u] v1=[v] ht=ht0d ode=fhncub rest=10000 
       par={eps=eps bet=bet gam=gam};
 
 // Get the resting state values as global variables.
@@ -113,7 +108,7 @@ k_func name=feedback nowhere=1 pgm={
   Iu= lt(U,Ust+0.05)*lt(V,Vst+0.05)*1.0; // 1.0 if both U and V are close to 
                                          // resting state.
   pulsecount=pulsecount+gt(Iu,0);        // Increment the counter if shock.
-  chosenpulse=eq(pulsecount,4)*often;    // Check if this is the chosen pulse.
+  chosenpulse=eq(pulsecount,4)*often;    // Make fhn0.rec outputs often during chosen pulse.
   end=end+gt(pulsecount,4);              // Update the end condition: nothing 
                                          // to do after the chosen pulse.
   /* in the expression above, '+' serves as logical 'or' */
@@ -140,21 +135,21 @@ def int col0 10; def int col1 409;
 // so the "if" clause at the front disables that. 
 
 // This shows the integer step counter.
-if Graph clock   when=often color=WHITE row0=1 col0=1; 
+if Graph clock   when=seldom color=WHITE row0=1 col0=1; 
 
 // This shows real model time, the row, col coords of these are in 
 // characters, not pixels
-if Graph k_clock when=often color=WHITE row0=1 col0=21 code=t*ht 
+if Graph k_clock when=seldom color=WHITE row0=1 col0=21 code=t*ht0d 
                  format="T=%4.1f ms"; 
 
 
 // Draw the phase trajectory
-k_draw when=often
+k_draw when=seldom
   col0=col0 col1=col1 row0=row0 row1=row1 // Defines the part of the graph 
                                           // window for this output.
   color=WHITE*16+WHITE		// Colour of the "window" border.
-  absmin=Umin absmax=Umax	// Limits for the abscissa	
-  ordmin=Vmin ordmax=Vmax	//   and for the ordinate of the plot.
+  absmin=umin absmax=umax	// Limits for the abscissa	
+  ordmin=vmin ordmax=maxv	//   and for the ordinate of the plot.
   lines=0.5			// Join the dots unless jump for 1/2 of the 
                                 // window or more.	
   pgm={				// Program that defines the drawing algorithm.
@@ -163,12 +158,12 @@ k_draw when=often
   abs=U;			// Abscissa is the U variable.
   ord=V;			// Ordinate is the V variable.
   };
-update when=often;  // This signals that the graphics output buffer is 
+update when=seldom;  // This signals that the graphics output buffer is 
                     // flushed to the screen.
 
 // Output (record) all FHN dynamical variables into the file fhn0.rec 
 // at the time step "chosenpulse".
-record when=chosenpulse file=[0].rec append=0 v0=[u] v1=[v];
+record when=chosenpulse file=[0].rec append=0 recordsep="\n" v0=[u] v1=[v];
 
 
 stop when=end; // Stopping criterion. This is mandatory.

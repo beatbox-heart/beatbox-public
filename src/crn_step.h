@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,8 +18,26 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+  This code is based on the M.Courtemanche's `error-free' electronic 
+  version of equations and parameters, with the following copyright notice: 
+*/
 
-  /* computed quantities */
+/*********************************************************************/
+/* This is a distribution version of the code for the CRN
+   human atrial cell model as described in:
+   Courtemanche M, Ramirez RJ, Nattel S. Ionic mechanisms underlying
+   human atrial action potential properties: insights from a mathematical
+   model. Am J Physiol (1998);275:H301-H321. */
+
+/* This code is copyrighted by Marc Courtemanche, 1998. */
+
+/* It may be used, modified and distributed with my permission only, 
+   with proper credit given and reference to the original manuscript 
+   provided. */
+/*********************************************************************/
+
+/* computed quantities */
   double Ek,Ena,Eca,ina,icaL,ik,ibna,ibk,ibca,inak,ik1;
   double ito,gkur,ikur,ikr,iks;
   double inaca,naidot,kidot;

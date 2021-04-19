@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -37,10 +37,6 @@ http:/www.cellml.org/
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "ttnp.on"
-
-#if TTNP
-
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -153,5 +149,3 @@ real *dY=du; // this is the important step.
 /* In the ORD/CellML setting, this part is not required any more? */
 
 } RHS_TAIL(ttnp)
-
-#endif /* TRTNP */

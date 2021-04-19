@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* MAIN PROGRAM */
 
@@ -66,6 +65,7 @@ int Mute=0;                 /* no default output to stdout */
 int Optoff=0;               /* switch off options parsing, */
                             /* to allow for args that begin with `-' etc */
 FILE *debug=0;              /* debug output file  */
+FILE *res;                  /* Log file, separate from stdout in sequential mode */
 #if MPI
 int Decomp_version=1;	    /* default: automatic decomposition by RMF method */
 char *Decomp_string=NULL;   /* explicit decomposition formula */
@@ -84,7 +84,6 @@ char *device_name;	    /* name of the device currently parsed or executed */
 
 /* Static variables */
 static char HEADLINE[256];	/* First line of output with package version variation and date */
-static FILE *res;               /* Log file, separate from stdout in sequential mode */
 static char logname[MAXPATH], debugname[MAXPATH];
 static int iarg, argc_new;      /* argument counters */
 
@@ -148,7 +147,7 @@ int nofflush(void *f) {return 0;}
 
 /* Abnormal termination by one process only */
 jmp_buf errjmp;
-void ABORT(char *fmt, ...) {
+void beatbox_abort(char const *fmt, ...) {
   char s[4092], *p;
   va_list argptr;
   va_start(argptr, fmt);
@@ -292,8 +291,10 @@ int main (int argc, char **argv) {
 	else if (0==strcmp(debugname,"stderr"))
 	  debug=stderr;
 	else if (0!=strcmp(debugname,"log")) {
-	  if NOT(debug=fopen(debugname,"wt"))
-		  ABORT("could not open '%s' for writing\n",debugname);
+	  char longdebugname[MAXPATH];
+	  sprintf(longdebugname,debugname,mpi_rank);
+	  if NOT(debug=fopen(longdebugname,"wt"))
+		  ABORT("could not open '%s' for writing\n",longdebugname);
 	} else
 	  debug=NULL; /* for now; will be identified with log file */
       }
@@ -337,8 +338,8 @@ int main (int argc, char **argv) {
   if (!qopen(argv[1])) EXPECTED_ERROR("Cannot open input file %s", argv[1]);
 
 #if MPI
-  /* In MPI, everything goes to stdout only */
-  if (debug) {
+  /* In MPI, everything goes to stdout only unless it is separate file for each */
+  if (debug!=NULL && strstr(debugname,"%")==NULL) {
     if (debug!=stdout && debug!=stderr && debug!=res)
       fclose(debug);
     debug=stdout;
@@ -423,12 +424,12 @@ int main (int argc, char **argv) {
       }
     }
   }
-  
+
   /*********************************************************/
   /* Time loop. Exit for loop when any Device returns a 0. */
   /*********************************************************/
   for (;;) { 
-    DEBUG("t=%ld:",t);
+    DEBUG("#%d t=%ld:",mpi_rank,t);
     for (idev=0; idev<ndev; idev++) {  /* Loop over the active devices */
       #define d (dev[idev])
       device_name=d.n;
@@ -458,7 +459,6 @@ int main (int argc, char **argv) {
             So the structure dev[idev].XXXX has some dangling components.
           */
           rc=d.p(d.s, d.w, d.par);
-	  DEBUG(")");
           if (Profile) device_end_time = Wtime();
   	#endif
 
@@ -472,7 +472,8 @@ int main (int argc, char **argv) {
           totalSpent[idev] += spent;
           timesCalled[idev] ++;
         }
-
+	DEBUG(")");
+	
 	if (rc==0) /* This only happens in "organized termination" say by stop device, */
 	  break;   /* so will be collective. Individual crashes are handles via ABORT. */
 

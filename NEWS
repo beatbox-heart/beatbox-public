@@ -1,3 +1,49 @@
+Version 1.13
+
+- New devices: byteout, pw_mult (to be documented)
+- Improved checking of input syntax (diagnosing cases when the name of the defined k-variable is missed).
+- The manual doc/beatbox.html revised to describe available cell models a bit better.
+- A few minor errors corrected and inconsistencies removed. 
+
+Version 1.12.xxxx
+
+- Compatibility with the current version of MPI standard achieved and with legacy versions of it retained. 
+- record device revised: it now is sequential-only (the parallel version was not working anyway), and can produce automatically numbered output files as well as a single file at the user's coice.
+- ezpaint device revised: can draw markers (this is not documented yet)
+- The manual doc/beatbox.html revised to correct inaccuracies, fill gaps, and reflect recent changes.
+- A few minor errors corrected and inconsistencies removed. 
+
+Version 1.11.1052
+
+- Parameters now may be dynamically linked to k-variables or k-expressions (currently applies to ezview parameters)
+- Padding of geometries may be controlled
+- A few minor errors corrected
+
+Version 1.10.1044
+
+- New devices: matout, ezpaint, ezview.
+- k_func knows geom0, geom1.. read/write variables and has advance=1 option. 
+- Consequently, now one can work with geometry and anisotropy defined within script, without a BBG file.
+- ezstep can now do 0D (i.e. reaction without diffusion)
+- Bug fixed in ctlpoint (checks when restarting job with different domain partitioning).
+- Multiple minor errors and inaccuracies corrected.
+- Documentation completed and edited accordingly. 
+
+
+Version 1.9.1012
+
+- New devices: ezstep and ezview
+- Option "bythred=1" in ctlpoint device
+- Parameter names in rhs b02 corrected
+
+Version 1.8.998
+
+- Points with short fibre vectors in geometries intepreted isotropic.
+
+- Added k-function geom() access geometry data.
+
+- Various improvements and bug fixes, in particular for working with very large grids. 
+
 Version 1.7.982
 
 - "configure" is included in distribution so autotools not needed for installation, if only compilation is required
@@ -36,7 +82,7 @@ Version 1.5.830
 
 - New device 'diffstep' added
 
-- A typo in diff.c fixed which would have cased wront result if
+- A typo in diff.c fixed which would have caused wrong result if
   diffusion nonuniform in y direction.
 
 - Several smaller changes, mostly of technical nature not concerning

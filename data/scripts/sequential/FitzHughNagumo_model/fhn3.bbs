@@ -1,33 +1,24 @@
 /* Beatbox example bbs script.
- * This bbs script demonstrates the use of the byteout device.
+ * Scroll wave in 3D FitzHugh-Nagumo 
  * 
- * Inputs: fhn.par
+ * Inputs: 
+ *   fhn.par
  *
- * Outputs: 1. ppm files (in ppm/ directory)
-	    2. a byteout file called fhnbyteout.dat        
+ * Outputs: 
+ *  run-time onscreen graphics;
+ *  3d ppm files in fhn3.dir/ directory
+ *  ezview images in png format in fhn3.dir/ directory
  *
  * To run this bbs script, use the following command:
  * Beatbox_SEQ fhn3.bbs
-	 */ 
-
-/*
- * fhn.par is a file with the FHN parameter definitions.
- */
-<fhn.par>
-/* Allocation of layers to the state varables. */ 
-def str p 3;
-/* Allocation of layers to the state varables. */ 
-def str d 4;
-
-// The size of the model is xmax*ymax*zmax*vmax.
-// Define a box of size 50 (x) by 50 (y) by 50 (z). 
-// vmax is always 1 more than total number of ODE state variables.
-/* The size of the model is xmax*ymax*zmax*vmax 
- * where vmax is the number of dynamical variables in the cell model of ODEs. 
- * xmax=1, ymax=1, zmax=1 represents a cell (OD) model, while 
- * all other values of xmax, ymax, zmax represent tissue models. 
  */ 
-state xmax=100 ymax=100 zmax=50 vmax=3;
+
+// Common parameters
+<fhn.par>
+
+// Size of the grid
+def int nx=60; def int ny=60; def int nz=30;
+state xmax=nx+2 ymax=ny+2 zmax=nz+2 vmax=[i]+1;
 
 // Schedule parameters.
 /* Declare global timing variables. In general: 
@@ -48,21 +39,25 @@ def int tout 0.5/ht; // output will be in so many steps, i.e. once per 0.5 units
  * greater than (ge), less than (le), modulus (mod), etc. 
  */ 
 k_func name=timing nowhere=1 pgm={
-	begin = eq(t,0);
-        out   = eq(mod(t,tout),0); // time to make outputs every tout steps
-	end   = ge(t,40000);
+  begin=eq(t,0);
+  out=eq(mod(t,tout),0); // time to make outputs every tout steps
+  end=ge(t,1000);
 };
 
-// Cross field stimulus using k_func devices to initiate scroll wave along 
-// z-axis.
-/* Apply stimulus to tissue specified by x0,x1,y0,y1,z0,z1. If 
- * any of these are not specified, then the max or min values are presumed 
- */ 
-k_func when=begin x1=25 pgm={u[u] = 1.7;};
-k_func when=begin x0=26 pgm={u[u] = -1.7;};
-k_func when=begin y1=25 pgm={u[v] = 0.7;};
-k_func when=begin y0=26 pgm={u[v] = -0.7;};
+// Parameters of the initial conditions
+def real x0 0.5*(nx+1); // x runs from 1 to nx so 0.5*(nx+1) is the centre
+def real y0 0.5*(ny+1); // and so for y
+def real lam 100; // The pitch of the Archimedean spiral measured in grid points
+def real twist 0.1; // Phase shift in z direction per grid point. 
+// Initial conditions by phase distribution method
+k_func when=begin  name=initial file=fhn1.rec pgm={
+  phasep=atan2(x-x0,y-y0) - 2*pi*hypot(x-x0,y-y0)/lam + twist*z; // phasep(x,y)=const is Arch. spiral
+  u0=p0; u1=p1 // results of phase field calcs are assigned to appropriate layers. 
+  // Here phaseu= magic variable could have been used instead making the 
+  // last two assignments unnecessary. 
+};
 
+//****************
 // The computation
 // deff device to compute the deffusion throughtout the 3D box and 
 // implicitly applies no flux boundary conditions.
@@ -75,18 +70,39 @@ diff v0=[u] v1=[i] D=D hx=hx;
  */ 
 euler v0=[u] v1=[v] ht=ht ode=fhncubpar rest=10000 par={epsu=eps epsv=eps bet=bet gam=gam Iu=@[i]};
 
+//****************
+// The output
 // Create the directory for the image files
 // (no problem if it is already there)
 def str outdir [0].dir; // so it will be fhn3.dir
 shell nowhere=1 when=never advance=1 cmd="mkdir [outdir]"; 
 // advance=1 means this will be done BEFORE the first step
 
+// Run-time 3D graphics of u=const surfaces
+def int winsize=500;
+ezview when=out 
+  width=winsize height=winsize winx=-1 winy=1
+  autostart=1
+  phi0=70 theta0=130 distance0=5
+  verbose=1
+  show_surface=1 ulayer=[u] uc=umid color_mode=0
+  vlayer=[v] vc=vmid vmin=vmin maxv=maxv alphamin=1 alphamax=1
+  show_filament=0 layer1=[u] const1=umid layer2=[v] const2=vmid
+  write_filament=0 filament="filament.dat"
+  bg_r=0 bg_g=0 bg_b=0
+  bbox_r=0.8 bbox_g=0.8 bbox_b=0.8
+  write_images=0
+  images="pnmflip -tb | pnmtopng > [outdir]/%07.0f.png"
+  imagescode="t/tout"
+;  
+
+
 /* PPMOUT gives 2D/3D ppm file format output at a rate specified by when= parameter. 
    ppmout device produces serially numbered ppm files in the  sub-directory  [outdir]    */ 
-ppmout  when=out file="[outdir]/%06d.ppm" mode="w" r=[u] r0=umin r1=umax g=[v] g0=vmin g1=vmax b=[i] b0=0 b1=255;
+ppmout  when=out file="[outdir]/%06d.ppm" mode="w" r=[u] r0=umin r1=umax g=[v] g0=vmin g1=maxv b=[i] b0=0 b1=255;
 
-/* use of byteout device. */
-// byteout file="fhnbyteout.dat" append=1 compress=-2 v0=0 v1=1 u0=-80 u1=20 row=1 col=2;	
+// Keep the picture on the screen for 1 second in the end
+if Graph pause seconds=1 when=end;
 
 /* Stopping criterion. This is mandatory.*/ 
 stop when=end;

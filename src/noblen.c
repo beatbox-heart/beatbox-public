@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* D.Noble's collection of heart models as in Oxsoft Heart
  * Multi-compartment modification for simulation external electric current
  * (n+1) compartments, each has separate set of fast gating vars
@@ -30,9 +29,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -172,4 +168,3 @@ RHS_CREATE_HEAD(noblen) {
   MALLOC(*u,sizeof(real)*(S->neqnn));
   for(v=0;v<neqn;v++) for(k=0;k<=(S->n);k++) (*u)[(S->h2k)[k][v]]=_Y[v];
 } RHS_CREATE_TAIL(noblen,S->neqnn)
-#endif

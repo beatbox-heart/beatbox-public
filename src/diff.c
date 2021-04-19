@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -243,6 +243,7 @@ CREATE_HEAD(diff)
     real D[4][4];			/* Diffusion tensor */
     real dD[4][4];			/* Derivatives of diffusion tensor */
     real c[4];				/* Derivatives of diffusion coefficients */
+    real Dscalar;			/* Back-up scalar diffusivity for singular points */
     /* Neighbours' vectors */
     int nx,ny,nz; /* Coords of negative neighbour */
     int px,py,pz; /* Coords of positive neighbour */
@@ -251,11 +252,14 @@ CREATE_HEAD(diff)
     ACCEPTR(Dpar,RNONE,0.,RNONE);
     ACCEPTR(Dtrans,RNONE,0.,RNONE);
 
-    /* There should be no single diffusion coefficient */
-    if (find_key("D=",w)) 
-      MESSAGE("The isotropic diffusion coefficient 'D' "
-	      "is unused when anisotropy is active. "
-	      "The parameter will be ignored.\n");
+    /* There should be no single diffusion coefficient normally */
+    { /* Insulate this scalar D from the tensor D defined in the outside block */
+      ACCEPTR(D,pow(Dpar*Dpar*Dtrans,1.0/3.0),0.,RNONE);
+      Dscalar=D;
+    }	
+    MESSAGE("/* The isotropic diffusion coefficient 'D' "
+	    "is mostly unused when anisotropy is active. "
+	    "It will apply only at exceptional 'isotropic' points, if any. */\n");
 
     /* The current point's structure */
     AnisoPoint P;
@@ -276,53 +280,65 @@ CREATE_HEAD(diff)
 	    f[1] =  Geom[geom_ind(x,y,z,GEOM_FIBRE_1)];
 	    f[2] =  Geom[geom_ind(x,y,z,GEOM_FIBRE_2)];
 	    f[3] =  Geom[geom_ind(x,y,z,GEOM_FIBRE_3)];
-	     /* set up the tensor */
-	    for (i=1;i<=3;i++) {
-	      for (j=1;j<=3;j++) {
-		/* \mathbf{D} = 
-		 * D_\perp \mathbf{I} + (D_\parallel - D\perp)
-		 * \mathbf{A}\mathbf{A}^T
-		 */
-		D[i][j] = ((Dpar-Dtrans)*f[i]*f[j]) + ((i==j)?Dtrans:0);
+#define UNIT_VECTOR_TOLERANCE 0.01 /* defined in geometry.h; should we rather #include that? */
+	    if (f[1]*f[1]+f[2]*f[2]+f[3]*f[3]<UNIT_VECTOR_TOLERANCE) { /* this is an 'isotropic point' */
+#undef UNIT_VECTOR_TOLERANCE
+	      /* set up the scalar */
+	      for (i=1;i<=3;i++) {
+		for (j=1;j<3;j++) {
+		  D[i][j] = (i==j)?Dscalar:0;
+		}
 	      }
-	    }
-
-	    for (i=1;i<=3;i++) {
-	      if(
-		 !isTissue( x+(i==1?1:0), y+(i==2?1:0), z+(i==3?1:0) ) ||
-		 !isTissue( x-(i==1?1:0), y-(i==2?1:0), z-(i==3?1:0) )
-		 ){
-		for (j=1;j<=3;j++) {dD[i][j]=0.0;}
-	      } else {
+	      for (i=1;i<=3;i++) c[i] = 0; /* simple and ad hoc; rething it later */
+	    } else {
+	      /* set up the tensor */
+	      for (i=1;i<=3;i++) {
 		for (j=1;j<=3;j++) {
-		  /* d^{11}_{+..} - d^{11}_{-..}
-		   * = (D_\parallel - D_\perp)(a_i a_j)_{+..} -(a_i a_j)_{-..}
+		  /* \mathbf{D} = 
+		   * D_\perp \mathbf{I} + (D_\parallel - D\perp)
+		   * \mathbf{A}\mathbf{A}^T
 		   */
-		  nx = x-(i==1?1:0);
-		  ny = y-(i==2?1:0);
-		  nz = z-(i==3?1:0);
-		  px = x+(i==1?1:0);
-		  py = y+(i==2?1:0);
-		  pz = z+(i==3?1:0); /* spatial derivatives of the tensor */
-		  dD[i][j] =
-		    (Dpar - Dtrans) * 
-		    (
-		     (Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] *
-		      Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] )-
-		     (Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] *
-		      Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] )
-		     );
-		} /* for j */
-	      } /* else */
-	    } /* for i */
-	    
-	    for (i=1;i<=3;i++) {
-	      c[i] = 0;
-	      for (j=1;j<=3;j++) {
-		c[i] += dD[j][i];
+		  D[i][j] = ((Dpar-Dtrans)*f[i]*f[j]) + ((i==j)?Dtrans:0);
+		}
 	      }
-	    }
-
+	      /* and the first derivatives' vector */
+	      for (i=1;i<=3;i++) {
+		if(
+		   !isTissue( x+(i==1?1:0), y+(i==2?1:0), z+(i==3?1:0) ) ||
+		   !isTissue( x-(i==1?1:0), y-(i==2?1:0), z-(i==3?1:0) )
+		   ){
+		  for (j=1;j<=3;j++) {dD[i][j]=0.0;}
+		} else {
+		  for (j=1;j<=3;j++) {
+		    /* d^{11}_{+..} - d^{11}_{-..}
+		     * = (D_\parallel - D_\perp)(a_i a_j)_{+..} -(a_i a_j)_{-..}
+		     */
+		    nx = x-(i==1?1:0);
+		    ny = y-(i==2?1:0);
+		    nz = z-(i==3?1:0);
+		    px = x+(i==1?1:0);
+		    py = y+(i==2?1:0);
+		    pz = z+(i==3?1:0); /* spatial derivatives of the tensor */
+		    dD[i][j] =
+		      (Dpar - Dtrans) * 
+		      (
+		       (Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] *
+			Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] )-
+		       (Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] *
+			Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] )
+		       );
+		  } /* for j */
+		} /* else */
+	      } /* for i */
+	      
+	      for (i=1;i<=3;i++) {
+		c[i] = 0;
+		for (j=1;j<=3;j++) {
+		  c[i] += dD[j][i];
+		}
+	      }
+	    } /* if (f[1]*...<TOLERANCE) else */
+	      
 	    /*----------------------------------------*/
 	    /* Compute the weights of the neighbours. */
 	    

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -47,9 +47,9 @@ typedef struct {
   int first;		/* flags the first use, so we don't detect a crossing from the default value */
   real then;		/* value of result when last run. */
   real cross;		/* value at the crossing point. */
-  real *result; 	/* k_var to which result will be assigned. */
+  REAL *result; 	/* k_var to which result will be assigned. */
   char *resultname;
-  real *timestep; 	/* k_var to which the timestep at which the crossing occurs will be assigned. */
+  REAL *timestep; 	/* k_var to which the timestep at which the crossing occurs will be assigned. */
   char *timestepname; 
   int sign;		/* POSITIVE/NEGATIVE/BOTH: direction in which crossings should be detected */
   int lasttime;	     /* the value of t this device was last called */

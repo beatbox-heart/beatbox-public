@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Hybrid of Cushing-Horwood 1994 and Truscott-Brindley 1994
  * models for phyto+zoo and zoo+fish larva
@@ -32,9 +31,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "PLANKTON.on"
-
-#if PLANKTON
 
 #include "device.h"
 #include "state.h"
@@ -154,5 +150,3 @@ RHS_CREATE_HEAD(chtb) {
     #undef _ 
   }
 } RHS_CREATE_TAIL(chtb,Nvar)
-
-#endif

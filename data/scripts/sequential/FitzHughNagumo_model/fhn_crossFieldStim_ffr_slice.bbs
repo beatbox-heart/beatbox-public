@@ -6,11 +6,6 @@ def str p 3; // memory layer for computing time derivative
 def str d 4; // to store the time derivative 
 def str g 5; // to store the spatial gradient
 
-
-rem def real D 0.3;
-rem def real hx 0.1;
-rem def real ht 0.001;
-
 state geometry=ffr_slice.bbg vmax=3;
 
 def real begin;
@@ -32,17 +27,24 @@ k_func when=begin y1=31 pgm={u[v] = 0.7;};
 k_func when=begin y0=32 pgm={u[v] = -0.7;};
 
 // The computation
-rem neum3d v0=[u] v1=[u];
 diff v0=[u] v1=[i] D=D hx=hx;
 euler v0=[u] v1=[v] ht=ht ode=fhncubpar rest=10000 par={epsu=eps epsv=eps bet=bet gam=gam Iu=@[i]};
-
-
 
 // Create the directory for the image files
 // (no problem if it is already there)
 def str outdir [0].dir; // so it will be fhn_ffr_slice.dir
 shell nowhere=1 when=never advance=1 cmd="mkdir [outdir]"; 
 // advance=1 means this will be done BEFORE the first step
+
+
+// Run-time graphics
+ezpaint when=out 
+  // On-the-fly conversion including flipping top/bottom flip
+  filter="pnmflip -tb | pnmtopng > [outdir]/ezp%07.0f.png"
+  rlayer=[u]  rmin=umin  rmax=umax // [u]-layer defines red component
+  glayer=[v]  gmin=vmin  gmax=maxv // [v]-layer defines green component
+  blayer=[i]  bmin=-1    bmax=1    // [i]-layer defines blue component
+  bg_r=1 bg_g=1 bg_b=1;            // void is white
 
 // Image files for u,v,i fields.
 // This is the simpler version which uses what is in the layers,
@@ -51,25 +53,11 @@ imgout when=out
   // On-the-fly conversion including flipping top/bottom flip
   filter="pnmflip -tb | pnmtopng > [outdir]/uvi%07.0f.png"
   r=[u]  r0=umin  r1=umax // [u]-layer defines red component
-  g=[v]  g0=vmin  g1=vmax // [v]-layer defines green component
+  g=[v]  g0=vmin  g1=maxv // [v]-layer defines green component
   b=[i]  b0=-1    b1=1;   // [i]-layer defibes blue component
 
-/*
-// This is more sophisticated version, here we want to output
-// a function (the absolute value) of one othe layers. 
-k_imgout when=out
-  filter="pnmflip -tb | pnmtopng > [outdir]/udg%06.0f.png"
-  filtercode="t/tout"	// fancy numerating files sequentially rather than by timesteps
-  width=xmax height=ymax	// i=0..width-1, j=0..height-1
-  pgm={			// this program should calculate r,g,b as real numbers in [0,1]
-    r=(u(1+i,1+j,0,[u])-umin)/(umax-umin); // as before
-    g=fabs(u(1+i,1+j,0,[d]))/2.0; // abs value in [d] layer expected to be [0..1] otherwise cropped
-    b=u(1+i,1+j,0,[g])/2.0; // value in [g] layer is nonnegative anyway
-  };
-*/
-
-rem ppmout when=out file="[outdir]/%04d.ppm" mode="w" bgr=0 bgg=255 bgb=0 r=[u] r0=umin r1=umax g=[u] g0=umin g1=umax b=[v] b0=vmin b1=vmax;
-rem singz  when=out v0=[u] c0=umid v1=[v] c1=vmid hx=hx file=[0].trj;
+// Keep the picture on the screen for 1 second in the end
+if Graph pause seconds=1 when=end;
 
 stop when=end;
 

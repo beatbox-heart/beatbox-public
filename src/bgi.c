@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -460,6 +460,8 @@ void dump_window(char *filename,char *fmt){
     sprintf(cmd,"xwd -id %lu -silent | xwdtopnm | ppmtogif > %s",theWindow,filename);
   else if (0==stricmp(fmt,"jpeg") || 0==stricmp(fmt,"jpg"))
     sprintf(cmd,"xwd -id %lu -silent | xwdtopnm | pnmtojpeg --optimize > %s",theWindow,filename);
+  else if (0==stricmp(fmt,"png"))
+    sprintf(cmd,"xwd -id %lu -silent | xwdtopnm | pnmtopng > %s",theWindow,filename);
   else { MESSAGE("dump_window: unknown format %s",fmt); return; }
   system(cmd);
 }

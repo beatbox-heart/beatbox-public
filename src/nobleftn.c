@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,13 +18,8 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <math.h>
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
-
 #include "p2c.h"
 #define OWN
 #include "noble.h"
@@ -159,5 +154,3 @@ calls: Rates, Currents, Concentrations
   #include "nobleft2.h"
 
 }  
-
-#endif

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #if MPI
 #include <mpi.h>
@@ -55,9 +54,13 @@ typedef struct {
   FILE *geometry;
   /* Geometry options */
   int normaliseVectors;
+  int checkVectors;
   int correctBoundaries;
   int anisotropy;
-  
+  int padding;
+  /* Output normalized geometry */
+  char outname[MAXPATH];
+  FILE *out;
   /*  Global bounds: "allow sign" to suppress compiler warnings */
   ssize_t xmax, ymax, zmax, vmax;
 } STR;
@@ -76,44 +79,44 @@ int state (char *w) {
   
   ACCEPTF(geometry,"r","");
   GEOMETRY_ON = (S->geometry!=NULL);
+  
   ACCEPTI(anisotropy,0,0,1);
-  ANISOTROPY_ON = (anisotropy && GEOMETRY_ON); /* Anisotropy is a geometry-only feature */
+  ANISOTROPY_ON = anisotropy;
+  geom_vmax = ANISOTROPY_ON? 4: GEOMETRY_ON? 1:	0; /* STATUS + 3 VECTOR COMPONENTS */
 	
-  if (GEOMETRY_ON) {
-
+  if (GEOMETRY_ON && ANISOTROPY_ON) {
     ACCEPTI(normaliseVectors,0,0,1);
-    
-    if (stateDimensionsExist(w)) {
-      MESSAGE("\n/**************************************************** WARNING ****************************************************\n");
-      MESSAGE("Dimensions of the simulation medium (xmax,ymax,zmax) cannot be specified when geometry is in use.\n");
-      MESSAGE("The dimensions provided will be ignored.\n");
-      MESSAGE("*****************************************************************************************************************/\n\n");
-    }
+    ACCEPTI(checkVectors,1,0,1);
+  }
 
-    if (Verbose && ANISOTROPY_ON) MESSAGE("\n/* Anisotropy is on. */");
-
-    if (Verbose) MESSAGE("\n/* Finding minimal enclosing box for geometry from %s ... */\n",
-			 S->geometryname);
-    getMeshDimensions(S->geometry,&xmax,&ymax,&zmax);
-    S->xmax = xmax;
-    S->ymax = ymax;
-    S->zmax = zmax;
-    geom_vmax = 4; /* STATUS + 3 VECTOR COMPONENTS */
-    
-  } else {
-
-
+  if (stateDimensionsExist(w)) {
     ACCEPTLG(xmax,LNONE,1L,LNONE);
     ACCEPTLG(ymax,LNONE,1L,LNONE);
     ACCEPTLG(zmax,   1L,1L,LNONE);
-    geom_vmax = 0; /* extra insurance against unintended use of Geom */
-    if (anisotropy) {
-      MESSAGE("\n/**************************************************** WARNING ****************************************************\n");
-      MESSAGE("Anisotropy can only be activated when geometry is in use.\n");
-      MESSAGE("We'll continue without for now.\n");
-      MESSAGE("*****************************************************************************************************************/\n\n");
-    }
+  } else if (GEOMETRY_ON) {
+    ACCEPTI(padding,1,0,INONE);
 
+    if (Verbose) MESSAGE("\n/* Finding minimal enclosing box for geometry from %s ... */\n",
+			 S->geometryname);
+    getMeshDimensions(S->geometry,&xmax,&ymax,&zmax,padding);
+    S->xmax = xmax;
+    S->ymax = ymax;
+    S->zmax = zmax;
+  }
+
+  #if MPI
+  DEBUG("GEOMETRY_ON=%d ANISOTROPY_ON=%d\n",GEOMETRY_ON,ANISOTROPY_ON);
+  if ((ANISOTROPY_ON || GEOMETRY_ON) && (gpoints==NULL)) make_gpoints(S->geometry);
+  DEBUG("gpoints=%p\n",gpoints);
+  #endif
+
+  if (GEOMETRY_ON) {
+    if (mpi_rank==0) {
+      ACCEPTF(out,"w","");
+    } else {
+      S->out=NULL;
+      S->outname[0]='\0';
+    }
   }
 
   ACCEPTLG(vmax,     2L,2L,LNONE);
@@ -133,7 +136,7 @@ int state (char *w) {
   TWO = ymax >=3 ? 1 : 0;
   ONE = xmax >=3 ? 1 : 0;
   dim = ONE + TWO + TRI;
-  
+
   if(dim==1 && !ONE)		EXPECTED_ERROR("1-Dimensional simulations must be defined on the x axis.");
   if(dim==1 && GEOMETRY_ON)	EXPECTED_ERROR("Geometry requires a 2- or 3-dimensional simulation medium.");
   if(dim==2 && !(ONE && TWO))	EXPECTED_ERROR("2-Dimensional simulations must be defined on the x and y axes.");
@@ -200,6 +203,10 @@ int state (char *w) {
 /**************************************************************************
  ************************** SEQUENTIAL ONLY *******************************
  **************************************************************************/
+  /*  No partitioning. */
+  mpi_nx=1;
+  mpi_ny=1;
+  mpi_nz=1;
   /*  Size of the medium, including boundaries. */
   xlen = xmax;
   ylen = ymax;
@@ -219,13 +226,11 @@ int state (char *w) {
   /*  Get constants for index computation. */
   vmax_zmax = vmax * zlen;
   vmax_zmax_ymax = vmax * zlen * ylen;
-  vmax_ymax = vmax * ylen;
 	
   /*  Get constants for geometry index computation. */
-  if (GEOMETRY_ON) {
+  if (GEOMETRY_ON || ANISOTROPY_ON) {
     geom_vmax_zmax= geom_vmax * zlen;
     geom_vmax_zmax_ymax= geom_vmax * zlen * ylen;
-    geom_vmax_ymax = geom_vmax * ylen;
   }
 
 /*  Shift increments */
@@ -246,17 +251,18 @@ int state (char *w) {
 
   New = state_u1;
 	
-  if (GEOMETRY_ON) {
+  if (GEOMETRY_ON || ANISOTROPY_ON) {
     int num_geom_values = xlen*ylen*zlen*geom_vmax;
     CALLOC(geom,num_geom_values,sizeof(real));
     Geom = geom;
-    if (!populateMesh(S->geometry,S->geometryname,S->normaliseVectors)) return 0;
-    fclose(S->geometry);
+    /* This will fill geom with fake data if no geom file provided */
+    if (!populateMesh(S->geometry,S->geometryname,S->normaliseVectors,S->checkVectors,S->out,S->outname)) return 0;
+    if (S->geometry) fclose(S->geometry);
+    if (S->out) fclose(S->out);
   }
 	
   FREE(S);
   return (1);
-	
 } /*  state() */
 
 void state_free(void) {

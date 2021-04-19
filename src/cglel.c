@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* linearised Hopf normal form - reaction part of the CGLE */
 #include <assert.h>
 #include <stdio.h>
@@ -26,9 +25,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "CGLE.on"
-
-#ifdef CGLE
 
 #include "device.h"
 #include "state.h"
@@ -72,5 +68,3 @@ RHS_CREATE_HEAD(cglel)
   ACCEPTP(Iu,0,RNONE,RNONE);
   ACCEPTP(Iv,0,RNONE,RNONE);
 RHS_CREATE_TAIL(cglel,2)
-
-#endif

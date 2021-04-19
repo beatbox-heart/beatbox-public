@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,13 +18,14 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* Hold on for a number of seconds or until user presses a key. */
 /* Has no effect in parallel mode. */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "system.h"
 
 #include "beatbox.h"
@@ -33,17 +34,24 @@
 #include "qpp.h"
 #include "bikt.h"
 
+#define nanosecond (1.0e-9)
+
 typedef struct {
-  int seconds;
+  real seconds;
+  int echo;
 } STR;
 
 RUN_HEAD(pause)
 #if MPI
 #else
-  DEVICE_CONST(int,seconds)
-  if (seconds>0) {
-    printf("waiting for %d seconds...\n",seconds);
-    sleep(seconds);
+  DEVICE_CONST(real,seconds)
+  DEVICE_CONST(int,echo)
+  if (seconds>=0) {
+    struct timespec tim;
+    tim.tv_sec = (long) floor(seconds);
+    tim.tv_nsec = (long) (fmod(seconds,1.0)/(nanosecond));
+    if (echo) MESSAGE("waiting for %f seconds...\n",seconds);
+    if (nanosleep(&tim, NULL) < 0) MESSAGE("Nano sleep system call failed \n");
   } else {
     printf("press Enter key in this window to continue\n");
     fgetc(stdin);
@@ -54,6 +62,7 @@ RUN_TAIL(pause)
 DESTROY_HEAD(pause)
 DESTROY_TAIL(pause)
 
-CREATE_HEAD(pause)
-  ACCEPTI(seconds,-1,INONE,INONE);
-CREATE_TAIL(pause,0)
+CREATE_HEAD(pause) {
+  ACCEPTR(seconds,-1.0,RNONE,RNONE);
+  ACCEPTI(echo,(seconds<0)?1:0,0,1);
+} CREATE_TAIL(pause,0)

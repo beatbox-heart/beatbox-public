@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,15 +18,16 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* 
  * Dump contents of a 4D subset to a binary file
  */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include <stdarg.h>
+#include <string.h>
+
 #include "system.h"
 #include "beatbox.h"
 #include "bikt.h"
@@ -34,7 +35,6 @@
 #include "device.h"
 #include "qpp.h"
 #include "mpi_io_choice.h"
-
 
 typedef struct {
   char filename[MAXPATH];
@@ -49,14 +49,15 @@ typedef struct {
 
 /*  ----------------------------------------------------------------// */
 RUN_HEAD(dump)
+{
   int x, y, z, v; /*  Loop indices */
   
   /********************** MPI VERSION ********************************/
   #if MPI /*  MPI version */
-  DEVICE_CONST(int, append)
-  DEVICE_CONST(MPI_File, file)
-  DEVICE_CONST(MPI_Datatype, sourceType)
-  
+  DEVICE_CONST(int, append);
+  DEVICE_CONST(MPI_File, file);
+  DEVICE_CONST(MPI_Datatype, sourceType);
+
   /*  Rewind file if not appending */
   if(!append) MPIDO(MPI_File_seek(file,0,MPI_SEEK_SET),"could not rewind file");
   
@@ -85,6 +86,9 @@ RUN_HEAD(dump)
   FFLUSH(file);
 /********************************************************************/
   #endif
+  MESSAGE("dumped [%d:%d]x[%d:%d]x[%d:%d]x[%d:%d] to %s at t=%ld\n",
+	  s.x0, s.x1, s.y0, s.y1, s.z0, s.z1, s.v0, s.v1, S->filename,t);
+}
 RUN_TAIL(dump)
 
 /* ---------------------------------------------------------------- */
@@ -95,7 +99,7 @@ DESTROY_HEAD(dump)
    MPI_File_close(&(S->file));
  }
 #else
-  if (S->file) fclose(S->file); S->file=NULL;
+  SAFE_CLOSE(S->file);
 #endif
 DESTROY_TAIL(dump)
 
@@ -108,6 +112,7 @@ static MPI_Offset currentsize;
 /*  ----------------------------------------------------------------// */
 
 CREATE_HEAD(dump)
+{
   ACCEPTI(append,0,0,1);
 
 #if MPI /*  Prepare for collective writing. */
@@ -125,6 +130,7 @@ CREATE_HEAD(dump)
   
   MPI_File file;	/* The dump file written to */
   int mode;		/* mode: write or append */
+  MPI_Aint lb;          /* Type's lower bound */
   MPI_Offset displacement; /* how much to skip from the beginning of file */
   MPI_Aint typesize;	/* size of data to be written according to defined MPI type */
 
@@ -145,7 +151,18 @@ CREATE_HEAD(dump)
     } else {
       mode = MPI_MODE_WRONLY | MPI_MODE_CREATE;
     }
-		
+
+    /* It would appear MPI cannot overwrite an existing file, so take precaution */
+    if (mpi_rank==root) {
+      if (fexist(S->filename)) {
+	if (Verbose) URGENT_MESSAGE("File %s exists; deleting it\n",S->filename);
+	if (0!=unlink(S->filename)) {
+	  URGENT_MESSAGE("Could not delete %s: %s\n",S->filename,strerror(errno));
+	}
+      }
+    }
+    MPIDO(MPI_Barrier(comm_dump),"Could not stop at barrier before opening file");
+    
     /*  Open and preallocate file */
     MPIDO(MPI_File_open(comm_dump, S->filename, mode, MPI_INFO_NULL, &file),"Couldn't open file");
     /*  If requested by user, append to EOF */
@@ -175,7 +192,7 @@ CREATE_HEAD(dump)
     MPIDO(MPI_File_set_view(file,displacement,MPI_DOUBLE,filetype,"native",MPI_INFO_NULL),"Couldn't set start of file");
 
     /* Check there was no misunderstanding about amount of data to be written */
-    MPIDO(MPI_Type_extent(filetype,&typesize),"Couldn't get filetype extent");	
+    MPIDO(MPI_Type_get_extent(filetype,&lb,&typesize),"Couldn't get filetype extent");	
     ASSERT(typesize == boxsize*sizeof(real));
    
     /*  Assign the file to the parameter structure */
@@ -186,5 +203,5 @@ CREATE_HEAD(dump)
 #else /*  Sequential version */
   ACCEPTF(file,S->append?"ab":"wb",NULL);
 #endif
-
+}
 CREATE_TAIL(dump,0)

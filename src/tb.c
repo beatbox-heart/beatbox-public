@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Truscott-Brindley 1994 model for phyto+zoo
  * (rescaled from liters to m^3)
@@ -31,10 +30,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "PLANKTON.on"
-
-#if PLANKTON
-
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -126,5 +121,3 @@ RHS_CREATE_HEAD(tb) {
   MESSAGE("/*P0=%g Z0=%g*/",(*u)[var_P],(*u)[var_Z]);
 
 } RHS_CREATE_TAIL(tb,Nvar)
-
-#endif

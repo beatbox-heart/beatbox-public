@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -28,9 +28,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "N62.on"
-
-#if N62
 
 /* Temporarily: to mark undefined parameters */
 #define UNKNOWN 0
@@ -95,5 +92,3 @@ RHS_CREATE_HEAD(n62) {
   (*u)[1]=1;
   (*u)[2]=0;
 } RHS_CREATE_TAIL(n62,3)
-
-#endif

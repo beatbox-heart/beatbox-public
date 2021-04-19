@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -135,8 +135,16 @@ int tb_insert_int  (p_tb table,char name[],p_int  addr) {
   return tb_insert(table,name,t_int,(p_vd)addr,0,f_vb);
 }
 
+int tb_insert_int_ro  (p_tb table,char name[],p_int  addr) {
+  return tb_insert(table,name,t_int,(p_vd)addr,0,f_ro);
+}
+
 int tb_insert_real (p_tb table,char name[],p_real addr) {
   return tb_insert(table,name,t_real,(p_vd)addr,0,f_vb);
+}
+
+int tb_insert_real_ro (p_tb table,char name[],p_real addr) {
+  return tb_insert(table,name,t_real,(p_vd)addr,0,f_ro);
 }
 
 int numerator=0; int denominator=0;
@@ -363,8 +371,9 @@ static char *tp_nm(int tc) {
 }
 
 
-static char s[maxname];
-char *Sprintf(char *fmt, ...) {
+#define MAXSTRLEN 8192 		/* also defined in device.h but is different scope */
+static char s[MAXSTRLEN];
+static char *Sprintf(char *fmt, ...) {
   va_list argptr;
   va_start(argptr, fmt);
   vsprintf(s, fmt, argptr);
@@ -797,6 +806,9 @@ char *typenametable[numtypes]={"none","int","real","string"};
 
 extern FILE *debug;
 
+/* "Print" a k variable, i.e. convert its value to a text string .	   */
+/* NB for numerical variables, this returns the address of a static array, */
+/* so should not be called again * until the previous result is utilized!  */
 char *prt(void *var, int type) {  /* write the variable of type type */
   static char s[80];
 				/*if (debug) fprintf(debug,"\nprt %p %d->",var,type);*/

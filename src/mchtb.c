@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -33,9 +33,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "PLANKTON.on"
-
-#if PLANKTON
 
 #include "device.h"
 #include "state.h"
@@ -251,8 +248,6 @@ RHS_CREATE_HEAD(mchtb) {
    } 
 
 } RHS_CREATE_TAIL(mchtb,Nvar)
-
-#endif
 
 real Holling(real Rmax,real p,real z,real type) {
   if (type>1.5) return (Rmax*p)/(Rmax + p*z);

@@ -142,7 +142,8 @@ Decomposition decomp_getBest(Decomposition a, Decomposition b){
  * \return Number of processes participating in the domanin decomposition.
  *
  */
-int decompose (int num_procs, int *nx, int *ny, int *nz) {
+int decompose (int num_procs, long *nx, long *ny, long *nz)
+{
   int nx_max,ny_max,nz_max;
   int nx_tmp_max,ny_tmp_max,nz_tmp_max;
   Decomposition best, trial;
@@ -331,7 +332,7 @@ int decompose (int num_procs, int *nx, int *ny, int *nz) {
   /* We will need to check which subdomains are completely empty. */
   /* For that, we need to have their bounds.                 */
   {
-    int ix, iy, iz;
+    long ix, iy, iz;
     /* Approximate length of subdomain along each axis.	*/
     int x_slice_size = (xmax-(ONE*2)) / best.nx;
     int y_slice_size = (ymax-(TWO*2)) / best.ny;
@@ -511,7 +512,8 @@ int decomp_allocateSubdomains(void) {
 
 /* Compute_superindices.                                        */
 /* In fact, just report the pre-computed values from the tables */
-void decomp_getSuperindices(int rank, int *ix, int *iy, int *iz) {
+void decomp_getSuperindices(int rank, long *ix, long *iy, long *iz)
+{
   *ix=rank_ix[rank];
   *iy=rank_iy[rank];
   *iz=rank_iz[rank];
@@ -521,7 +523,7 @@ void decomp_getSuperindices(int rank, int *ix, int *iy, int *iz) {
 /* Each process contains active points from local_*min to local_*max -1. */
 /* In fact, just repackage the bounds already computed by decompose.     */
 int decomp_getSubdomainDimensions (void) {
-  int rank, ix, iy, iz;
+  long rank, ix, iy, iz;
   CALLOC(subdomain_limits,num_active_procs,sizeof(Subdomain));
 
   for (rank=0;rank<num_active_procs;rank++) {

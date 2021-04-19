@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -875,7 +875,7 @@ CREATE_HEAD(rushlarsen)
   int nv=dev->s.v1-dev->s.v0+1;
   int no, nn, nt, ntab, nV, nmc, nmv;
   channel_str * channel;
-  int size_tr;
+  int size_tr=0;
   /* int *nm; */
   int step, iv, ix, iy, iz;
   int in, it, io, jo, iV;

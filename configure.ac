@@ -1,4 +1,4 @@
-AC_INIT([BeatBox], [1.7], [V.N.Biktashev@exeter.ac.uk])
+AC_INIT([BeatBox], [1.13], [V.N.Biktashev@exeter.ac.uk])
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall gnu])
 myhost=`uname -n`
@@ -53,7 +53,7 @@ AM_CONDITIONAL(HAVESVNWC, test "X$svnversioncommand" != "X" && test `$svnversion
 AC_SUBST(mysvnversion)
 ##########################
 
-if test "$X11_AVAIL" = "no"; then
+if test "x$X11_AVAIL" = "xno"; then
   echo "***************"
   echo "Reminder: X11 libraries not found so the graphical part of Beatbox is not being built.  If you want graphical display then please contact the Beatbox developers for help building with X11 libraries."
   echo "***************"

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -30,6 +30,10 @@ char VERSTRING[VERLEN]=PACKAGE_STRING;
 #else
 	char VARIATION[VARLEN]="sequential";
 #endif
+#else
+extern char VERSTRING[];
+extern char VARIATION[];
+extern int Verbose;
 #endif
 
 #define MAXDEPTH 10
@@ -43,7 +47,10 @@ char VERSTRING[VERLEN]=PACKAGE_STRING;
 
 #define MAXREAL DBL_MAX
 
-#define MARK_ERROR return(0);
+/* return codes */
+#define SUCCESS 1
+#define FAILURE 0
+#define MARK_ERROR return(FAILURE);
 
 void ANY_MESSAGE(int urgent,char *fmt,...);
 #define MESSAGE(...) ANY_MESSAGE(0,__VA_ARGS__)
@@ -53,7 +60,6 @@ void ANY_MESSAGE(int urgent,char *fmt,...);
 #define MESSAGE3(s,a1,a2,a3) MESSAGE(s,a1,a2,a3)
 #define MESSAGE4(s,a1,a2,a3,a4) MESSAGE(s,a1,a2,a3,a4)
 #define URGENT_MESSAGE(...) ANY_MESSAGE(1,__VA_ARGS__)
-
 void DEBUG(char *fmt, ...);
 
 int nofflush(void *f);

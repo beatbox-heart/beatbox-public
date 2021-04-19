@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* Write values of specified global k-expressions to file */
 
@@ -105,7 +104,7 @@ DESTROY_HEAD(k_print) {
   for(icode=0;icode<S->ncode;icode++) FREE(S->code[icode]);
   FREE(S->code);
   FREE(S->headcompiled);
-  if (S->file) fclose(S->file); S->file=NULL;
+  SAFE_CLOSE(S->file);
 } DESTROY_TAIL(k_print)
 
 /*********************/

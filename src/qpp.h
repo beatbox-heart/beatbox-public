@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /*! Expands a string macro. 
  * \param name The name of the macro to expand.
@@ -113,6 +112,9 @@ char *find_key (const char *key, char *s);
  */
 int accepti(const char *name,int *var,int deflt, int minv, int maxv, char *w);
 
+/* Same, for (long) integer parameters linked to k-variables or k-expressions */
+int acceptik(const char *name, INT **varptr, INT *varval, pp_fn *varcode, INT deflt, INT minv, INT maxv, char *w);
+
 /*
  * Accepts an entry of an integer parameter array.
  */
@@ -144,6 +146,9 @@ int acceptl(const char *name,long *var,long deflt,long minv,long maxv,char *w);
  *	\return Flag indicating success. 1 if successful, 0 otherwise.
  */
 int acceptr(const char *name,real *var,real deflt,real minv,real maxv,char *w);
+
+/* Same, for real parameters linked to k-variables or k-expressions */
+int acceptrk(const char *name, REAL **varptr, REAL *varval, pp_fn *varcode, real deflt, real minv, real maxv, char *w);
 
 /*!
  *	Accepts a real (double) value, identified by name with a number, from a given 
@@ -192,6 +197,7 @@ int acceptp(const char *name,real *var,real deflt,real minv,real maxv,char *w,Va
  *	\return Flag indicating success. 1 if successful, 0 otherwise.
  */
 int accepts(const char *name,char *var,const char *deflt, char *w);
+int acceptsn(const char *name,char *var,int len,const char *deflt, char *w);
 
 /*!
  *	Accepts a file handle, identified by parameter name, from a given 
@@ -269,7 +275,7 @@ int accept_condition(Condition *c, char *w);
  *	\param name Name of the variable to be found.
  *	\param w Parameter string to search for name key.
  */
-int accept_real_variable(real **v, char **vname, char *name, char *w);
+int accept_real_variable(REAL **v, char **vname, char *name, char *w);
 
 /*!
  *	Tests for state dimensions (xmax,ymax,zmax) in the parameter string 
@@ -295,6 +301,8 @@ int accept_space(Space *s, char *w);
 int accept_window(BGIWindow *s, char *w);
 /*#endif*/
 
+double _u(double _x, double _y, double _z, double _v);
+
 /*!
  *	Shortcut for accepting an integer parameter via accepti()
  *	If accepti() returns false, the function in which ACCEPTI() is called will also return false.
@@ -305,6 +313,11 @@ int accept_window(BGIWindow *s, char *w);
  *	\sa accepti()
  */
 #define ACCEPTI(b,c,d,e) if (!accepti(#b"=",&(S->b),c,d,e,w)) return(0); int b=S->b
+
+/*!
+ *      Same, for a parameter (potentially) linked to a k-variable or k-expression
+ */
+#define ACCEPTIK(b,c,d,e) if (!acceptik(#b"=",&(S->b##ptr),&(S->b),&(S->b##code),c,d,e,w)) return(0); 
 
 /*!
  *	Shortcut for accepting an integer array element via acceptie()
@@ -344,6 +357,12 @@ int accept_window(BGIWindow *s, char *w);
  */
 #define ACCEPTR(b,c,d,e) if (!acceptr(#b"=",&(S->b),c,d,e,w)) return(0); real b=S->b
 
+
+/*!
+ *      Same, for a parameter (potentially) linked to a k-variable or k-expression
+ */
+#define ACCEPTRK(b,c,d,e) if (!acceptrk(#b"=",&(S->b##ptr),&(S->b),&(S->b##code),c,d,e,w)) return(0); 
+
 /*!
  *	Shortcut for accepting a real array element via acceptre()
  *	If acceptre() returns false, the function in which ACCEPTRE() is called 
@@ -382,6 +401,7 @@ int accept_window(BGIWindow *s, char *w);
  *	\sa accepts()
  */
 #define ACCEPTS(b,c)     if (!accepts(#b"=",&(S->b[0]),c,w)) return(0); char *b=&(S->b[0])
+#define ACCEPTSN(b,n,c)     if (!acceptsn(#b"=",&(S->b[0]),n,c,w)) return(0); char *b=&(S->b[0])
 
 /*!
  *	Shortcut for accepting a file via acceptf()
@@ -392,7 +412,7 @@ int accept_window(BGIWindow *s, char *w);
  *	\param d Default value.
  *	\sa acceptf()
  */
-#define ACCEPTF(b,c,d)   if (!acceptf(#b"=",c,d,&(S->b##name[0]),&(S->b),w)) return(0)
+#define ACCEPTF(b,c,d)   if (!acceptf(#b"=",c,d,&(S->b##name[0]),&(S->b),w)) return(0); FILE *b=S->b; char *b##name=&(S->b##name[0])
 
 /*!
  *	Shortcut for accepting a code string via acceptc()
@@ -473,19 +493,10 @@ EXTERN long LNONE;
 /*! Real (double) null value (-MAXREAL). */
 EXTERN real RNONE;
 
+/*! Real (double) "infinite" value (+MAXREAL). */
+EXTERN REAL real_inf;
+
 EXTERN real macheps;
-
-#ifdef __TURBOC__
-/*! TurboC ONLY: Maximum String length.*/
-  #define MAXSTRLEN 1024 
-#else
-
-/*! Maximum string length (except TurboC) */
-  #define MAXSTRLEN 8192
-#endif
-
-/*! Common general-purpose buffer */
-EXTERN char buf[MAXSTRLEN];
 
 /*! Null String */
 #define null "null"
@@ -538,6 +549,9 @@ decimal point ".", and colon ":" are used in numbers and file ids, "," in functi
  * #define AMPERS '&'
  * Linking parameter to a level of dynamic variables */
 #define AT '@'
+
+/* links device parameter to a k-variable */
+#define LINK '~'
 
 /*! how default values are shown in res file */
 #define DFLT "!"

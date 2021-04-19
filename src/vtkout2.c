@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -204,9 +204,9 @@ RUN_TAIL(vtkout2)
 
 DESTROY_HEAD(vtkout2)
 #if MPI
-	if (S->file.f) MPI_File_close(&(S->file.f)); S->file.f=NULL;
+  if (S->file.f) MPI_File_close(&(S->file.f)); S->file.f=NULL;
 #else
-	if (S->file.f) fclose(S->file.f); S->file.f=NULL;
+  SAFE_CLOSE(S->file.f);
 #endif
 DESTROY_TAIL(vtkout2)
 

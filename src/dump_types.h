@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,6 +18,9 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* This snippet defines MPI types for parallel i/o of the grid subset
+ * belonging to a processor, and is used in ctlpoint, dump and
+ * load devices. */
 
 #define NDIMS 4
 MPI_Datatype filetype;
@@ -79,7 +82,12 @@ starts[1] = (dev->s.y0 + TWO) - local_ymin;
 starts[2] = (dev->s.z0 + TRI) - local_zmin;
 starts[3] = dev->s.v0;
 
-MPIDO(MPI_Type_create_subarray(NDIMS,sizes,subsizes,starts,MPI_ORDER_C,MPI_DOUBLE,&sourceType),"Couldn't define sourceType.");
+MPIDO(MPI_Type_create_subarray(NDIMS,sizes,subsizes,starts,MPI_ORDER_C,MPI_DOUBLE,&sourceType),
+      "Couldn't define sourceType: "
+      "NDIMS=%d sizes=(%d,%d,%d,%d) subsizes=(%d,%d,%d,%d) starts=(%d,%d,%d,%d)",
+      (int)NDIMS, (int)sizes[0], (int)sizes[1], (int)sizes[2], (int)sizes[3],
+      (int)subsizes[0], (int)subsizes[1], (int)subsizes[2], (int)subsizes[3],
+      (int)starts[0], (int)starts[1], (int)starts[2], (int)starts[3]);
 MPIDO(MPI_Type_commit(&sourceType),"Couldn't commit sourceType.");
 
 #undef NDIMS

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -46,10 +46,6 @@
 #include "state.h"
 #include "bikt.h"
 #include "qpp.h"
-
-/*==============================================*/
-/* Imported global variables                    */
-int Verbose;
 
 /*==============================================*/
 /* Important defined/derived types              */
@@ -555,12 +551,8 @@ RUN_HEAD(elliptic) {
   /*******************/
 DESTROY_HEAD(elliptic) {
   FREE(S->points);
-  if (S->debug && ftell(S->debug)!=-1)
-    fclose(S->debug); 
-  S->debug=NULL;  
-  if (S->profile && ftell(S->profile)!=-1)
-    fclose(S->profile); 
-  S->profile=NULL;  
+  SAFE_CLOSE(S->debug);
+  SAFE_CLOSE(S->profile);
   /* TODO: free all multigrid objects ... */
 } DESTROY_TAIL(elliptic)
   

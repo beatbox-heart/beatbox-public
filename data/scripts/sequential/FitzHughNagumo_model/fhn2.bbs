@@ -4,11 +4,14 @@
  * 
  * Purpose of this script: Example bbs script for 2D FHN spiral wave simulation.
  *
- * Inputs: fhn1.rec (file obtained by running fhn0.bbs)
+ * Inputs: 
+ *   fhn.par with common parameters; 
+ *   fhn1.rec (file obtained by running fhn1.bbs).
  *
- * Outputs: 1. onscreen graphics if used with graphics;
-	    2. spiral wave trajectory in ASCII file fhn2.trj;
-	    3. png images of frames of the 2D simulation;
+ * Outputs: 
+ *   onscreen graphics if used;
+ *   spiral tip trajectory in ASCII file fhn2.trj;
+ *   png images (two kinds) of the 2D simulation in subdirectory fhn2.dir. 
  *          
  *
  * This bbs script demonstrates the use of the following syntax and devices:
@@ -93,7 +96,7 @@ k_func name=timing nowhere=1 pgm={ /* Define when to begin and end */
   out   = eq(mod(t,tout),0); // time to make outputs every tout steps
   dtime = out + eq(mod(t,tout),tout-1); // when to call d_dt device
   // NB '+' above works as logical 'or'
-  end   = ge(t,50000); // end of simulation
+  end   = ge(t,20000); // end of simulation
 };
 
 // Initial conditions by phase distribution method
@@ -190,7 +193,7 @@ imgout when=out
   // On-the-fly conversion including flipping top/bottom flip
   filter="pnmflip -tb | pnmtopng > [outdir]/uvi%07.0f.png"
   r=[u]  r0=umin  r1=umax // [u]-layer defines red component
-  g=[v]  g0=vmin  g1=vmax // [v]-layer defines green component
+  g=[v]  g0=vmin  g1=maxv // [v]-layer defines green component
   b=[i]  b0=-1    b1=1;  // [i]-layer defines blue component 
 
 // This is more sophisticated version, here we want to output
@@ -205,8 +208,8 @@ k_imgout when=out
     b=u(1+i,1+j,0,[g])/2.0; // value in [g] layer is nonnegative anyway
   };
 
-// Keep the picture on the screen for 3 seconds in the end
-if Graph pause when=end seconds=3;
+// Keep the picture on the screen for 1 second in the end
+if Graph pause seconds=1 when=end;
 
 /* Stopping criterion. This is mandatory.*/ 
 stop when=end;

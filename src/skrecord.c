@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -138,7 +138,7 @@ DESTROY_HEAD(skrecord)
 		MPI_File_close(&(S->file));
 	}
 #else
-if (S->file) fclose(S->file); S->file=NULL;
+  SAFE_CLOSE(S->file);
 #endif
 DESTROY_TAIL(skrecord)
 

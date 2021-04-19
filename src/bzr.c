@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* Rovinsky's model of BZ reaction */
 #include <assert.h>
 #include <math.h>
@@ -27,9 +26,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "BZ.on"
-
-#if BZ
 
 #include "device.h"
 #include "state.h"
@@ -81,5 +77,3 @@ RHS_CREATE_HEAD(bzr) {
   ACCEPTP(Ix ,   0,RNONE,RNONE);
   ACCEPTP(Iz ,   0,RNONE,RNONE);
 } RHS_CREATE_TAIL(bzr,2)
-
-#endif

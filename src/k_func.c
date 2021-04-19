@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -36,17 +36,15 @@
 
 #include "k_.h"
 
-extern int Verbose;            /* defined in main */
-
-/* static double _rnd(double a,double b) {return (a+(b-a)*rand()/(RAND_MAX+1.0));} */ // this random number generator is no good, use the MT generator.
-
 #undef SEPARATORS
 #define SEPARATORS ";"
 #define BLANK " \n\t\r"
 
 typedef struct {
+  int advance;	/* TODO: eliminate this feature in favour of when=advance facility */
   #include "k_code.h"
-  double  *u;		/*[vmax]*/
+  real *u;		/*[vmax]*/
+  real *geom;		/*[geom_vmax]*/
   int restricted;
   real x, y, z;
   INT np, nv;
@@ -61,7 +59,7 @@ typedef struct {
   int debugWriter;
 } STR;
 
-RUN_HEAD(k_func)
+RUN_HEAD(k_func) {
   DEVICE_CONST(INT, np)
   DEVICE_CONST(INT, nv)
   DEVICE_CONST(int,restricted)
@@ -72,7 +70,7 @@ RUN_HEAD(k_func)
   double p, q;
 
   if (debug && debugWriter) {
-    fprintf(debug, "t=%ld", (long)t);
+    fprintf(debug, " t=%ld", (long)t);
     fflush(debug);
   }
   k_on();
@@ -88,6 +86,7 @@ RUN_HEAD(k_func)
 	touchPoint = !s.nowhere && (restricted==0 || isTissue(ix,iy,iz));
 	/* No need to maintain local values if running nowhere. */
 	if(touchPoint) memcpy(S->u,New+ind(ix,iy,iz,0),vmax*sizeof(real));
+	if(geom_vmax) memcpy(S->geom,Geom+geom_ind(ix,iy,iz,0),geom_vmax*sizeof(real));
 		
 	for(icode=0;icode<S->ncode;icode++) {
 	  void *code, *result;
@@ -133,6 +132,7 @@ RUN_HEAD(k_func)
 	}
 	
 	if(touchPoint) memcpy(New+ind(ix,iy,iz,0),S->u,vmax*sizeof(real));
+	if(geom_vmax) memcpy(Geom+geom_ind(ix,iy,iz,0),S->geom,geom_vmax*sizeof(real));
       } /* for ix */
     } /* for iy */
   } /* for iz */
@@ -141,18 +141,19 @@ RUN_HEAD(k_func)
     fprintf(debug,"\n");
     /* FFLUSH(debug) */ fflush(debug); /* debug is about thoroughness, not performance! */
   }
-RUN_TAIL(k_func)
+} RUN_TAIL(k_func)
 
-DESTROY_HEAD(k_func)
+DESTROY_HEAD(k_func) {
   #include "k_free.h"
   FREE(S->u);
+  if (S->geom) FREE(S->geom);
   FREE(S->loctb);
   /* This is the first instance of S->file in k_func.c. */
   /* We can check that it was opened (or at least the pointer defined) somewhere else  */
   /* by a simple hack using ftell. */
-  if (S->file && ftell(S->file)!=-1) fclose(S->file);  S->file=NULL;
-  if (S->debug && ftell(S->debug)!=-1) fclose(S->debug); S->debug=NULL;  
-DESTROY_TAIL(k_func)
+  SAFE_CLOSE(S->file);
+  SAFE_CLOSE(S->debug);
+} DESTROY_TAIL(k_func)
 
 CREATE_HEAD(k_func) {
   #define DELIM "\\/,; \r\t\n"
@@ -160,9 +161,11 @@ CREATE_HEAD(k_func) {
   int iv, ip, nv, np;
   real *array, *pv;
   
+  ACCEPTI(advance,0,0,1);
   ACCEPTI(restricted,1,0,1);
 
-  CALLOC(S->u,vmax,sizeof(double));
+  CALLOC(S->u,vmax,sizeof(real));
+  if (geom_vmax) CALLOC(S->geom,geom_vmax,sizeof(real));
 	
 #if MPI
   /* Identifying the root process allows only one process to write debug output. */
@@ -219,20 +222,16 @@ CREATE_HEAD(k_func) {
   k_on();				CHK(NULL);
   S->loctb = tb_new();
   memcpy(S->loctb,deftb,sizeof(*deftb));
-  tb_insert_real(S->loctb,"x",&(S->x));	
-  if (err_code) {
-    int i;
-    for (i=1;i<=maxtab;i++) {
-      if (tb_name(deftb,i)[0]=='\0') continue;
-      printf("i=%d name=%s\n", i, tb_name(deftb,i));
-    }
-  }
-  CHK("x");
-  tb_insert_real(S->loctb,"y",&(S->y));	CHK("y");
-  tb_insert_real(S->loctb,"z",&(S->z));	CHK("z");
+  tb_insert_real_ro(S->loctb,"x",&(S->x));	CHK("x");
+  tb_insert_real_ro(S->loctb,"y",&(S->y));	CHK("y");
+  tb_insert_real_ro(S->loctb,"z",&(S->z));	CHK("z");
 
-  tb_insert_int(S->loctb,"np",&(S->np)); CHK("np");
-  tb_insert_int(S->loctb,"nv",&(S->np)); CHK("nv");
+  /* Read-only k-variables np and nv count dimensions of the array */
+  /* contained in the file; if there is no file, there is no np nor nv */
+  if (S->file) {
+    tb_insert_int_ro(S->loctb,"np",&(S->np)); CHK("np");
+    tb_insert_int_ro(S->loctb,"nv",&(S->nv)); CHK("nv");
+  }
 	
 	/*  Random function is safe for local use only. */
 	/* tb_insert_fun(S->loctb,"rnd",_rnd,2);	CHK("rnd"); */
@@ -240,6 +239,12 @@ CREATE_HEAD(k_func) {
   for(iv=0;iv<vmax;iv++) {
     sprintf(name,"u%d",iv);
     tb_insert_real(S->loctb,name,&(S->u[iv]));  CHK(name);
+  }
+  if (geom_vmax) {
+    for(iv=0;iv<geom_vmax;iv++) {
+      sprintf(name,"geom%d",iv);
+      tb_insert_real(S->loctb,name,&(S->geom[iv]));  CHK(name);
+    }
   }
 	
   if (S->file) {
@@ -261,6 +266,13 @@ CREATE_HEAD(k_func) {
     }
   }
   k_off();
+
+  #if MPI
+  if (advance) run_k_func (dev->s,dev->w,S,dev->sync,dev->alwaysRun);
+  #else
+  if (advance) run_k_func (dev->s,dev->w,S);
+  #endif
+
   
 } CREATE_TAIL(k_func,1)
 

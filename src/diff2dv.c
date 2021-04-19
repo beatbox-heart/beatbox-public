@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* 2D diffusion with variable diffusivity */
 
@@ -65,7 +64,7 @@ DESTROY_HEAD(diff2dv)
 DESTROY_TAIL(diff2dv)
 
 CREATE_HEAD(diff2dv)
-  ACCEPTI(vD,INONE,0,vmax);
+  ACCEPTI(vD,INONE,0,vmax-1);
   ACCEPTR(hx,RNONE,0.,RNONE);
   ASSERT( dev->s.v1 != dev->s.v0 );
   ASSERT( S->vD != dev->s.v0 );

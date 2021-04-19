@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -55,8 +55,6 @@ extern p_tb sys_tab;
 
 extern jmp_buf _env;
 
-static int matherr_flag=0;
-
 static char *vp;
 
 #define stk_size 4096
@@ -69,7 +67,7 @@ static  char *sp;
 #define POP(T,A) if(sp>=lostk+stk_size) return(STKUDR); else {A=*((T)sp); sp+=sizeof(*(T)0);}
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  push_ic(void){
+static inline int  push_ic(void){
   err_ptr="PUSH";
   SPUSH(p_int, *((INT *)vp));
   vp+=sizeof(INT);
@@ -77,7 +75,7 @@ static  int  push_ic(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  push_rc(void) {
+static inline int  push_rc(void) {
   err_ptr="PUSH";
   SPUSH(p_real, *((REAL *)vp));
   vp+=sizeof(REAL);
@@ -85,7 +83,7 @@ static  int  push_rc(void) {
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  push_int(void){
+static inline int  push_int(void){
   err_ptr="PUSH";
   {
     size_t len=sizeof(long int);  
@@ -104,7 +102,7 @@ static  int  push_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  push_real(void){
+static inline int  push_real(void){
   err_ptr="PUSH";
   SPUSH(p_real, *(*((p_real *)vp)));
   vp+=sizeof(p_real);
@@ -112,12 +110,12 @@ static  int  push_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  push_adr(void){
+static inline int  push_adr(void){
   return(0);
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  add_int(void){
+static inline int  add_int(void){
   INT t1,t2;
   err_ptr = "ADD";
   POP(p_int,t2);
@@ -127,7 +125,7 @@ static  int  add_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  add_real(void){
+static inline int  add_real(void){
   REAL t1,t2;
   err_ptr = "ADD";
   POP(p_real,t2);
@@ -137,7 +135,7 @@ static  int  add_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  neg_int(void){
+static inline int  neg_int(void){
   INT t;
   err_ptr = "NEG";
   POP(p_int,t);
@@ -146,7 +144,7 @@ static  int  neg_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  neg_real(void){
+static inline int  neg_real(void){
   REAL t;
   err_ptr = "NEG";
   POP(p_real,t);
@@ -155,7 +153,7 @@ static  int  neg_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  sub_int(void){
+static inline int  sub_int(void){
   INT t1, t2;
   err_ptr = "SUB";
   POP(p_int,t2);
@@ -165,7 +163,7 @@ static  int  sub_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  sub_real(void){
+static inline int  sub_real(void){
   REAL t1, t2;
   err_ptr = "SUB";
   POP(p_real,t2);
@@ -175,7 +173,7 @@ static  int  sub_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  mult_int(void){
+static inline int  mult_int(void){
   INT t1,t2;
   err_ptr = "MULT";
   POP(p_int,t2);
@@ -185,7 +183,7 @@ static  int  mult_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  mult_real(void){
+static inline int  mult_real(void){
   REAL t1,t2;
   err_ptr = "MULT";
   POP(p_real,t2);
@@ -195,7 +193,7 @@ static  int  mult_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  mod_int(void){
+static inline int  mod_int(void){
   INT t1, t2;
   err_ptr = "MOD";
   POP(p_int,t2);
@@ -206,7 +204,7 @@ static  int  mod_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  div_int(void){
+static inline int  div_int(void){
   INT t1, t2;
   err_ptr = "DIV";
   POP(p_int,t2);
@@ -217,7 +215,7 @@ static  int  div_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  div_real(void){
+static inline int  div_real(void){
   REAL t1, t2;
   err_ptr = "DIV";
   POP(p_real,t2);
@@ -228,7 +226,7 @@ static  int  div_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  powr_real(void){
+static inline int  powr_real(void){
   REAL t1, t2;
   err_ptr = "POWR";
   POP(p_real,t2);
@@ -238,7 +236,7 @@ static  int  powr_real(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  int_real(void){
+static inline int  int_real(void){
   INT t;
  
   /* err_ptr = "TYPECNF"; */
@@ -251,7 +249,7 @@ static  int  int_real(void){
 
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  int_real_p(void){
+static inline int  int_real_p(void){
   REAL t1;
   INT t2;
   err_ptr = "TYPECNV";
@@ -263,7 +261,7 @@ static  int  int_real_p(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  real_int(void){
+static inline int  real_int(void){
   REAL t;
   err_ptr = "TYPECNV";
   POP(p_real,t);
@@ -272,11 +270,11 @@ static  int  real_int(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  _stop(void){
+static inline int  _stop(void){
   return(-1);
 }
 
-static  int  call_0(void){
+static inline int  call_0(void){
   typedef REAL (* p_f0)(void);
   p_f0 func;
   err_ptr = "CALL";
@@ -288,7 +286,7 @@ static  int  call_0(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_1(void){
+static inline int  call_1(void){
   REAL a1;
   typedef REAL (* p_f1)(REAL);
   p_f1 func;
@@ -302,7 +300,7 @@ static  int  call_1(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_2(void){
+static inline int  call_2(void){
   REAL a1, a2;
   typedef REAL (* p_f2)(REAL,REAL);
   p_f2 func;
@@ -316,7 +314,7 @@ static  int  call_2(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_3(void){
+static inline int  call_3(void){
   REAL a1, a2, a3;
   typedef REAL (* p_f3)(REAL,REAL,REAL);
   p_f3 func;
@@ -330,7 +328,7 @@ static  int  call_3(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_4(void){
+static inline int  call_4(void){
   REAL a1, a2, a3, a4;
   typedef REAL (* p_f4)(REAL,REAL,REAL,REAL);
   p_f4 func;
@@ -344,7 +342,7 @@ static  int  call_4(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_5(void){
+static inline int  call_5(void){
   REAL a1,a2,a3,a4,a5;
   typedef REAL (* p_f5)(REAL,REAL,REAL,REAL,REAL);
   p_f5 func;
@@ -359,7 +357,7 @@ static  int  call_5(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_6(void){
+static inline int  call_6(void){
   REAL a1,a2,a3,a4,a5,a6;
   typedef REAL (* p_f6)(REAL,REAL,REAL,REAL,REAL,REAL);
   p_f6 func;
@@ -374,7 +372,7 @@ static  int  call_6(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_7(void){
+static inline int  call_7(void){
   REAL a1,a2,a3,a4,a5,a6,a7;
   typedef REAL (* p_f7)(REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f7 func;
@@ -389,7 +387,7 @@ static  int  call_7(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_8(void){
+static inline int  call_8(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8;
   typedef REAL (* p_f8)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f8 func;
@@ -404,7 +402,7 @@ static  int  call_8(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_9(void){
+static inline int  call_9(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9;
   typedef REAL (* p_f9)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f9 func;
@@ -420,7 +418,7 @@ static  int  call_9(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_10(void){
+static inline int  call_10(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9,a10;
   typedef REAL (* p_f10)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f10 func;
@@ -436,7 +434,7 @@ static  int  call_10(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_11(void){
+static inline int  call_11(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11;
   typedef REAL (* p_f11)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f11 func;
@@ -452,7 +450,7 @@ static  int  call_11(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_12(void){
+static inline int  call_12(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12;
   typedef REAL (* p_f12)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f12 func;
@@ -468,7 +466,7 @@ static  int  call_12(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_13(void){
+static inline int  call_13(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13;
   typedef REAL (* p_f13)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f13 func;
@@ -485,7 +483,7 @@ static  int  call_13(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_14(void){
+static inline int  call_14(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14;
   typedef REAL (* p_f14)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f14 func;
@@ -502,7 +500,7 @@ static  int  call_14(void){
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-static  int  call_15(void){
+static inline int  call_15(void){
   REAL a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15;
   typedef REAL (* p_f15)(REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL,REAL);
   p_f15 func;
@@ -568,12 +566,10 @@ static void fp_trap(int dummy) {
 
 void k_on(void) {
   signal(SIGFPE, fp_trap);
-  matherr_flag=1;
   return;
 }
 
 void k_off(void) {
-  matherr_flag=0;
   return;
 }
 
@@ -592,37 +588,6 @@ void *execute(void *v_ptr) {
   }
   err_code = 0;
   return(sp);
-}
-
-/*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/
-int matherr(struct exception *e) {
-  if (matherr_flag) {			/* Karpov's "faultless" version */
-   err_ptr = e->name;
-   err_code = e->type;
-   switch(e-> type){
-   case DOMAIN: case SING: case TLOSS:
-     e->retval = 0.0;
-     return(1);
-   case OVERFLOW:
-     e->retval = MAXDOUBLE;
-     return(1);
-   case UNDERFLOW:
-     e->retval = MINDOUBLE;
-     return(1);
-   default:
-     return(0);
-   }
-  } else {				/* default BC version */
-    switch(e->type) {
-    case UNDERFLOW:
-      e->retval = 0;
-      return 1;
-    case TLOSS:
-      return 1;
-    default:
-      return 0;
-    }
-  } /* if matherr_flag */
 }
 
 /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/

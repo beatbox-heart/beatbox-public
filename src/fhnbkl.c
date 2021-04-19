@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -26,9 +26,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "FHNBKL.on"
-
-#if FHNBKL
 
 #include "device.h"
 #include "state.h"
@@ -42,7 +39,6 @@ typedef struct {
   real 
     Iu,  Iv; 			/* External influence */
 } STR;
-
 
 RHS_HEAD(fhnbkl,2) {
   DEVICE_CONST(real,a)
@@ -68,5 +64,3 @@ RHS_CREATE_HEAD(fhnbkl)
   ACCEPTP(Iu,0,RNONE,RNONE);
   ACCEPTP(Iv,0,RNONE,RNONE);
 RHS_CREATE_TAIL(fhnbkl,2)
-
-#endif

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* Finding "tips" - intersections of isolines in a z-section */
 
@@ -80,13 +79,13 @@ typedef struct {
   int ntip;
 
   /* Addresses of k-variables to store statistics of found tips */
-  double *Npoints;
-  double *xmean;
-  double *ymean;
-  double *zmean;
-  double *xstddev;
-  double *ystddev;
-  double *zstddev;
+  REAL *Npoints;
+  REAL *xmean;
+  REAL *ymean;
+  REAL *zmean;
+  REAL *xstddev;
+  REAL *ystddev;
+  REAL *zstddev;
   /* Names of these k-variables */
   char *Npointsname;
   char *xmeanname;
@@ -355,7 +354,7 @@ RUN_HEAD(singz) {
 } RUN_TAIL(singz)
 
 DESTROY_HEAD(singz)
-  if (S->file) fclose(S->file); S->file=NULL;
+  SAFE_CLOSE(S->file);
 DESTROY_TAIL(singz)
 
 /********************************************/
@@ -372,12 +371,23 @@ CREATE_HEAD(singz) {
     S->precise_orientation=0;
   }
 #endif
+  #if MPI
+  /* TODO: make it work for arbitrary user's choice of everys. */
+  /* For now, it does not work in any other way.               */
+  ACCEPTS(pointsep,"\n");
+  ACCEPTS(sectionsep,"");
+  ACCEPTS(recordsep,"");
+  ACCEPTI(everypoint,1,1,1);
+  ACCEPTI(everysection,0,0,0);
+  ACCEPTI(everyrecord,0,0,0);
+  #else
   ACCEPTS(pointsep," ");
   ACCEPTS(sectionsep,"\t");
   ACCEPTS(recordsep,"\n");
   ACCEPTI(everypoint,0,0,1);
   ACCEPTI(everysection,0,0,1);
   ACCEPTI(everyrecord,1,0,1);
+  #endif
   S->ntip = 0;
   {
     int everypoint=S->everypoint;

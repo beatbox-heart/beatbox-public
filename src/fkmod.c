@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -16,7 +16,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
- *//* 
+ */
+
+/* 
   Modified Fenton & Karma model of cardiac AP.
   This code is based on formulas given in the paper:
   F Fenton and A Karma, "Vortex dynamics in three-dimensional 
@@ -44,9 +46,6 @@ J = I/(Cm*(Vfi - Vo))
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "FKMOD.on"
-
-#if FKMOD
 
 /* Temporally: to mark undefined parameters */
 #define UNKNOWN 0
@@ -134,4 +133,3 @@ RHS_CREATE_HEAD(fkmod) {
   (*u)[0]=0;
   (*u)[1]=(*u)[2]=(*u)[3]=1;
 } RHS_CREATE_TAIL(fkmod,4)
-#endif

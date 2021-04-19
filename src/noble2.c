@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -27,9 +27,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -113,4 +110,3 @@ RHS_CREATE_HEAD(noble2) {
   MALLOC(*u,sizeof(real)*neqn2);
   for(v=0;v<neqn;v++) (*u)[h2n[v]]=(*u)[h2p[v]]=_Y[v];
 } RHS_CREATE_TAIL(noble2,neqn2)
-#endif

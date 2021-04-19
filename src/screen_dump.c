@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* Produce an XWD file from current X screen */
 #include <assert.h>
@@ -43,14 +42,17 @@ typedef struct {
 } STR;
 
 RUN_HEAD(screen_dump)
+{
   DEVICE_VAR(sequence,file)	   
   DEVICE_ARRAY(char,fmt)	   
   thisq(file); 		   DEBUG("thisq file is %s\n",file->name);
                            DEBUG("file %s is in the sequence\n",file->name);
   fclose(file->f);	   DEBUG("file %s closed\n",file->name);
-  file->f=NULL;		   DEBUG("file handle nulled\n",file->name);
+  file->f=NULL;		   DEBUG("file handle %s nulled\n",file->name);
   dump_window(file->name,fmt); DEBUG("dump_window done to %s\n",file->name);
+  file->f=fopen(file->name,"a"); DEBUG("file %s reopen, to make subsequent nextq happy\n",file->name);
   nextq(file); 		   DEBUG("nextq file is %s\n",file->name);
+}
 RUN_TAIL(screen_dump)
 
 DESTROY_HEAD(screen_dump)
@@ -59,8 +61,12 @@ DESTROY_TAIL(screen_dump)
 
 CREATE_HEAD(screen_dump) {
   ACCEPTQ(file,"wb",NULL);
-  ACCEPTS(fmt,"jpeg");
-  if (stricmp(S->fmt,"jpg") && stricmp(S->fmt,"jpeg") && stricmp(S->fmt,"gif") && stricmp(S->fmt,"ppm")) 
-    EXPECTED_ERROR("unknown format '%s'\n",S->fmt);
+  ACCEPTS(fmt,"png");
+  if (stricmp(S->fmt,"jpg") &&
+      stricmp(S->fmt,"jpeg") &&
+      stricmp(S->fmt,"gif") &&
+      stricmp(S->fmt,"ppm") &&
+      stricmp(S->fmt,"png")
+      ) EXPECTED_ERROR("unknown format '%s'\n",S->fmt);
 } CREATE_TAIL(screen_dump,0)
 

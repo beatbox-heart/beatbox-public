@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -20,9 +20,6 @@
 
 #include <math.h>
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "system.h"
 #include "p2c.h"
 #include "noble.h"
@@ -1786,7 +1783,3 @@ Calls: no other procedures
   printf("This parameter set is available only in Calgary and Oxford versions\n\n");
 
 }  /* of procedure ATRIUM ==================================================*/
-
-
-#endif
-

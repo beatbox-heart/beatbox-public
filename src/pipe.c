@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <signal.h>
 #include <stdlib.h>
@@ -67,7 +66,8 @@ int pipeclose(PIPE *p) {
   if (0!=(fcloseret=fclose(p->f))) perror("pipeclose fclose fifo input");
   /*                              fprintf(stderr,"fifo input closed\n"); */
   /* if (0!=(killret=kill(p->child,SIGQUIT))) perror("pipeclose kill child process"); / * - could be still workinglegitimately!? */
-  waitpid(p->child,&status,0);
+  /* waitpid(p->child,&status,0); */
+  waitpid(p->child,&status,WNOHANG); /* if child already finished, there is no one there to report the status */
   if (0==(WIFEXITED(status))) fprintf(stderr,"pipeclose child status %08x\n",status);
 
   unlink(p->n);			      

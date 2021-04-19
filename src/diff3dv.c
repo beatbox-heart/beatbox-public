@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -64,7 +64,7 @@ DESTROY_HEAD(diff3dv)
 DESTROY_TAIL(diff3dv)
 
 CREATE_HEAD(diff3dv)
-  ACCEPTI(vD,INONE,0,vmax);
+  ACCEPTI(vD,INONE,0,vmax-1);
   ACCEPTR(hx,RNONE,0.,RNONE);
   ASSERT( dev->s.v1 != dev->s.v0 );
   ASSERT( S->vD != dev->s.v0 );

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,15 +18,16 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* 
-  Human atrial cell model as described in:
-  Courtemanche M, Ramirez RJ, Nattel S. Ionic mechanisms underlying
-  human atrial action potential properties: insights from a mathematical
-  model. Am J Physiol (1998);275:H301-H321. 
-  This code is based on the M.Courtemanche's `error-free' electronic 
-  version of equations and parameters. 
+  Human atrial cell model as described in: Courtemanche M, Ramirez RJ,
+  Nattel S. Ionic mechanisms underlying human atrial action potential
+  properties: insights from a mathematical model. Am J Physiol
+  (1998);275:H301-H321.  This code is based on the M.Courtemanche's
+  `error-free' electronic version of equations and parameters. See the
+  copyright notice in crn_step.h for detail.
 */
+
+
 
 #include <assert.h>
 #include <math.h>
@@ -35,9 +36,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "HA.on"
-
-#if HA
 
 #include "device.h"
 #include "state.h"
@@ -137,5 +135,3 @@ RHS_HEAD(crn,N) {
   #include "crn_var.h"
   #undef _
 } RHS_TAIL(crn)
-
-#endif /* HA */

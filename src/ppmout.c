@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* Produce a PPM file */
 
 #include <assert.h>
@@ -36,13 +35,10 @@
 #include "byte.h"
 #include "mpi_io_choice.h"
 
-extern FILE *debug;
-
-#define DEBUG if (0) MESSAGE
-
 #define R 0
 #define G 1
 #define B 2
+#define BUF(z,y,x,c) (Buf[(c)+3*((x)+local_xsize*((y)+local_ysize*(z)))])
 
 typedef struct {
   int append;
@@ -64,6 +60,7 @@ typedef struct {
   int local_xsize;	/*  x-dimension of local space */
   int local_ysize;	/*  y-dimension of local space */
   int local_zsize;	/*  z-dimension of local space */
+  unsigned char *Buf;   /*  output buffer */
   unsigned char *prefill;/*  buffer for pre-filling the files */
   int raster_size;	/*  byte size of the pre-filling buffer */
 #endif
@@ -100,7 +97,9 @@ RUN_HEAD(ppmout) {
   DEVICE_CONST(int,raster_size);
   /* The order of bytes in the file:                        */
   /* color is the fastest, then x, ... and z is the slowest */
-  unsigned char buf[local_zsize][local_ysize][local_xsize][3]; /*  3 is for RGB. */
+  /* unsigned char buf[local_zsize][local_ysize][local_xsize][3]; */ /*  3 is for RGB. */
+  /* The buffer may be too big for the stack, hence go for the heap  instead */
+  DEVICE_ARRAY(unsigned char,Buf);
   char header[256]; /* it is hoped that 256 is sufficient but no check is done! */
   int headerLength;
   
@@ -111,9 +110,8 @@ RUN_HEAD(ppmout) {
   MPI_Type_get_extent(MPI_CHAR,&lb, &char_extent);
   MPI_Offset prealloc_size;
 #endif
-  if (!append) thisq(file); DEBUG("thisq finished ok\n");
+  if (!append) thisq(file);
   if (!file->f) return 1;
-  DEBUG("Here we are in %s\n",__FILE__);
   
 #if MPI
   sprintf (header,"P6\n%d %d\n%d\n",xsize,ysize,MAXCHAR);
@@ -143,18 +141,18 @@ RUN_HEAD(ppmout) {
     for(y=0;y<local_ysize;y++) { /* RMF code was back-to-front here, for no apparent reason */
       for(x=0;x<local_xsize;x++) {
 	if (!GEOMETRY_ON || isTissue(s.x0+x,s.y0+y,s.z0+z)) {
-	  buf[z][y][x][R] = (unsigned char) Byte(s.x0+x,s.y0+y,s.z0+z,r,r0,r1);
-	  buf[z][y][x][G] = (unsigned char) Byte(s.x0+x,s.y0+y,s.z0+z,g,g0,g1);
-	  buf[z][y][x][B] = (unsigned char) Byte(s.x0+x,s.y0+y,s.z0+z,b,b0,b1);
+	  BUF(z,y,x,R) = (unsigned char) Byte(s.x0+x,s.y0+y,s.z0+z,r,r0,r1);
+	  BUF(z,y,x,G) = (unsigned char) Byte(s.x0+x,s.y0+y,s.z0+z,g,g0,g1);
+	  BUF(z,y,x,B) = (unsigned char) Byte(s.x0+x,s.y0+y,s.z0+z,b,b0,b1);
 	} else { /*  Void. Use background colour. */
-	  buf[z][y][x][R] = (unsigned char) bgr;
-	  buf[z][y][x][G] = (unsigned char) bgg;
-	  buf[z][y][x][B] = (unsigned char) bgb;
+	  BUF(z,y,x,R) = (unsigned char) bgr;
+	  BUF(z,y,x,G) = (unsigned char) bgg;
+	  BUF(z,y,x,B) = (unsigned char) bgb;
 	} /*  else */
       } /*  for x */
     } /*  for y */
   } /*  for z */
-  MPIDO(MPI_FILE_WRITE(file->f,buf,count,pointType,MPI_STATUS_IGNORE),"Couldn't write raster to file\n");
+  MPIDO(MPI_FILE_WRITE(file->f,Buf,count,pointType,MPI_STATUS_IGNORE),"Couldn't write raster to file\n");
 #else
   /*  Sequential version */
   fprintf (file->f,"P6\n%d %d\n%d\n",nx,ny,MAXCHAR);
@@ -172,18 +170,20 @@ RUN_HEAD(ppmout) {
 	}
       } /*  for x */
     } /*  for y */
-    if (append) { FFLUSH(file->f); DEBUG("file fflushed\n"); }
+    if (append) FFLUSH(file->f);
   } /*  for z */
 #endif
-  if (!append) nextq(file); DEBUG("nextq finished ok\n");
+  MESSAGE("ppmout to '%s' at t=%ld\n",file->name,t);
+  if (!append) nextq(file);
 } RUN_TAIL(ppmout)
 
 DESTROY_HEAD(ppmout) {
 #if MPI
   if (S->file.f) MPI_File_close(&(S->file.f)); 
   if (S->prefill) FREE(S->prefill);
+  FREE(S->Buf);
 #else
-  if (S->file.f) fclose(S->file.f);
+  SAFE_CLOSE(S->file.f);
 #endif
   /* Erase the last file if empty */
   /* Process 0 should be ok for that even if it is not 'runHere' */
@@ -203,7 +203,7 @@ DESTROY_HEAD(ppmout) {
 CREATE_HEAD(ppmout) {
   ACCEPTI(append,0,0,1);
   ACCEPTQ(file,S->append?"at":"wt",NULL);
-  
+
   ACCEPTI(r,INONE,-1,(int)vmax-1);
   ACCEPTR(r0,RNONE,RNONE,RNONE);
   ACCEPTR(r1,RNONE,RNONE,RNONE);
@@ -306,6 +306,12 @@ CREATE_HEAD(ppmout) {
     }
     S->prefill=prefill;
     S->raster_size=raster_size;
+
+    /* Byte buffer allocated on heap once rather than on stack every time */
+    unsigned char *Buf;
+    CALLOC(Buf,3L*local_zsize*local_ysize*local_xsize,sizeof(unsigned char));
+    S->Buf=Buf;
+    
   } /*  if s.runHere */
 #endif
   

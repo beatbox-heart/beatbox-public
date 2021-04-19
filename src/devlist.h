@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* List of all existing devices */
 
 /*
@@ -31,6 +30,7 @@ S(device_name) will run sequentially only.
 /**************** UNIVERSAL *************************/
 
 D(activation)
+D(byteout)
 D(clock)
 D(ctlpoint)
 D(d_dt)
@@ -50,8 +50,7 @@ D(load)
 D(pause)
 D(poincare)
 D(ppmout)
-D(record)
-D(skrecord)
+D(pw_mult)
 D(reduce)
 D(rk4)
 D(rushlarsen)
@@ -64,12 +63,19 @@ D(vtkout2)
 /**************** SEQUENTIAL ONLY ******************/
 
 S(adi3d)
+S(ezpaint)
+S(ezstep)
+S(ezview)
+S(imgout)
 S(k_clock)
 S(k_imgout)
 S(k_draw)
 S(k_paint)
 S(k_paintgl)
 S(k_plot)
+S(matout)
+S(ppmin)
+S(record)
+S(skrecord)
 S(update)
 S(screen_dump)
-S(imgout)

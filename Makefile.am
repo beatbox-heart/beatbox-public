@@ -12,11 +12,6 @@ AUTOMAKE_OPTIONS = foreign
 # in each directory named in SUBDIRS).
 SUBDIRS   = src
 
-# Where stuff is to be be installed
-datarootdir = $(prefix)
-exampledir  = $(datarootdir)/data
-docdir      = $(datarootdir)/doc
-
 # Define some directories for use below.
 datadir   = data
 scriptdir = $(datadir)/scripts
@@ -53,6 +48,15 @@ docs          = \
                 doc/faq.html \
                 doc/README  \
                 doc/ToC.js \
+		doc/Ohara_Rudy_2011.c \
+		doc/Ohara_Rudy_2011.cellml \
+		doc/Ohara_Rudy_2011.h \
+		doc/beatbox.html \
+		doc/ord.c \
+		doc/ord0.bbs \
+		doc/ord_init.h \
+		doc/ord_par.h \
+		doc/ord_step.h \
                 doc/imgs/0000.png \
                 doc/imgs/0001.png \
                 doc/imgs/0002.png \
@@ -87,7 +91,9 @@ docs          = \
                 doc/imgs/ttnnp04.png \
                 doc/imgs/ttnp0_ap.png \
                 doc/imgs/ttp06.png \
-                doc/imgs/ttp06_ap.png
+                doc/imgs/ttp06_ap.png \
+                doc/imgs/mc_mat_diag.png \
+                doc/imgs/str_ionic.png
 
 # Example files
 dist_examples= $(datadir)/README \
@@ -163,13 +169,34 @@ dist_scripts_parallel    = \
                 $(paralldir)/Barkley/Makefile \
                 $(paralldir)/Barkley/bkl1.rec \
                 $(paralldir)/Barkley/scroll.bbs \
-                $(paralldir)/Barkley/view.pl
+                $(paralldir)/Barkley/view.pl \
+                $(paralldir)/CRN_model/crn_ffr.bbs \
+                $(paralldir)/CRN_model/pd_crn1.rec \
+                $(paralldir)/FitzHughNagumo_model/ffr.bbg \
+                $(paralldir)/FitzHughNagumo_model/fhn1_NegativeTension.rec \
+                $(paralldir)/FitzHughNagumo_model/fhn3_NegativeTension.bbs \
+                $(paralldir)/FitzHughNagumo_model/fhn3_NegativeTension.pbs \
+                $(paralldir)/FitzHughNagumo_model/fhn_ffr_xz.bbs \
+                $(paralldir)/FitzHughNagumo_model/fhn_ffr_xz.pbs \
+                $(paralldir)/FitzHughNagumo_model/fhn_ffr_xz_scaling.bbs \
+                $(paralldir)/FitzHughNagumo_model/fhncub.par \
+                $(paralldir)/FitzHughNagumo_model/sample.bbs \
+                $(paralldir)/FitzHughNagumo_model/sample.rec
 
 # Sequential example scripts
 dist_scripts_seq    = \
+                $(seqdir)/Barkley_model/bkl1.rec \
+                $(seqdir)/Barkley_model/ez.bbs \
+                $(seqdir)/Barkley_model/ezscroll.bbs \
+                $(seqdir)/Barkley_model/ezspiral.bbs \
+                $(seqdir)/Barkley_model/implicit.bbs \
+                $(seqdir)/Barkley_model/bkl1.rec \
+                $(seqdir)/Barkley_model/rabbit.bbs \
+                $(seqdir)/Barkley_model/rabbit3.bbg \
 		$(seqdir)/BeelerReuter_model/otg.bbs \
 		$(seqdir)/BeelerReuter_model/tgo.bbs \
 		$(seqdir)/BeelerReuter_model/tog.bbs \
+                $(seqdir)/CRN_model/compare1D.bbs \
                 $(seqdir)/CRN_model/crn0.bbs \
                 $(seqdir)/CRN_model/crn0_ap.bbs \
                 $(seqdir)/CRN_model/crn0_rest.bbs \
@@ -191,26 +218,35 @@ dist_scripts_seq    = \
                 $(seqdir)/FentonKarma_model/fk2_san.bbs \
                 $(seqdir)/FitzHughNagumo_model/fhn.par \
                 $(seqdir)/FitzHughNagumo_model/fhn0.bbs \
-                $(seqdir)/FitzHughNagumo_model/fhn0.sh \
                 $(seqdir)/FitzHughNagumo_model/fhn0_ap.bbs \
                 $(seqdir)/FitzHughNagumo_model/fhn1.bbs \
                 $(seqdir)/FitzHughNagumo_model/fhn1_load.bbs \
                 $(seqdir)/FitzHughNagumo_model/fhn2.bbs \
                 $(seqdir)/FitzHughNagumo_model/fhn3.bbs \
-                $(seqdir)/FitzHughNagumo_model/fhn1_NegativeTension.rec \
-                $(seqdir)/FitzHughNagumo_model/fhn1_PositiveTension.rec \
-                $(seqdir)/FitzHughNagumo_model/fhn3_NegativeTension.bbs \
-                $(seqdir)/FitzHughNagumo_model/fhn3_PositiveTension.bbs \
-                $(seqdir)/FitzHughNagumo_model/view.pl \
                 $(seqdir)/FitzHughNagumo_model/fhn_crossFieldStim_ffr_slice.bbs \
+                $(seqdir)/FitzHughNagumo_model/fhn_ffr.bbs \
                 $(seqdir)/FitzHughNagumo_model/fhn_spiral_ffr_slice.bbs \
-		$(seqdir)//FitzHughNagumo_model/singz.bbs \
+                $(seqdir)/FitzHughNagumo_model/fhn_spiral_ffr_slice_aniso.bbs \
+                $(seqdir)/FitzHughNagumo_model/RunTest.sh \
+		$(seqdir)/FitzHughNagumo_model/singz.bbs \
+                $(seqdir)/LRD_model/RunTest.sh \
                 $(seqdir)/LRD_model/lrd.par \
                 $(seqdir)/LRD_model/lrd0_ap.bbs \
                 $(seqdir)/LRD_model/LRD_3d_box.bbs \
                 $(seqdir)/LRD_model/LRD_ffr.bbs \
                 $(seqdir)/LRD_model/LRD_ffr_slice.bbs \
-                $(seqdir)/RunTest.sh \
+                $(seqdir)/MitchellSchaeffer_model/RunTest.sh \
+                $(seqdir)/MitchellSchaeffer_model/ms.par \
+                $(seqdir)/MitchellSchaeffer_model/ms0.bbs \
+                $(seqdir)/MitchellSchaeffer_model/ms1.bbs \
+                $(seqdir)/MitchellSchaeffer_model/ms2.bbs \
+		$(seqdir)/RK4/Makefile \
+		$(seqdir)/RK4/rk4test-control.eps \
+		$(seqdir)/RK4/rk4test-control.txt \
+		$(seqdir)/RK4/rk4test.bbs \
+		$(seqdir)/RK4/rk4test.eps \
+		$(seqdir)/RK4/rk4test.gnu \
+		$(seqdir)/RK4/rk4test.txt \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttnnp04.png \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttnnp04_ap.bbs \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttnp0.bbs \
@@ -218,52 +254,19 @@ dist_scripts_seq    = \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06.bbs \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06_ap.bbs \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06 \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1.bbg \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.005.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.005.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.005.log \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.005.pgm \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.01.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.01.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.05.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.1_0.05.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2.bbg \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2_0.005.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2_0.005.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2_0.01.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2_0.01.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2_0.05.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.2_0.05.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5.bbg \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.005.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.005.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.01.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.01.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.05.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.05.dat.dir \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.05.dat.other \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.05.log \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/0.5_0.05.pgm \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/Makefile \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/benchmark.bbs \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/colormap \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/colormap.c \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/colormap.ppm \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/dat2tex.pl \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/domain.pl \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/graph.dat \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/graph.eps \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/graph.gnu \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/graph.pdf \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/lower.pdf \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/lower.pgm \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/report.aux \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/report.log \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/report.pdf \
+                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/report-original.pdf \
                 $(seqdir)/TenTusscherPanfilov_modelS/ttp06/report.tex \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/table.tex \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/upper.pdf \
-                $(seqdir)/TenTusscherPanfilov_modelS/ttp06/upper.pgm \
+                $(seqdir)/ZFK_model/Makefile \
+                $(seqdir)/ZFK_model/square.pl \
+                $(seqdir)/ZFK_model/square_20.bbg \
+                $(seqdir)/ZFK_model/zfkmon2.bbs \
+                $(seqdir)/ZFK_model/zfkbid2.bbs \
                 $(seqdir)/ord0_ap.bbs \
                 $(seqdir)/b02/Makefile \
                 $(seqdir)/b02/fig5.bbs \
@@ -271,20 +274,19 @@ dist_scripts_seq    = \
                 $(seqdir)/b02/fig5b.pgm \
                 $(seqdir)/b02/fig5a.png \
                 $(seqdir)/b02/fig5b.png \
-                $(seqdir)/ZFK_model/Makefile \
-                $(seqdir)/ZFK_model/square.pl \
-                $(seqdir)/ZFK_model/square_20.bbg \
-                $(seqdir)/ZFK_model/zfkmon2.bbs \
-                $(seqdir)/ZFK_model/zfkbid2.bbs \
-                $(seqdir)/Barkley_model/ez.bbs \
-                $(seqdir)/Barkley_model/implicit.bbs \
-                $(seqdir)/Barkley_model/bkl1.rec \
-                $(seqdir)/Barkley_model/view.pl
+		$(seqdir)/hh52/hh52m.bbs \
+		$(seqdir)/hh52/Makefile
 
 dist_tests = \
 		$(testdir)/Makefile \
 		$(testdir)/README \
 		$(testdir)/admitfailure.c \
+		$(testdir)/ball.bbg \
+		$(testdir)/ballf.bbs \
+		$(testdir)/ballfcont.bbs \
+		$(testdir)/balld.bbs \
+		$(testdir)/balldcont.bbs \
+		$(testdir)/ballf.approx \
 		$(testdir)/bkl1.rec \
 		$(testdir)/bkl3.bbs \
 		$(testdir)/bkl3cont.bbs \
@@ -297,6 +299,8 @@ dist_tests = \
 		$(testdir)/depth.errmsg \
 		$(testdir)/diff0d.bbs \
 		$(testdir)/diff0d.errmsg \
+		$(testdir)/divzero.bbs \
+		$(testdir)/divzero.errmsg \
 		$(testdir)/fhn.par \
 		$(testdir)/fhn0.approx \
 		$(testdir)/fhn0.bbs \
@@ -309,9 +313,13 @@ dist_tests = \
 		$(testdir)/fhn3side-16.sortedapprox \
 		$(testdir)/fhn3side.approx \
 		$(testdir)/fhn3side.bbs \
+		$(testdir)/funcs.approx \
+		$(testdir)/funcs.bbg \
+		$(testdir)/funcs.bbs \
 		$(testdir)/hh52mrl.approx \
 		$(testdir)/hh52mrl.bbs \
-		$(testdir)/ignore.c \
+		$(testdir)/matout.bbs \
+		$(testdir)/matout.exact \
 		$(testdir)/nexist.bbs \
 		$(testdir)/nexist.errmsg \
 		$(testdir)/nodev.bbs \
@@ -321,6 +329,8 @@ dist_tests = \
 		$(testdir)/nomem.errmsg \
 		$(testdir)/notype.bbs \
 		$(testdir)/notype.errmsg \
+		$(testdir)/record.bbs \
+		$(testdir)/record.exact \
 		$(testdir)/reduce-4.approx \
 		$(testdir)/reduce.approx \
 		$(testdir)/reduce.bbs \

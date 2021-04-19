@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -155,7 +155,9 @@ int tb_findaddr(p_tb table, p_vd addr);
 
 /* insert the object in the table and return its # or 0 on failure */
 int tb_insert_int  (p_tb table,char name[],p_int  addr);
+int tb_insert_int_ro  (p_tb table,char name[],p_int  addr);
 int tb_insert_real (p_tb table,char name[],p_real addr);
+int tb_insert_real_ro (p_tb table,char name[],p_real addr);
 int tb_insert_str  (p_tb table,char name[],char * addr);
 int tb_insert_fun  (p_tb table,char name[],p_fn   addr,int npar);
 int tb_insert_abstract(p_tb table,char name[],int type,p_vd addr,int npar,int flagg);

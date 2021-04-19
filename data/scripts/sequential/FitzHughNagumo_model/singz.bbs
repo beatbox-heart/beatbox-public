@@ -2,8 +2,13 @@
  * This is a variation of fhn2.bbs that illustrates the extra capability
  * of singz device: storing the statistics of singular points to k-variables. 
  *
- * Before running this script, make sure that a correct fhn1.rec has been 
- * created by running fhn1.bbs.
+ * Inputs: 
+ *   fhn.par with common parameters; 
+ *   fhn1.rec (file obtained by running fhn1.bbs).
+ *
+ * Outputs: 
+ *   onscreen graphics if used;
+ *   spiral tip data in ASCII file singz.tip. 
  *
  * To run this bbs script with graphics, use the following command:
  *
@@ -148,8 +153,8 @@ update when=out;
 k_print nowhere=1 when=out file=[0].tip append=0 valuesep="\t" list={t*ht;ntip;xtip;ytip};
 
 
-// Keep the picture on the screen for 3 seconds in the end
-if Graph pause when=end seconds=3;
+// Keep the picture on the screen for 1 second in the end
+if Graph pause when=end seconds=1;
 
 /* Stopping criterion. This is mandatory.*/ 
 stop when=end;

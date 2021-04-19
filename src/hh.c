@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -27,9 +27,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "HH.on"
-
-#if HH
 
 /* flag AUTHENTIC to switch between original Hodgkin-Huxley
    1952 and a new model */
@@ -188,5 +185,3 @@ RHS_CREATE_HEAD(hh) {
   (*u)[0]=0;
 #endif /* AUTHENTIC */
 } RHS_CREATE_TAIL(hh,N)
-
-#endif

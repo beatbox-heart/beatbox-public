@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* General pointwise ODE stepper */
 /* The specific ODE rhs (e.g. cell model module) is attached as a separate function, or cell model module */
@@ -53,13 +52,14 @@ typedef rhs_str STR;
   }
 
 /****************/
-RUN_HEAD(euler)
-  DEVICE_CONST(real,ht)
-  DEVICE_CONST(RhsProc *,f)
-  DEVICE_CONST(Par,p)
-  DEVICE_ARRAY(real,du)
-  DEVICE_ARRAY(char,ode)
-  DEVICE_CONST(Var,var)
+RUN_HEAD(euler) {
+  DEVICE_CONST(real,ht);
+  DEVICE_CONST(RhsProc *,f);
+  DEVICE_CONST(Par,p);
+  DEVICE_ARRAY(real,du);
+  DEVICE_ARRAY(char,ode);
+  DEVICE_CONST(Var,var);
+  
   int x, y, z, v, iv;
   real *u;
 
@@ -74,7 +74,7 @@ RUN_HEAD(euler)
       } /*  for z */
     } /*  for y */
   } /*  for x */
-RUN_TAIL(euler)
+} RUN_TAIL(euler);
 
 /****************/
 DESTROY_HEAD(euler)

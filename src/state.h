@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifndef _STATE_H_
 #define _STATE_H_ 
@@ -76,8 +75,8 @@ EXTERN int *rank_iz;			/* table process -> subdomain z-superindex */
 
 EXTERN INT ANISOTROPY_ON;		/* is anisotropy on?		*/
 
-EXTERN size_t vmax_zmax, vmax_zmax_ymax, vmax_ymax;			/* for index computation */
-EXTERN size_t geom_vmax_zmax, geom_vmax_zmax_ymax, geom_vmax_ymax;	/* for geometry index computation */
+EXTERN size_t vmax_zmax, vmax_zmax_ymax;		/* for index computation */
+EXTERN size_t geom_vmax_zmax, geom_vmax_zmax_ymax;	/* for geometry index computation */
 
 EXTERN size_t DX, DY, DZ, DV;		/* index shifts */
 EXTERN int dim,ONE,TWO,TRI;		/* used to control dimension */
@@ -117,8 +116,8 @@ EXTERN int num_subdoms;			/* Number of subdomains */
 EXTERN int num_active_procs;		/* Number of active (non-idle) processes. Could be < num_subdoms. */
 EXTERN MPI_Comm ALL_ACTIVE_PROCS;	/* Communicator between active processes */
 EXTERN int I_AM_IDLE;			/* This process is idle or empty */
-EXTERN int mpi_nx,mpi_ny,mpi_nz;	/* Number of partitions for each axis */
-EXTERN int mpi_ix, mpi_iy, mpi_iz;	/* Superindices for this process */
+EXTERN long mpi_nx,mpi_ny,mpi_nz;	/* Number of partitions for each axis */
+EXTERN long mpi_ix, mpi_iy, mpi_iz;	/* Superindices for this process */
 typedef struct {			/* Limits of a subdomain, "netto"; */
   int local_xmin, local_xmax;		/*   allowed upper values are local?_max-1 */
   int local_ymin, local_ymax;
@@ -227,12 +226,10 @@ static size_t indfun(size_t x,size_t y,size_t z,int v) {
 /* and these definition can help avoiding unnecessary #if(MPI) clauses: */
 #define mpi_size 1
 #define mpi_rank 0
-#define mpi_nx 1
-#define mpi_ny 1
-#define mpi_nz 1
-#define mpi_ix 0
-#define mpi_iy 0
-#define mpi_iz 0
+EXTERN long mpi_nx,mpi_ny,mpi_nz;	/* ==1 */
+#define mpi_ix 0L
+#define mpi_iy 0L
+#define mpi_iz 0L
 #define local_xmin 0
 #define local_xmax xmax
 #define local_ymin 0
@@ -259,6 +256,7 @@ static size_t indfun(size_t x,size_t y,size_t z,int v) {
     gpoints[gind(x,y,z)] \
   ) \
 )
+#define istissue(x,y,z)	(!GEOMETRY_ON || gpoints[gind(x,y,z)])
 #else
 /* older version: uses Geom */
 #define isTissue(x,y,z)	( \
@@ -272,6 +270,7 @@ static size_t indfun(size_t x,size_t y,size_t z,int v) {
     Geom[geom_ind(x,y,z,GEOM_STATUS)] == (real)GEOM_TISSUE2 \
   ) \
 )
+#define istissue(x,y,z)	(!GEOMETRY_ON || Geom[geom_ind(x,y,z,GEOM_STATUS)] != GEOM_VOID)
 #endif
 
 /* Macro for calculating index of screen arrays by 2D pixel coordinates */

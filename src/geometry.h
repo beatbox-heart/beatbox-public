@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifndef _GEOMETRY_H_
 #define _GEOMETRY_H_
@@ -45,7 +44,10 @@
     \return True (1) on success, 0 otherwise.
 **/
 /* output parameters mesh_xmax ... of type (INT *) are pointers to k-variables */
-int getMeshDimensions(FILE *geomFile, INT *mesh_xmax,INT *mesh_ymax,INT *mesh_zmax);
+int getMeshDimensions(FILE *geomFile, INT *mesh_xmax,INT *mesh_ymax,INT *mesh_zmax,int padding);
+
+/* Former side-effect of getMeshDimensions, now made separate */
+void make_gpoints(FILE *geomFile);
 
 /** \brief Loads geometry data.
     
@@ -62,6 +64,6 @@ int getMeshDimensions(FILE *geomFile, INT *mesh_xmax,INT *mesh_ymax,INT *mesh_zm
     \param normaliseVectors indicates whether all vectors (fibre and boundary) should be normalised.
     \return True (1) on success, 0 otherwise.
 **/
-int populateMesh(FILE *geomFile, const char *geomFileName, int normaliseVectors);
+int populateMesh(FILE *geomFile, const char *geomFileName, int normaliseVectors, int checkVectors, FILE *outFile, const char *outFileName);
 
 #endif /* end of include guard: _GEOMETRY_H_ */

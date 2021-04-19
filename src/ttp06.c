@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* TenTusscher-Panfilov 2006 human ventricular model.  */
 /* Based on TenTusscher's own code from http://www-binf.bio.uu.nl/khwjtuss/SourceCodes/HVM2/Source/ */
@@ -40,10 +39,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "ttp06.on"
-
-#if TTP06
-
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -137,5 +132,3 @@ RHS_HEAD(ttp06,N) {
   #undef _
 
 } RHS_TAIL(ttp06)
-
-#endif /* TRTNP */

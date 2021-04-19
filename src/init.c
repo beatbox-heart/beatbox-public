@@ -52,7 +52,8 @@ extern Device   dev[];
 extern char *device_name;
 extern long int inf;
 
-static int create (Name name, Create c, Device *d, char *rest) {
+static int create (Name name, Create c, Device *d, char *rest)
+{
   if (!accept_condition(&(d->c),rest)) return 0;
   if (!accept_space(&(d->s),rest)) return 0;
   if (!accept_window(&(d->w),rest)) return 0;
@@ -85,6 +86,7 @@ int init (void) {
     if (s[0]==(char)EOF) break;             /* top level EOF */
     rest=first_word(s,&w," \t\n\r;$"); /* extract command */
     device_name=w;
+    DEBUG("\n#%d %s:",mpi_rank,w);
     #define CASE(a) else if (0==stricmp(w,a)) 
     if NOT(*w) continue;    /* empty cmd => eof - pass to next read_command */
     CASE("rem") continue;   /* comment command */
@@ -112,7 +114,7 @@ int init (void) {
       state_called = 1;
       continue;
     }
-    CASE("screen") {                /* create the window */
+    CASE("screen") {                /* create the BGI window */
 #if MPI
       MESSAGE("\n/* The screen command is disabled when using MPI. Your simulation will continue without it. */");
 #else
@@ -200,6 +202,7 @@ int init (void) {
     else { MESSAGE("\nUnknown device name '%s'\n",w); goto ERR_CREATE; }
     idev++;
   } /*  for(;;) */
+  DEBUG("\n#%d end of input file\n",mpi_rank);
 
   MESSAGE("\nend of input file $");
   MESSAGE("\nLoop of %d devices created:",ndev=idev);

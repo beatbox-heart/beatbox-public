@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,11 +18,10 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* ROUTINES NEEDED DURING INITIALIZATION */
 
 #include <assert.h>
-/*#include <ctype.h>*/
+#include <ctype.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -49,6 +48,8 @@ int depth=0;                   /* current depth of include  */
 extern int narg;               /* defined in main */
 extern char **arg;             /* defined in main */
 extern int Verbose;            /* defined in main */
+extern FILE *res;              /* defined in main */
+extern FILE *debug;            /* defined in main */
 
 extern INT Graph;              /* defined in beatbox.c */
 extern INT graphon;            /* defined in bgi.c */
@@ -316,6 +317,23 @@ int calc (void *resaddr, int restype, char *expr) {
 }
 
 /*
+ * Check if a given name is a valid name for a k_variable
+ */
+int valid_name (char *s)
+{
+  char *p;
+  for (p=s;*p;p++) {
+    if (p==s) {
+      if ((0==isalpha(*p)) && (*p!='_')) return 0;
+    } else {
+      if ((0==isalnum(*p)) && (*p!='_')) return 0;
+    }
+  }
+  return 1;
+}
+
+
+/*
  * Defines a k_variable
  */
 int def (char *s) {
@@ -334,8 +352,13 @@ int def (char *s) {
   else if (0==strcmp(typename,"str"))    {restype=t_undf; flag=f_rs;}
   else EXPECTED_ERROR("unknown type %s",typename);
 
-  if (flag==f_rs) sprintf(tabname,"%c%s%c",PASTEBEGIN,parname,PASTEEND);
-  else strcpy(tabname,parname);
+  if (flag==f_rs)
+    sprintf(tabname,"%c%s%c",PASTEBEGIN,parname,PASTEEND);
+  else {
+    if (0==valid_name(parname))		/* is it a valid identifier name? */
+      EXPECTED_ERROR("%s is not a valid name\n",parname);
+    strcpy(tabname,parname);
+  }   	
 
   if(tb_find(sys_tab,tabname))          /* is it in system table ? */
     EXPECTED_ERROR("Name %s is reserved",tabname);
@@ -694,6 +717,74 @@ int acceptp(
   #undef DST
 }
 
+/*
+ * Accepts a real 'linked parameter' which may follow current value of a k-variable
+ * instead of a fixed value. 
+ */
+int acceptrk(
+  const char *name, REAL **varptr, REAL *varval, pp_fn *varcode, REAL deflt, REAL minv, REAL maxv, char *w
+) {
+  char *p = find_key(name,w);
+  if (p==NULL) {
+    *varptr=varval;
+    *varcode=NULL;
+    MESSAGE("\x01""\n\t");
+    return(acceptr(name,varval,deflt,minv,maxv,w));
+  } else if (!token(&p,p)) {
+    MESSAGE("ERROR parsing %s%s\n",name,p);
+    return(0);
+  } else if (*p!=LINK) {
+    MESSAGE("\x01""\n\t");
+    *varptr=varval;
+    *varcode=NULL;
+    return(acceptr(name,varval,deflt,minv,maxv,w));
+  } else if (*(++p)=='\0') {
+    EXPECTED_ERROR("empty k-code for '%s' in '%s'\n", name, w);
+  } else {
+    MESSAGE("\x01""\n\t");
+    *varcode = compile (p, deftb, t_real); CHK(p);
+    *varval=*(REAL *)execute(*varcode); CHK(NULL);
+    *varptr=NULL;
+    MESSAGE("\x01%s%c%s=" REALF "..%c",name,LINK,p,*varval,SEPARATORS[0]);
+    return(1);
+  }
+}
+
+/*
+ * Accepts an integer 'linked parameter' which may follow current value of a k-variable
+ * instead of a fixed value. 
+ */
+int acceptik(
+  const char *name, INT **varptr, INT *varval, pp_fn *varcode, INT deflt, INT minv, INT maxv, char *w
+) {
+  char *p = find_key(name,w);
+  if (p==NULL) {
+    *varptr=varval;
+    *varcode=NULL;
+    MESSAGE("\x01""\n\t");
+    return(acceptl(name,varval,deflt,minv,maxv,w));
+  } else if (!token(&p,p)) {
+    MESSAGE("ERROR parsing %s%s\n",name,p);
+    return(0);
+  } else if (*p!=LINK) {
+    MESSAGE("\x01""\n\t");
+    *varptr=varval;
+    *varcode=NULL;
+    return(acceptl(name,varval,deflt,minv,maxv,w));
+  } else if (*(++p)=='\0') {
+    EXPECTED_ERROR("empty k-code for '%s' in '%s'\n", name, w);
+  } else {
+    *varcode = compile (p, deftb, t_int); CHK(p);
+    *varval=*(INT *)execute(*varcode); CHK(NULL);
+    *varptr=NULL;
+    return(1);
+  }
+}
+
+
+
+/* Todo: this is unsafe if memory allocated at *var is shorter         */
+/* than strings offered by *deflt or *p - need to protect against that */
 int accepts (const char *name,char *var,const char *deflt, char *w) {
   char *p = find_key(name,w), *p1;
   if (!p && deflt) {
@@ -730,6 +821,43 @@ int accepts (const char *name,char *var,const char *deflt, char *w) {
   return 1;
 }
 
+/* This is an attempt of a safer version of accepts */
+int acceptsn (const char *name,char *var,int len,const char *deflt, char *w) {
+  char *p = find_key(name,w), *p1;
+  if (!p && deflt) {
+    strncpy(var,deflt,len);
+    if (!Verbose) return 1;
+    if (*deflt) MESSAGE4("\x01%s\"%s\"%s%c",name,var,DFLT,SEPARATORS[0]);
+    return 1;
+  } else if (!p && !deflt) {
+    MESSAGE2("ERROR: cannot find word \"%s\" in the string:\n\"%s\"\n",name,w);
+    return 0;
+  } else if (*p==STRBEGIN) {
+    for (p1=var,p++;(*p)&&(*p!=STREND)&&(p1<var+len);p++,p1++) {
+      if(*p=='\\') {
+        switch(*++p) {
+          case 'n': *p1='\n'; break;case 't': *p1='\t'; break;
+          case 'b': *p1='\b'; break;case 'r': *p1='\r'; break;
+          case 'f': *p1='\f'; break;case 'a': *p1='\a'; break;
+          case '0': *p1='\0'; break;default:  *p1=*p;   break;
+        };
+      } else {
+        *p1=*p;
+      }
+    }
+    if (*p!=STREND)
+      MESSAGE("/* WARNING: non-terminated string %c..%c in %s */",STRBEGIN,STREND,w);
+    *p1='\0';
+  } else if (!token(&p,p)) {
+    MESSAGE2("ERROR parsing %s%s\n",name,p);
+    return(0);
+  } else {
+    strncpy(var,p,len);
+  }
+  MESSAGE3("\x01%s\"%s\"%c",name,var,SEPARATORS[0]);
+  return 1;
+}
+
 /*
  * Accepts a file parameter.
  */
@@ -738,6 +866,8 @@ int acceptf (const char *name,const char *mode,const char *deflt,char *fname,FIL
   else if (0==strcmp(fname,"")) *f=NULL;
   else if (0==strcmp(fname,"stdout")) *f=stdout;
   else if (0==strcmp(fname,"stderr")) *f=stderr;
+  else if (0==strcmp(fname,"log"))    *f=res;
+  else if (0==strcmp(fname,"debug"))  *f=debug;
   else {
     if (0==stricmp(fname,null)) strcpy(fname,NULLFILE);
     if NOT(*f=fopen(fname,mode)) EXPECTED_ERROR("cannot open file %s in mode %s", fname, mode);
@@ -791,7 +921,7 @@ int accept_condition(Condition *c, char *w) {
   STR *S=&s;
   int i;
   ACCEPTS(when,"always");
-  k_on();
+  /* k_on(); */
   if NOT(i=tb_find(deftb,S->when)) EXPECTED_ERROR("unknown symbol %s for 'when' parameter",S->when);
   if ((tb_flag(deftb,i)&f_vb)==0) EXPECTED_ERROR("symbol %s used for 'when' parameter is not a variable",S->when);
   /* assuming real zero and integer zero are the same, shouldn't make any difference */
@@ -801,7 +931,7 @@ int accept_condition(Condition *c, char *w) {
   return 1;
 }
 
-int accept_real_variable(real **v, char **vname, char *name, char *w) {
+int accept_real_variable(REAL **v, char **vname, char *name, char *w) {
   typedef struct {char var[80];} STR;
   STR s;
   STR *S=&s;
@@ -812,12 +942,12 @@ int accept_real_variable(real **v, char **vname, char *name, char *w) {
   if (!strcmp(S->var,"")) {
      EXPECTED_ERROR("cannot find word \"%s\" in the string:\n\"%s\"\n",name,w);
   }
-  k_on();
+  /* k_on(); */
   if NOT(i=tb_find(deftb,S->var))  EXPECTED_ERROR("unknown symbol %s",S->var);
   if (tb_type(deftb,i)!=t_real) EXPECTED_ERROR("symbol %s is not double",S->var);
   if ((tb_flag(deftb,i)&f_ro)==f_ro) EXPECTED_ERROR("symbol '%s' is read-only",S->var);
   if ((tb_flag(deftb,i)&f_vb)==0) EXPECTED_ERROR("symbol %s is not a variable",S->var);
-  *v = (double *)tb_addr(deftb,i);
+  *v = (REAL *)tb_addr(deftb,i);
   *vname = tb_name(deftb,i);
   return 1;
 }
@@ -1030,6 +1160,8 @@ static double _mod(double a, double b) {return fmod(a,b);}
 static double _max(double a, double b) {return (a>b)?a:b;}
 static double _min(double a, double b) {return (a<b)?a:b;}
 static double _crop(double a, double b, double c) {return (a<b)?b:(a>c)?c:a;}
+static double j2(double x) {return jn(2,x);}
+static double j3(double x) {return jn(3,x);}
 /* A long way to define a function giving value at a certain point */
 static double _U(int x,int y,int z,int v) {
   #if MPI
@@ -1047,11 +1179,29 @@ static double _U(int x,int y,int z,int v) {
     return(double)New[ind(x,y,z,v)];
   #endif
 }
+/* Similar function, to access the geometry data */
+static double _Geom(int x,int y,int z,int v) {
+  if (!GEOMETRY_ON) return RNONE;
+  #if MPI
+    double result;
+    int the_rank;
+    the_rank = getRankContainingPoint(x,y,z);
+    if (the_rank<0) return RNONE;
+    if (mpi_rank==the_rank) {
+      result = (double) Geom[geom_ind(x,y,z,v)];
+    }
+    MPIDO(MPI_Bcast(&result, 1, MPI_DOUBLE, the_rank, ALL_ACTIVE_PROCS),"Could not broadcast the result.");
+    return result;
+  #else
+    return (double)Geom[geom_ind(x,y,z,v)];
+  #endif
+}
 static double intp(
   double (f)(int,int,int,int), 
-  double _x, double _y, double _z, double _v
+  double _x, double _y, double _z, double _v,
+  int _vmax
 ) {
-  int v=floor(_crop(_v,0,(double)vmax-1));
+  int v=floor(_crop(_v,0,(double)_vmax-1));
   int x=floor(_crop(_x,SPACE_DEFAULT_X0,SPACE_DEFAULT_X1));double dx=_x-x;double px=1-dx;
   int y=floor(_crop(_y,SPACE_DEFAULT_Y0,SPACE_DEFAULT_Y1));double dy=_y-y;double py=1-dy;
   int z=floor(_crop(_z,SPACE_DEFAULT_Z0,SPACE_DEFAULT_Z1));double dz=_z-z;double pz=1-dz;
@@ -1064,13 +1214,18 @@ static double intp(
   if(dy)        result+=        px*dy*dz*f(x  ,y+1,z+1,v);
   if(dx&&dy)    result+=        dx*dy*dz*f(x+1,y+1,z+1,v); return result;
 }
-static double _u(double _x, double _y, double _z, double _v) {
-  return intp(_U,_x,_y,_z,_v);
+double _u(double _x, double _y, double _z, double _v) {
+  return intp(_U,_x,_y,_z,_v,vmax);
+}
+static double _geom(double _x, double _y, double _z, double _v) {
+  if (!GEOMETRY_ON) return RNONE;
+  return intp(_Geom,_x,_y,_z,_v,geom_vmax);
 }
 #if MPI
 #else
-  /* Uniformly distributed in the [a,b] interval */
-  static double _rnd(double a,double b) {return (a+(b-a)*rand()/(RAND_MAX+1.0));}
+  /* Uniformly distributed in the [a,b] interval. Is "MT" generator better than this one? */
+  static double _rnd(double a,double b) {return (a+(b-a)*drand48());}
+  static double _rndseed(double a) {unsigned long seedval=floor(a); srand48(seedval); return 0;}
   /* Gaussian with mean a and stddev b, using Box-Muller 1958 transformation */
   static double _gauss(double a,double b) {return a+b*(sqrt(-2*log(_rnd(0,1)))*cos(2*pi*_rnd(0,1)));}
 #endif
@@ -1095,44 +1250,43 @@ int init_const(void) {
   INONE = (-INT_MAX+1);
   LNONE = (-LONG_MAX+1L);
   RNONE = (-MAXREAL)*PREDTO1;
+  real_inf = MAXREAL;
   /* predefined constants for def's */
   k_init();
   deftb = tb_new();                                             CHK("deftb");
   loctb = tb_new();                                             CHK("loctb");
 
   tb_insert_fun(deftb,"atan2",atan2,2);                         CHK("atan2");
-  tb_insert_fun(deftb,"hypot",hypot,2);                         CHK("hypot");
-  tb_insert_fun(deftb,"tanh",tanh,1);                           CHK("tanh");
   tb_insert_fun(deftb,"erf",erf,1);                             CHK("erf");
+  tb_insert_fun(deftb,"hypot",hypot,2);                         CHK("hypot");
   tb_insert_fun(deftb,"J0",j0,1);                               CHK("j0");
   tb_insert_fun(deftb,"J1",j1,1);                               CHK("j1");
-  #define FU(name, args) tb_insert_fun(deftb,#name,_##name,args);       CHK(#name);
+  tb_insert_fun(deftb,"J2",j2,1);                               CHK("j2");
+  tb_insert_fun(deftb,"J3",j3,1);                               CHK("j3");
+  tb_insert_fun(deftb,"tanh",tanh,1);                           CHK("tanh");
+#define FU(name, args) tb_insert_fun(deftb,#name,_##name,args);       CHK(#name);
   FU(ifsign,4); FU(if,3); 
   FU(ifeq0,3); FU(ifne0,3); FU(ifgt0,3); FU(ifge0,3); FU(iflt0,3); FU(ifle0,3);
   FU(eq,2); FU(ne,2); FU(gt,2); FU(ge,2); FU(lt,2); FU(le,2);
-  FU(mod,2); FU(max,2); FU(min,2); FU(crop,3); FU(u,4);
+  FU(mod,2); FU(max,2); FU(min,2); FU(crop,3); FU(u,4); FU(geom,4);
 
   #if MPI
   #else
-  FU(rnd,2); FU(gauss,2); /* these functions are not safe in parallel runs */
+  FU(rnd,2); FU(rndseed,1); FU(gauss,2); /* these functions are not "safe" in parallel runs */
   #endif
 
   #undef FU
-  #define VB(name) tb_insert_int(deftb,#name,&name); CHK(#name);
-        
-  // READ-ONLY!
+
+  /* Are there any read/write variables? */
+  /* #define VB(name) tb_insert_int(deftb,#name,&name); CHK(#name); */
+  /* #undef VB */
+
+  /* Read-only integer variables */
   #define RO(name) tb_insert_abstract(deftb,#name,t_int,(p_vd)&name,0,f_ro); CHK(#name);
   RO(t);
   RO(inf);
-  RO(xmax);
-  RO(ymax);
-  RO(zmax);
-
-/*
-        TODO Do screen vars need to be read-only?
-*/      
-  RO(Graph); RO(graphon); RO(online); RO(XMAX);  RO(YMAX);  RO(WINX);  RO(WINY); 
-  #undef VB
+  RO(xmax); RO(ymax); RO(zmax);
+  RO(Graph); RO(graphon); RO(online); RO(XMAX); RO(YMAX); RO(WINX); RO(WINY); 
   #undef RO
 
   /* C-variable names of colours are different from their k-names */
@@ -1155,10 +1309,12 @@ int init_const(void) {
   CLR(WHITE);
   #undef CLR
 
+  /* Read-only real variables */
   #define RO(name) tb_insert_abstract(deftb,#name,t_real,(p_vd)&name,0,f_ro); CHK(#name);
   RO(pi);
   RO(always); 
   RO(never); 
+  RO(real_inf);
   #undef RO
 
   sprintf(buf,"int narg=%d",narg);

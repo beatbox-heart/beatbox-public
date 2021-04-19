@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 #ifdef _OWN
@@ -32,9 +31,14 @@
 #include <mpi.h>
 #endif
 
-#define MAXDEV 1024    /* Maximum number of Devices that can be used */
+extern FILE *res;
+extern FILE *debug;
 
-typedef double *Condition; /* Condition when the Device will operate */
+#define MAXDEV 1024    		/* Maximum number of Devices that can be used */
+#define MAXSTRLEN 8192 		/* length of various buffers, including that for reading input file */
+EXTERN char buf[MAXSTRLEN];	/* Common general-purpose buffer */
+
+typedef double *Condition; 	/* Condition when the Device will operate */
 
 typedef struct {
   int x0, x1,   /* Set the limits on which the Device will operate */
@@ -90,6 +94,8 @@ typedef int Create (Device *dev, char *w);
 #define DEVICE_CONST(type,name) type name=S->name;
 #define DEVICE_VAR(type,name)   type *name=&(S->name);
 #define DEVICE_ARRAY(type,name) type *name=&(S->name[0]);
+#define DEVICE_PAR(type,name)   type name=(S->name##ptr)?(S->name=*(type *)(S->name##ptr)):(memcpy(&(S->name),execute(S->name##code),sizeof(type)),S->name);
+#define PAR(type,name) type name; type *name##ptr; pp_fn name##code;
 
 #if MPI
 #define RUN_HEAD(name)		 \
@@ -141,6 +147,21 @@ PROC (destroy_##name) {		\
   FREE(par);			\
   return 1;			\
 }
+
+#define SAFE_CLOSE(file)        \
+  if ((file) != NULL && 	\
+      (file) != res && 		\
+      (file) != debug && 	\
+      (file) != stdout && 	\
+      (file) != stderr && 	\
+      ftell(file) !=-1 		\
+      ) {			\
+    fseek((file),0,SEEK_END);	\
+    fflush(file);		\
+    fclose(file);		\
+  }				\
+  (file)=NULL;
+
 
 #define CREATE_HEAD(name)			\
 int create_##name (Device *dev, char *w)  {	\
@@ -197,22 +218,15 @@ EXTERN int 		error_length;
     ABORT("Process %d: %s\n\tMPI Message: %s\n", mpi_rank, error_message, error_string); \
   }
 
-/* #define MPIDO(cmd,error_message)					\ */
-/*   mpi_errno = cmd;							\ */
-/*   if(mpi_errno != MPI_SUCCESS) {					\ */
-/*     MPI_Error_string(mpi_errno, error_string, &error_length);		\ */
-/*     ABORT("Process %d source file %s line %d: %s\n\tMPI Message: %s\n", \ */
-/* 	  mpi_rank, __FILE__,__LINE__, error_message, error_string);	\ */
-/*   } */
-
-#define MPIDO(cmd,error_message)					\
+/* this defines its own buf in case there is another one outside */
+#define MPIDO(cmd,...)							\
   mpi_errno = cmd;							\
-  if(mpi_errno != MPI_SUCCESS) {					\
+  if (mpi_errno != MPI_SUCCESS) {					\
     MPI_Error_string(mpi_errno, error_string, &error_length);		\
-    ABORT("Source file %s line %d: %s\n\tMPI Message: %s\n", 		\
-	  __FILE__,__LINE__, error_message, error_string);		\
+    char buf[MAXSTRLEN];						\
+    sprintf(buf,__VA_ARGS__);						\
+    ABORT("%s\nMPI Message: %s\n",buf,error_string);			\
   }
-
 
 /* 	Define new group and communicator for I/O, 
  *	including only instances with runHere = true.	*/

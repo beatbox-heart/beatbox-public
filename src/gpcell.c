@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* Noble'91 guinea pig ventricle model */
 
 #include <assert.h>
@@ -28,9 +27,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -202,5 +198,3 @@ void gpstep(real *y, real *dy) {
   #include "gpc_var.h"
   #undef _
 }
-
-#endif /*NOBLE*/

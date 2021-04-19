@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -33,9 +33,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "FK.on"
-
-#if FK
 
 /* Temporally: to mark undefined parameters */
 #define UNKNOWN 0
@@ -102,5 +99,3 @@ RHS_CREATE_HEAD(fk) {
   (*u)[0]=0;
   (*u)[1]=(*u)[2]=1;
 } RHS_CREATE_TAIL(fk,3)
-
-#endif

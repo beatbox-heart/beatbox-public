@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -36,9 +36,6 @@ in the 2013 Cardioversion study.
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "crnach.on"
-
-#if CRNACH
 
 #include "device.h"
 #include "state.h"
@@ -137,5 +134,3 @@ RHS_HEAD(crnach,N) {
   #include "crnach_var.h"
   #undef _
 } RHS_TAIL(crnach)
-
-#endif /* crnach */

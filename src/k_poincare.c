@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -45,8 +45,6 @@
 #include "bikt.h"
 #include "windraw.h"
 #include "k_.h"
-
-extern int Verbose;            /* defined in main */
 
 typedef struct {
   /* The code in "pgm={}" block includes ncode semicolon-separated statements "var=expr" */
@@ -128,7 +126,7 @@ DESTROY_HEAD(k_poincare)
   #include "k_free.h"
   FREE(S->prev);
   FREE(S->next);
-  if (S->debug) fclose(S->debug); S->debug=NULL;
+  SAFE_CLOSE(S->debug);
 DESTROY_TAIL(k_poincare)
 
 CREATE_HEAD(k_poincare) {

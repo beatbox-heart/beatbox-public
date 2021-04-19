@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -38,7 +38,7 @@
 /* #include "mpi_io_choice.h" */
 
 typedef struct {
-  int advance;
+  int advance;	/* TODO: eliminate this feature in favour of when=advance facility */
   char *echo;
   int critical;
   char *cmd;

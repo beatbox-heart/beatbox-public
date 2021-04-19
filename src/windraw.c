@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -30,8 +30,8 @@
 #define OWN
 #include "windraw.h"
 
-			    static int debug=0;
-			    #define DB if (debug) fprintf(stderr,
+			    /* static int debug=0; */
+			    #define DB if (debug) fprintf(debug,
 			    #define BD );  
 					
 

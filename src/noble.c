@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,7 +18,6 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /* D.Noble's collection of heart models as in Oxsoft Heart */
 #include <assert.h>
 #include <stdio.h>
@@ -26,9 +25,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -88,4 +84,3 @@ RHS_CREATE_HEAD(noble) {
   MALLOC(*u,sizeof(Arneq));
   memcpy (*u, _Y, sizeof(Arneq));
 } RHS_CREATE_TAIL(noble,neqn)
-#endif

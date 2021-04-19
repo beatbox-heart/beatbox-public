@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -18,458 +18,503 @@
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Control point device */
+/* Control point device. Saves and restores global variables and the
+ * grid.  Optionally, keeps control point in a directory, with global
+ * data and grid subsets for individual processes in separate files.
+ * This makes it impossible to restore to a different partition scheme
+ * than it was saved from, but has the advantage for very big grids in
+ * that it avoids limitations of MPI parallel writing.
+ */
 
+#include <dirent.h>	
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <stdarg.h>
 #include "system.h"
 #include "beatbox.h"
 #include "k_.h"
-#include "bikt.h"
 #include "device.h"
 #include "qpp.h"
 #include "state.h"
 #include "mpi_io_choice.h"
 
-extern int  Verbose;
-extern char VERSTRING[];
-
 typedef struct {
-  char file[MAXPATH];
-  int enrich;
-  long last;
-  char debugname[MAXPATH];
-  FILE *debug;
+  char file[MAXPATH];		/* this will be a directory name if bythread!=0 */
+  int bythread;			/* save grid subsets separately */
+  int enrich;			/* k-variables stored in ctl point are created if not existed in this run */
+  long last;			/* when this device was called last time */
+  char debugname[MAXPATH];	/* the file to which we print the debugging info, */
+  FILE *debug;			/*    may or may not coincide with common debug file */
 #if MPI
-  MPI_Datatype k_var_Type;
-  MPI_Datatype filetype;
-  MPI_Datatype sourceType;
-  MPI_Aint     filetype_extent;
+  MPI_Datatype k_var_Type;	/* MPI        */
+  MPI_Datatype filetype;	/*   parallel */
+  MPI_Datatype sourceType;	/*   i/o      */
+  MPI_Aint     filetype_extent;	/*   stuff    */
 #endif
 } STR;
 
+#define maxstr 256
 typedef struct {
   char          nm[maxname];
   unsigned char tp;
-  unsigned char val[256];
+  unsigned char val[maxstr];
 } k_var;
 
 static k_var empty_var={"", 0, ""};
 
-static int fatal(void) {
-  return 1;
+/* Return values of some static functions */
+#define FAILURE 0
+#define SUCCESS 1
+
+#define NOT(a) (0==(a))
+
+/* Message to a local or to the common debug file */
+#define DEBUG(...) if (debug) {fprintf(debug, __VA_ARGS__); FFLUSH(debug);}
+
+static void fputext (const char *oldfid, char *newfid, const char *newext)
+{
+  char *p;
+  p = strrchr(oldfid,'.');
+  if (p) {
+    strncpy(newfid,oldfid,p-oldfid);
+    p = newfid + (p-oldfid);
+    *(p++)='.';
+    strcpy(p,newext);
+  } else {
+    sprintf(newfid,"%s.%s",oldfid,newext);
+  }
 }
 
-#if MPI
-/**********************/
-/* PARALLEL VARIATION */
-RUN_HEAD(ctlpoint)
-  DEVICE_ARRAY(char,file)
-  DEVICE_CONST(int,enrich)
-  DEVICE_VAR(long,last)
-  DEVICE_CONST(FILE *,debug)
-  #define DB if(debug) {fprintf(debug, 
-  #define BD ); FFLUSH(debug);}
+static int fexist (const char *fid, FILE *debug)
+{
+  FILE *f=fopen(fid,"r");
+  if (f) fclose(f);
+  return (f!=NULL);
+}
 
-  DEVICE_CONST(MPI_Datatype, k_var_Type)
-  DEVICE_CONST(MPI_Datatype, filetype)
-  DEVICE_CONST(MPI_Datatype, sourceType)
-  DEVICE_CONST(MPI_Aint, filetype_extent)
-  MPI_File f;
-  MPI_Offset offset;
-  int x,y,z,v;
-  int mode;
-  int file_exists;
-  FILE *temp_file;
+/* Zero return means it does not exist */
+static int dexist (const char *dirname, FILE *debug)
+{
+  DIR *d=opendir(dirname);
+  if (d) closedir(d);
+  else DEBUG("Could not open directory %s: %s\n",dirname,strerror(errno));
+  return (d!=NULL);
+}
+
+/* Zero return means failure */
+static int deldir (const char *dirname)
+{
+  char cmd[MAXPATH];
+  sprintf(cmd,"rm -rf %s",dirname);
+  return (0==system(cmd)) ? SUCCESS : FAILURE;
+}
+
+/* Zero return means failure */
+static int frename (const char *oldfid, const char *newfid,FILE *debug)
+{
+  int retcode;
+  if (fexist(newfid,debug)) {
+    char bakname[MAXPATH];
+    fputext(newfid, bakname, "BAK");
+    if (fexist(bakname,debug)) {
+      if (0!=remove(bakname)) {
+	DEBUG("Could not delete %s: %s\n",bakname,strerror(errno));
+	return FAILURE;
+      } /* if not remove */
+    } /* if fexist backname */
+    if (0!=rename(newfid,bakname)) {
+      DEBUG("Could not rename %s->%s\n",newfid,bakname);
+      return FAILURE;
+    }
+  }
+  if (0!=rename(oldfid,newfid)) {
+    DEBUG("Could not rename %s->%s\n",oldfid,newfid);
+    return FAILURE;
+  }
+  return SUCCESS;
+}
+
+/* Zero return means failure */
+static int drename(const char *olddirname, const char *newdirname,FILE *debug)
+{
+  int retcode;
+  if (dexist(newdirname,debug)) {
+    char bakname[MAXPATH];
+    fputext(newdirname,bakname,"BAK");
+    if (FAILURE==deldir(bakname)) {DEBUG("Could not delete %s\n",bakname);return FAILURE;}
+    if (0!=rename(newdirname,bakname)) {DEBUG("Could not rename %s->%s\n",newdirname,bakname);return FAILURE;}
+  }
+  if (0!=rename(olddirname,newdirname)) {DEBUG("Could not rename %s->%s\n",olddirname,newdirname);return FAILURE;}
+  return SUCCESS;
+}
+
+/* Macros for frequent things done differently within MPI and without */
+#if MPI
+  #define FREAD(addr, size, type, mpitype, ...)		  			\
+  if (bythread) {							  	\
+    if (size!=fread(addr,sizeof(type),size,globalfile)) ABORT(__VA_ARGS__);	\
+  } else {									\
+    MPIDO(MPI_File_read(f, addr, size, mpitype, MPI_STATUS_IGNORE),__VA_ARGS__);\
+  }
+  #define FWRITE(addr, size, type, mpitype, ...)				\
+  if (bythread) {								\
+   if (size != fwrite(addr,sizeof(type),size,globalfile)) ABORT(__VA_ARGS__);	\
+  } else {									\
+   MPIDO(MPI_File_write(f, addr, size, mpitype, MPI_STATUS_IGNORE),__VA_ARGS__);\
+  }
+  #define FCLOSE(...) MPIDO(MPI_File_close(&f),__VA_ARGS__); f = MPI_FILE_NULL;
+#else /* if MPI */
+  #define FREAD(addr, size, type, mpitype, ...)					\
+  if (bythread) {							  	\
+    if (size!=fread(addr,sizeof(type),size,globalfile)) ABORT(__VA_ARGS__);	\
+  } else {									\
+    if (size!=fread(addr,sizeof(type),size,f)) ABORT(__VA_ARGS__);		\
+  }
+  #define FWRITE(addr, size, type, mpitype, ...)				\
+  if (bythread) {								\
+   if (size != fwrite(addr,sizeof(type),size,globalfile)) ABORT(__VA_ARGS__);	\
+  } else {									\
+    if (size != fwrite(addr,sizeof(type),size,f)) ABORT(__VA_ARGS__);		\
+  }
+  #define FCLOSE(...) if (0!=fclose(f)) ABORT(__VA_ARGS__); f=NULL;				
+#endif /* if MPI else */
+
+RUN_HEAD(ctlpoint)
+{
+  DEVICE_ARRAY(char,file);
+  DEVICE_CONST(int,bythread);
+  DEVICE_CONST(int,enrich);
+  DEVICE_VAR(long,last);
+  DEVICE_CONST(FILE *,debug);
+
+  #if MPI
+    DEVICE_CONST(MPI_Datatype, k_var_Type);
+    DEVICE_CONST(MPI_Datatype, filetype);
+    DEVICE_CONST(MPI_Datatype, sourceType);
+    DEVICE_CONST(MPI_Aint, filetype_extent);
+    MPI_File f;
+    MPI_Offset offset;
+  #else
+    FILE *f;
+  #endif
+    
+  FILE *globalfile;			/* the file for global variables */
+  char globalfilename[MAXPATH];		/* .., the name of */
+  FILE *subsetfile;			/* the file for this processes's grid subset */
+  char subsetfilename[MAXPATH];		/* .., the name of */
+  size_t subsetnum=xlen*ylen*zlen*vmax;	/* .., the number of values in */
+
+  /* New values of principal global vars for comparison */
+  char V_[32];
+  INT xm_,ym_,zm_,vm_,mpinx_,mpiny_,mpinz_;
   
-  char V_[32], *p;
-  INT xm_,ym_,zm_,vm_;
+  /* Buffers needed since prt() returns a static address */
+  #define PRTBUFLEN 80
+  char oldbuf[PRTBUFLEN], newbuf[PRTBUFLEN];
+
+  /* Sundry */
+  char *p;
   int i;
   k_var var;
   
-  DB "\nctlpoint called at %ld\n",t BD
+  DEBUG("\n#%d ctlpoint called at %ld\n",mpi_rank,t);
     
-  if (*last==LNONE) {                      /* never saved, try to restore */
-    DB "\nreading\n" BD
-	
-    #define D(name,new,old,type,size,erraction)				\
-      if(mpi_errno != MPI_SUCCESS){					\
-	MPI_Error_string(mpi_errno, error_string, &error_length);	\
-	MESSAGE("Process %d: error reading from %s at t=%d --- %s", mpi_rank, file, t, error_string); \
-	FFLUSH(stdout);							\
-	/*erraction;*/							\
-      } else if (new!=old && memcmp(new,old,sizeof(type)*size)) {	\
-	MESSAGE("P%02d: wrong %s read from %s: %d(x%0x) instead of %d(x%0x) \n", \
-		mpi_rank,name,file,*(long *)new,*(long *)new,*(long *)old,*(long *)old); \
-	/*erraction;*/							\
-      } else if (debug)							\
-	fprintf(debug,"\nread %s[0]=%f\n",name,(float)(*(type *)(new)));
-      
-    #define CHAR_VAR(name, new, old, size, erraction)			\
-      mpi_errno = MPI_File_read(f, new, size, MPI_CHAR, MPI_STATUS_IGNORE); \
-      D(name, new, old, char, size, erraction)
-      
-    #define INT_VAR(name, new, old, size, erraction)			\
-      mpi_errno = MPI_File_read(f, new, size, MPI_LONG, MPI_STATUS_IGNORE); \
-      D(name, new, old, INT, size, erraction)
-	
-    #define K_VAR(name, new, old, size, erraction)                          \
-      mpi_errno = MPI_File_read(f, new, size, k_var_Type, MPI_STATUS_IGNORE); \
-      D(name, new, old, k_var, size, erraction)
-	
-    /*      Use sequential method to check file existance.
-     *      Prevents MPI errors all over the shop.  */
-    if NOT(temp_file=fopen(file,"rb")) {
-	file_exists = 0;
-	MESSAGE("Cannot read control point %s at t=%d.\n", file, t);
-      } else {
-      file_exists = 1;
-      fclose(temp_file);
-    }
-      
-    if (file_exists==1) {
-      /*  READ FROM DUMP FILE */
-      mpi_errno = MPI_File_open(ALL_ACTIVE_PROCS, file, MPI_MODE_RDONLY, MPI_INFO_NULL, &f);
-      mpi_errno = MPI_File_set_view(f, 0, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL);
-      CHECK_MPI_SUCCESS("Couldn't set view.")
-	
-      /*  Read first block of global data. */
-      #include "ctlpoint.h"
-	  
-      #undef CHAR_VAR
-      #undef INT_VAR
-      #undef K_VAR
-                         
-      MPI_File_get_position(f, &offset);
-      mpi_errno = MPI_File_set_view(f, offset, sourceType, filetype, "native", MPI_INFO_NULL);
-      mpi_errno = MPI_File_read(f, New, 1, sourceType, MPI_STATUS_IGNORE);
-      CHECK_MPI_SUCCESS("Couldn't read from file.")
-      haloSwap();
+  if (*last==LNONE && (bythread?dexist(file,debug):fexist(file,debug))) {
+    /**********************************************/
+    /*  Read from previously saved control point  */
+    DEBUG("Reading:");
+    if (bythread) {
+      sprintf(globalfilename,"%s/global",file);
+      if (NULL==(globalfile=fopen(globalfilename,"r")))
+	EXPECTED_ERROR("Directory %s exists but file %s not found or not readable\n",
+		       file,globalfilename);
+      sprintf(subsetfilename,"%s/%ld_%ld_%ld",file,mpi_ix,mpi_iy,mpi_iz);
+      if (NULL==(subsetfile=fopen(subsetfilename,"r")))
+	ABORT("Directory %s exists but file %s not found or not readable\n",
+	      file,subsetfilename);
+    } else { /* if bythread */
+      #if MPI
+        MPIDO(MPI_File_open(ALL_ACTIVE_PROCS, file, MPI_MODE_RDONLY, MPI_INFO_NULL, &f),
+  	    "File %s exists but could not be opened for reading.", file);
+        MPIDO(MPI_File_set_view(f, 0, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL),"Could not set view.");
+      #else
+        if (NULL==(f=fopen(file,"rb")))
+          ABORT("File %s exists but could not be opened for reading.", file);
+      #endif
+    } /* if bythread else */
+    
+    /*  Read first block of global data. */
+#define _(name, new, old, size, type, mpitype, ktype, severity)			\
+      FREAD(new, size, type, mpitype, "Error reading %s from %s.",name,file);	\
+      if (new!=old && bcmp(new,old,sizeof(type)*size)) {			\
+	memcpy(newbuf,prt(new,ktype),PRTBUFLEN);				\
+	memcpy(oldbuf,prt(old,ktype),PRTBUFLEN);				\
+	if (severity || bythread) {						\
+	  ABORT("#%d: wrong %s read from %s: %s instead of %s. This is a critical error.\n", \
+		mpi_rank,name,file,newbuf,oldbuf);				\
+	} else {								\
+	  URGENT_MESSAGE("#%d: wrong %s read from %s: %s instead of %s. Proceed in hope...\n", \
+			 mpi_rank,name,file,newbuf,oldbuf);			\
+	}									\
+      } else									\
+	DEBUG("\t%s=%s,",name,prt(new,ktype));
+    #include "ctlpoint.h"
+    #undef _
 
+    /*  Read the big thing : this is very different between MPI and sequential */
+    if (bythread) {
+      if (subsetnum!=fread(New,sizeof(real),subsetnum,subsetfile))
+        ABORT("Error reading the grid from %s: %s.",subsetfilename,strerror(errno));
+      DEBUG("\tgrid[%ldx%ldx%ldx%ld],",xlen,ylen,zlen,vm_);
+    } else { /* if bythread */
+    #if MPI
+      MPIDO(MPI_File_get_position(f, &offset),"Could not get position of the file.");
+      MPIDO(MPI_File_set_view(f, offset, sourceType, filetype, "native", MPI_INFO_NULL),"Could not set view.");
+      MPIDO(MPI_File_read(f, New, 1, sourceType, MPI_STATUS_IGNORE),"Could not read grid from %s.",file);
+      haloSwap();
+      DEBUG("\t#%d subgrid[%ldx%ldx%ldx%ld],",mpi_rank,xlen,ylen,zlen,vm_);
       offset += filetype_extent;
-      mpi_errno = MPI_File_set_view(f, offset, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL);
-      
-      for (;;) {
-	mpi_errno = MPI_File_read(f, &var, 1, k_var_Type, MPI_STATUS_IGNORE);
-	if(mpi_errno != MPI_SUCCESS){
-	  MPI_Error_string(mpi_errno, error_string, &error_length);
-	  printf("Process %d: error reading k_var from %s at t=%ld--- %s\n", mpi_rank, file, t, error_string);
-	  FFLUSH(stdout);
-	  break;
-	}
-	
-	if NOT(var.nm[0]) break;                /* eof mark */
-	if NOT(i=tb_find(deftb,var.nm)) {
-	    if (!enrich) continue;
-	    if NOT(i=tb_insert_abstract(
-					deftb,var.nm,var.tp,(p_vd)Calloc(1,sizetable[var.tp]),0,f_vb|f_rs
-                                        )) EXPECTED_ERROR("cannot define variable %s",var.nm);
-	  } /*  if not defined. */
-	if (tb_type(deftb,i)!=var.tp) EXPECTED_ERROR("variable %s of wrong type",var.nm);
-	if ((tb_flag(deftb,i)&f_vb)==0) EXPECTED_ERROR("%s is not a variable",var.nm);
-	memcpy(tb_addr(deftb,i),&(var.val),sizetable[var.tp]);
-      } /*  for */
-      mpi_errno = MPI_File_close(&f);
-      CHECK_MPI_SUCCESS("Couldn't close file after reading.")
-      f = MPI_FILE_NULL;                      
-      DB "\nread ok\n" BD
-    } /*  if(file_exists==1) */
-    #undef D
-  } /*  if(*last==LNONE) */
-  else {                          /* saved, try to save */
-    DB "\nwriting\n" BD
+      MPIDO(MPI_File_set_view(f, offset, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL),"Could not set view.");
+    #else
+      if (xmax*ymax*zmax*vm_!=fread(New,sizeof(real),xmax*ymax*zmax*vm_,f))
+        ABORT("Error reading the grid from %s: %s.",file,strerror(errno));
+      DEBUG("\tgrid[%ldx%ldx%ldx%ld],",xmax,ymax,zmax,vm_);
+    #endif
+    } /* if bythread else */
+    
+    /* Read the k-table */
+    for (;;) {
+      FREAD(&var, 1, k_var, k_var_Type,"Error reading a k-var from %s.", file);
+      if NOT(var.nm[0]) break;                /* eof mark */
+      if NOT(i=tb_find(deftb,var.nm)) {
+	  if (!enrich) continue;
+	  if NOT(i=tb_insert_abstract(
+				      deftb,var.nm,var.tp,(p_vd)Calloc(1,sizetable[var.tp]),0,f_vb|f_rs
+				      )) EXPECTED_ERROR("Cannot define k-var %s.",var.nm);
+	} /*  if not defined. */
+      if (tb_type(deftb,i)!=var.tp) EXPECTED_ERROR("Variable %s from %s is of wrong type.",var.nm,file);
+      if ((tb_flag(deftb,i)&f_vb)==0) EXPECTED_ERROR("%s is not a variable.",var.nm);
+      memcpy(tb_addr(deftb,i),&(var.val),sizetable[var.tp]);
+      DEBUG("\t%s=%s",var.nm,prt(&(var.val),var.tp));
+    } /*  for (;;) */
+
+    /* Close the file(s) */
+    if (bythread) {
+      if (0!=fclose(globalfile))
+	URGENT_MESSAGE("Could not close %s after reading: %s.\n",
+		       globalfile,strerror(errno));
+      globalfile=NULL;
+      if (0!=fclose(subsetfile))
+	URGENT_MESSAGE("Could not close %s after reading: %s.\n",
+		       subsetfile,strerror(errno));
+      subsetfile=NULL;
+    } else { /* if bythread */
+      FCLOSE("Could not close %s after reading: %s.\n",file,strerror(errno));
+    } /* if bythread else */
+    
+    DEBUG("\treading completed\n");
+    MESSAGE("Control point read from '%s' at t=%ld.\n",file,t);
+    
+  } else { /*  if (last or fexist(file)) */
+    /***************************************************************/
+    /* this device read or saved before, now save first time/again */
+    DEBUG("Writing:");
     vm_=vmax;
-      
-    #define D(name,new,old,type,size,erraction)				\
-      if(mpi_errno != MPI_SUCCESS){					\
-	MPI_Error_string(mpi_errno, error_string, &error_length);	\
-	MESSAGE("Process %d: error writing %s to %s at t=%ld --- %s\n",mpi_rank,name,file,t, error_string); \
-	FFLUSH(stdout);							\
-	ABORT("\n");							\
-      }
-    
-    #define CHAR_VAR(name, new, old, size, erraction)			\
-      mpi_errno = MPI_File_write_all(f, old, size, MPI_CHAR, MPI_STATUS_IGNORE); \
-      D(name,new,old,char,size,erraction)        
-    
-    #define INT_VAR(name, new, old, size, erraction)			\
-      mpi_errno = MPI_File_write_all(f, old, size, MPI_LONG, MPI_STATUS_IGNORE); \
-      D(name,new,old,INT,size,erraction)
-    
-    #define K_VAR(name, new, old, size, erraction)				\
-      mpi_errno = MPI_File_write_all(f, &var, size, k_var_Type, MPI_STATUS_IGNORE); \
-      D(name,new,old,k_var,size,erraction)
-    
+
+    /* Temp filename as modified target filename */
     strcpy(buf,file);
     for (p=buf+strlen(buf)-1;p>=buf&&*p=='~';p--);
-    if (p<buf) {MESSAGE("cannot generate tempname for %s",file);return(0);}
+    if (p<buf) EXPECTED_ERROR("Could not generate tempname for %s",file);
     *p='~';
-    
-    mode = MPI_MODE_WRONLY | MPI_MODE_CREATE;
-    MPIDO(MPI_File_open(ALL_ACTIVE_PROCS, buf, mode, MPI_INFO_NULL, &f),
-	  "cannot open dump file for writing");
-    
-    /*  Set view with no displacement (top of file). */
-    MPIDO( MPI_File_set_view(f, 0, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL),
-	   "Couldn't set view.");
-      
-    if (mpi_rank == 0) {
-      /*  Write first block of global data. */
-      #include "ctlpoint.h"   
+
+    if (bythread) {
+      if (mpi_rank==0) {
+	/* Erase the file or directory with such a name, if exists, and make a new one */
+        if (fexist(buf,debug) || dexist(buf,debug)) {
+	  if (FAILURE==deldir(buf)) {
+	    URGENT_MESSAGE("#%d: Could not delete %s: %s\n",mpi_rank,buf,strerror(errno));
+	  } 
+	}
+        if (0!=mkdir(buf,0700)) 
+	  ABORT("#%d: Couldn't create directory %s: %s\n",mpi_rank,buf,strerror(errno));
+	/* And open the file for writing the global data */
+	sprintf(globalfilename,"%s/global",buf);
+	if (NULL==(globalfile=fopen(globalfilename,"w")))
+	  EXPECTED_ERROR("Couldn't open %s for writing: %s\n",
+			 globalfilename,strerror(errno));
+      } /* if mpi_rank==0 */
+    } else {
+      #if MPI
+        /* Apparently MPI cannot overwrite an existing file, so take precaution. */
+        /* Here we do not expect the new file to be a directory - is that wise?  */
+        if (mpi_rank==0) {
+          if (fexist(buf,debug)) {
+	    if (Verbose) MESSAGE("\nFile %s exists; deleting it.\n",buf);
+	    if (0!=unlink(buf)) MESSAGE("Could not delete %s: %s.\n",buf,strerror(errno));
+          }
+        }
+        MPIDO(MPI_Barrier(ALL_ACTIVE_PROCS),"Could not stop at barrier before opening file.");
+        MPIDO(MPI_File_open(ALL_ACTIVE_PROCS, buf, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &f),
+    	  "Could not open %s for writing",buf);
+        /*  Set view with no displacement (top of file). */
+        MPIDO( MPI_File_set_view(f, 0, MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL),"Could not set view.");
+      #else
+	/* Sequential access should just overwrite any existing file            */
+        /* Here we do not expect the new file to be a directory - is that wise? */
+        if NOT(f=fopen(buf,"wb")) EXPECTED_ERROR("Could not open %s for writing.",buf);
+      #endif
     }
-    
-    MPIDO(MPI_File_get_position(f, &offset),
-	  "Could not get file position");
-    MPIDO(MPI_Bcast(&offset, 1, MPI_INT, 0, ALL_ACTIVE_PROCS),
-	  "Could not broadcast offset");
-    MPIDO(MPI_File_set_view(f,offset,sourceType,filetype,"native",MPI_INFO_NULL),
-	  "Could not set view");
-    MPIDO(MPI_File_write_all(f, New, 1, sourceType, MPI_STATUS_IGNORE),
-	  "Could not write to file.");
       
-      
-    /*  Adjust file pointer to after New. */
-    offset += filetype_extent;
-    MPIDO(MPI_File_set_view(f,offset,MPI_CHAR,MPI_CHAR,"native",MPI_INFO_NULL),
-	  "Could not set view.");
+    /*  Write first block of global data, only by process 0 */
+    if (mpi_rank==0) {
+#define _(name, new, old, size, type, mpitype, ktype, severity)			\
+	FWRITE(old, size, type, mpitype,"Error writing %s to %s.",name,buf);	\
+        DEBUG("\t%s=%s,",name,prt(new,ktype));
+      #include "ctlpoint.h"
+      #undef _
+    }
+
+    /* Save the big thing : this is very different between MPI and sequential */
+    if (bythread) {
+      /* Make sure the directory was created before opening files in it */
+      #if MPI
+      MPIDO(MPI_Barrier(ALL_ACTIVE_PROCS),"Could not stop at barrier before opening subset files");
+      #endif
+      /* Every process writes its subset of the grid to a separate file */
+      sprintf(subsetfilename,"%s/%ld_%ld_%ld",buf,mpi_ix,mpi_iy,mpi_iz);
+      if NOT(subsetfile=fopen(subsetfilename,"w"))
+	      ABORT("#%d could not open %s for writing: %s\n",
+		    mpi_rank,subsetfilename,strerror(errno));
+      if (subsetnum!=fwrite(New,sizeof(real),subsetnum,subsetfile))
+	ABORT("#%d could not write subset of the grid to %s at t=%ld: %s\n",
+	      mpi_rank,subsetfilename,t,strerror(errno));
+    } else { /* if bythread */
+      #if MPI
+        /* Every process writes its subset of the grid to its part of the common file */
+        MPIDO(MPI_File_get_position(f, &offset),"Could not get file position.");
+        MPIDO(MPI_Bcast(&offset, 1, MPI_INT, 0, ALL_ACTIVE_PROCS),"Could not broadcast offset.");
+        MPIDO(MPI_File_set_view(f,offset,sourceType,filetype,"native",MPI_INFO_NULL),"Could not set view.");
+        MPIDO(MPI_File_write_all(f, New, 1, sourceType, MPI_STATUS_IGNORE),"Error writing subgrid to %s.",buf);
+        DEBUG("\t#%d subgrid[%ldx%ldx%ldx%ld],",mpi_rank,xlen,ylen,zlen,vmax);
+        offset += filetype_extent;
+        MPIDO(MPI_File_set_view(f,offset,MPI_CHAR,MPI_CHAR,"native",MPI_INFO_NULL),"Could not set view.");
+      #else
+        if (xmax*ymax*zmax*vmax!=fwrite(New,sizeof(real),xmax*ymax*zmax*vmax,f))
+          ABORT("Error reading the grid from %s\n",file);
+        DEBUG("\t#%d grid[%ldx%ldx%ldx%ld],",mpi_rank,xmax,ymax,zmax,vmax);
+      #endif
+    } /* if bythread else */
     
+    /*  Save the k-table, process 0 alone again */
     if (mpi_rank == 0) {
-      /*  Write more global data... */
       for (i=1;i<=maxtab;i++) {
 	if(!*tb_name(deftb,i)) continue;
 	if((tb_flag(deftb,i)&f_vb)==0) continue;
 	memcpy(var.nm,tb_name(deftb,i),maxname);
 	var.tp=tb_type(deftb,i);
 	memcpy(&(var.val),tb_addr(deftb,i),sizetable[var.tp]);
-	K_VAR(var.nm,&var,&var,1,return 0);
+	FWRITE(&var, 1, k_var, k_var_Type, "Error writing %s to %s.",var.nm,buf);
+	DEBUG("\t%s=%s,",var.nm,prt(var.val,var.tp));
       } /*  for i-->maxtab */
-      K_VAR("empty_var",&empty_var,&empty_var,1,return 0); /* eof mark */
+      FWRITE(&empty_var, 1, k_var, k_var_Type,"error writing empty k-var as eof to %s\n",buf);
     } /*  if(mpi_rank == 0) */
-    
-    /*
-      TODO Supress error message when closing the file.
-      */
-    MPIDO(MPI_File_close(&f),"Couldn't close ctlpoint file.");
-    f = MPI_FILE_NULL;
-      
-    frename(buf,file);
-                
-    sprintf(buf,"dumped at %ld to %s\n",t,file);
-    /* if(!MESSAGE(buf)) crt_text(buf,w.row0,w.col0,15); */
-    #undef D
-    
-    DB "\nwritten ok\n" BD
-      
-    #undef CHAR_VAR
-    #undef INT_VAR
-    #undef K_VAR
-  }
-        
-  *last = t;
-RUN_TAIL(ctlpoint)
-#else
-/*************************/
-/*  SEQUENTIAL VARIATION */
-RUN_HEAD(ctlpoint)
-  DEVICE_ARRAY(char,file)
-  DEVICE_CONST(int,enrich)
-  DEVICE_VAR(long,last)
-  DEVICE_CONST(FILE *,debug)
-  #define DB if(debug) {fprintf(debug, 
-  #define BD ); FFLUSH(debug);}
- 
-  FILE *f;
 
-  char V_[32], *p;
-  INT xm_,ym_,zm_,vm_;
-  int i;
-  k_var var;
-
-  DB "\nctlpoint called at %ld\n",t BD
-
-  if (*last==LNONE) {                      /* never saved, try to restore */
-    DB "\nreading\n" BD
-
-    #define D(name,new,old,type,size,erraction)				\
-      if(size!=fread(new,sizeof(type),size,f)) {			\
-	MESSAGE("error reading %s from %s at t=%ld\n",name,file,t);	\
-	erraction;							\
-      } else if (new!=old && memcmp(new,old,sizeof(type)*size)) {	\
-	MESSAGE("wrong %s read from %s: %d(x%0x) instead of %d(x%0x) \n", \
-		name,file,*(long *)new,*(long *)new,*(long *)old,*(long *)old);	\
-	erraction;							\
-      } else if (debug)							\
-	fprintf(debug,"\nread %s[0]=%f\n",name,(float)(*(type *)(new)));
-      if NOT(f=fopen(file,"rb")) {
-	  MESSAGE("\nWARNING: cannot read control point %s\n", file);
-	  *last = t;
-	  return 1;
-	}
-    #include "ctlpoint.h"
-    for (;;) {
-      if(1!=fread(&var,sizeof(k_var),1,f)) {				\
-	MESSAGE("error reading k_var from %s at t=%ld\n",file,t);	\
-	break;								\
-      } 
-      if NOT(var.nm[0]) break;                /* eof mark */
-      DB "\n\t%s",var.nm BD
-	if NOT(i=tb_find(deftb,var.nm)) {
-	    if (!enrich) continue;
-	    if NOT(i=tb_insert_abstract(
-					deftb,var.nm,var.tp,(p_vd)Calloc(1,sizetable[var.tp]),0,f_vb|f_rs
-					)) EXPECTED_ERROR("cannot define variable %s",var.nm);
-	  }
-      
-      if (tb_type(deftb,i)!=var.tp) EXPECTED_ERROR("variable %s of wrong type",var.nm);
-      DB "\t(%s) ", typenametable[var.tp] BD
-	if ((tb_flag(deftb,i)&f_vb)==0) EXPECTED_ERROR("%s is not a variable",var.nm);
-      memcpy(tb_addr(deftb,i),&(var.val),sizetable[var.tp]);
-      DB "\t= %s",prt(tb_addr(deftb,i),var.tp) BD
-	}
-    
-    MESSAGE(buf,"loaded at %ld from %s\n",t,file);
-#undef D
-    DB "\nread ok\n" BD
-  } else {                                /* saved, try to save */
-    DB "\nwriting\n" BD
-    vm_=vmax;
-    #define D(name,new,old,type,size,erraction)                             \
-      if(size!=fwrite(old,sizeof(type),size,f)) {			\
-	MESSAGE("error writing %s to %s at t=%ld\n",name,file,t);	\
-	return 0;							\
+    /* Close the file(s) */
+    if (bythread) {
+      if (mpi_rank==0) {
+	if (0!=fclose(globalfile))
+	  URGENT_MESSAGE("Could not close %s after writing: %s.\n",
+			 globalfilename, strerror(errno));
+	globalfile=NULL;
       }
-    
-    strcpy(buf,file);
-    for(p=buf+strlen(buf)-1;p>=buf&&*p=='~';p--);
-    if(p<buf) {MESSAGE("cannot generate tempname for %s",file);return(0);}
-    *p='~';
-    
-    if NOT(f=fopen(buf,"wb")) {
-	MESSAGE("cannot open dump file %s",buf);
-	perror(0);
-	return(0);
+      if (0!=fclose(subsetfile))
+	URGENT_MESSAGE("Could not close %s after writing: %s.\n",
+		       subsetfilename, strerror(errno));
+      subsetfile=NULL;								
+    } else {
+      FCLOSE("Could not close %s after writing: %s.\n",buf, strerror(errno));
     }
 
-    #include "ctlpoint.h"
-    
-    for(i=1;i<=maxtab;i++) {
-      if(!*tb_name(deftb,i)) continue;
-      if((tb_flag(deftb,i)&f_vb)==0) continue;
-      memcpy(var.nm,tb_name(deftb,i),maxname);
-      var.tp=tb_type(deftb,i);
-      memcpy(&(var.val),tb_addr(deftb,i),sizetable[var.tp]);
-      
-      D(var.nm,&var,&var,k_var,1,return 0);
-    } /*  for i-->maxtab */
-    D("empty_var",&empty_var,&empty_var,k_var,1,return 0); /* eof mark */
-    
-    if(0!=fclose(f)) {
-      MESSAGE("error closing %s at t=%ld\n",buf,t);
-      return(0);
+    /* Make sure all files were closed before renaming the directory */
+    #if MPI
+    MPIDO(MPI_Barrier(ALL_ACTIVE_PROCS),"Could not stop at barrier after closing subset files");
+    #endif
+    if (mpi_rank==0) {
+      if (SUCCESS!=(bythread?drename(buf,file,debug):frename(buf,file,debug)))
+	URGENT_MESSAGE("#%d: Could not rename %s to %s: %s\n",mpi_rank,buf,file,strerror(errno));
     }
+    DEBUG("\twriting completed\n");
+    MESSAGE("Control point written to '%s' at t=%ld\n",file,t);
     
-    f=NULL;
-    
-    frename(buf,file);
-    
-    MESSAGE(buf,"dumped at %ld to %s\n",t,file);
-    #undef D
-    DB "\nwritten ok\n" BD
-  }
-
+  } /*  if (last or fexist(file)) else */
   *last = t;
+}
 RUN_TAIL(ctlpoint)
-#endif
 
 /********************/
-DESTROY_HEAD(ctlpoint)
-        if (S->debug) fclose(S->debug); S->debug=NULL;
-DESTROY_TAIL(ctlpoint)
+DESTROY_HEAD(ctlpoint) {
+  SAFE_CLOSE(S->debug);
+} DESTROY_TAIL(ctlpoint)
 
 /*******************/
 CREATE_HEAD(ctlpoint)
-  DEVICE_IS_SPACELESS
+{
+  DEVICE_IS_SPACELESS;
         
   ACCEPTS(file,NULL);
+  ACCEPTI(bythread,0,0,1);
   ACCEPTI(enrich,0,0,1);
   ACCEPTF(debug,"wt","");
   S->last=LNONE;
   
 #if MPI
+  Space *s=&(dev->s);
   
+  /* Define the k-variables type in MPI parlance */
   MPI_Datatype k_var_Type;
   k_var var;
-  
-  int i;
-  int lengths[3] = {maxname, 1, 256};
+  int lengths[3] = {maxname, 1, maxstr};
   MPI_Aint *displacements = calloc(3, sizeof(MPI_Aint));
   MPI_Datatype old_datatypes[3] = {MPI_CHAR, MPI_UNSIGNED_CHAR, MPI_UNSIGNED_CHAR};
-
-  MPI_Get_address(var.nm,         &displacements[0]);
-  MPI_Get_address(&var.tp,        &displacements[1]);
-  MPI_Get_address(var.val,        &displacements[2]);
-
-  for (i = 2; i>=0; i--) {
-    displacements[i] -= displacements[0];
-  }
-
+  int i;
+  MPI_Get_address(var.nm,	&displacements[0]);
+  MPI_Get_address(&var.tp,	&displacements[1]);
+  MPI_Get_address(var.val,	&displacements[2]);
+  for (i = 2; i>=0; i--) displacements[i] -= displacements[0];
   MPI_Type_create_struct(3, lengths, displacements, old_datatypes, &k_var_Type);
   MPI_Type_commit(&k_var_Type);
 
   /*  Global space must be whole medium (inc absolute boundaries.) */
-  dev->s.runHere = 1; /*  Must run on all processes. */
-  dev->s.global_x0 = 0;
-  dev->s.global_x1 = xmax-1;
-  dev->s.global_y0 = 0;
-  dev->s.global_y1 = ymax-1;
-  dev->s.global_z0 = 0;
-  dev->s.global_z1 = zmax-1;
-  dev->s.v0 = 0;
-  dev->s.v1 = vmax-1;
-
-  if (mpi_ix == 0) {
-    dev->s.x0 = dev->s.global_x0;
-  } else {
-    dev->s.x0 = local_xmin;
-  }
-  if (mpi_ix == mpi_nx-1) {
-    dev->s.x1 = dev->s.global_x1;
-  } else {
-    dev->s.x1 = local_xmax-1;
-  }
-  if (mpi_iy == 0) {
-    dev->s.y0 = dev->s.global_y0;
-  } else {
-    dev->s.y0 = local_ymin;
-  }
-  if (mpi_iy == mpi_nx-1) {
-    dev->s.y1 = dev->s.global_y1;
-  } else {
-    dev->s.y1 = local_ymax-1;
-  }
-  if (mpi_iz == 0) {
-    dev->s.z0 = dev->s.global_z0;
-  } else {
-    dev->s.z0 = local_zmin;
-  }
-  if (mpi_iz == mpi_nz-1) {
-    dev->s.z1 = dev->s.global_z1;
-  } else {
-    dev->s.z1 = local_zmax-1;
-  }
+  s->runHere = 1; /*  Must run on all processes. */
+  s->global_x0 = 0;
+  s->global_x1 = xmax-1;
+  s->global_y0 = 0;
+  s->global_y1 = ymax-1;
+  s->global_z0 = 0;
+  s->global_z1 = zmax-1;
+  s->v0 = 0;
+  s->v1 = vmax-1;
+  s->x0 = (mpi_ix == 0)        ? s->global_x0 : local_xmin;
+  s->x1 = (mpi_ix == mpi_nx-1) ? s->global_x1 : local_xmax-1;
+  s->y0 = (mpi_iy == 0)        ? s->global_y0 : local_ymin;
+  s->y1 = (mpi_iy == mpi_ny-1) ? s->global_y1 : local_ymax-1;
+  s->z0 = (mpi_iz == 0)        ? s->global_z0 : local_zmin;
+  s->z1 = (mpi_iz == mpi_nz-1) ? s->global_z1 : local_zmax-1;
 
   /*  Define types for New. */
   #include "dump_types.h"
-  MPI_Aint filetype_extent;
-  MPI_Type_extent(filetype, &filetype_extent);
+  MPI_Aint lb, filetype_extent;
+  MPIDO(MPI_Type_get_extent(filetype,&lb,&filetype_extent),"Could not get filetype extent");
+
   S->k_var_Type = k_var_Type;
   S->filetype = filetype;
   S->sourceType = sourceType;
   S->filetype_extent = filetype_extent;
 #endif
+}
 CREATE_TAIL(ctlpoint,0)
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <assert.h>
 #include <errno.h>
@@ -45,6 +44,17 @@ int getMPIFileMode (const char *fm);
 extern int idev;
 extern char *device_name;
 extern int Verbose;
+
+
+static size_t fsize (const char *fid) {
+  FILE *f=fopen(fid,"r");
+  size_t filesize;
+  fseek(f,0,SEEK_END);
+  filesize=ftell(f);
+  fclose(f);
+  return filesize;
+}
+
 
 /****************************************************************************************/
 /* This function opens the (new) current file in a sequence to write into it.		*/
@@ -93,9 +103,11 @@ int thisq (sequence *q)
 /****************************************************************************************/
 /* This function closes the current file and increments the sequence counter,		*/
 /* to prepare for the next.								*/
+/* 2018/04/23: Do not leave zero-length files.                                          */
 /****************************************************************************************/
 int nextq (sequence *q) 
 {
+  long position;
   /* If a file is already open, need to close it first */
   if (!q->f) ABORT("file not open, q->name='%s' - this should not happen\n",q->name);
 
@@ -103,12 +115,14 @@ int nextq (sequence *q)
   MPI_Barrier(q->comm);
   MPIDO(MPI_File_close(&(q->f)),"could not close file");
 #else
+  position=ftell(q->f);
   if (0!=fclose(q->f)) {
     MESSAGE("/* Error %d:'%s' closing %s at t=%d, device %d(%s) */\n",
 	    errno, strerror(errno),
 	    q->name,t,idev,device_name);
     MESSAGE("/* This will be ignored and computations proceed futher. */\n");
   }
+  if (position==0) unlink(q->name); /* Do not leave zero-length files */
 #endif
   q->f=NULL;
   if (q->mute==0) MESSAGE("/* t=%ld device %d(%s) closed %s */\n",
@@ -139,18 +153,20 @@ int nextq (sequence *q)
 /* Experimental extension: a postprocessing command is forked (from thread 0 in MPI) */
 /*************************************************************************************/
 #if MPI
-int acceptq (const char *name,const char *mode,const char *deflt,int runHere,sequence *q, char *w) {
-  if (!deviceCommunicator(runHere, &(q->comm))) ABORT("Could not create communicator.\n");
-  q->mpiMode = getMPIFileMode(mode);
-
-  if(runHere){
+int acceptq (const char *name,const char *mode,const char *deflt,int runHere,sequence *q, char *w)
 #else
-int acceptq (const char *name,const char *mode,const char *deflt,sequence *q, char *w) {
+int acceptq (const char *name,const char *mode,const char *deflt,sequence *q, char *w)
 #endif
+{
   char *pnum; /* pointer to the initial value of the counter */
   char onlyname[8*1024];
   char postname[8*1024];
-
+#if MPI
+  if (!deviceCommunicator(runHere, &(q->comm))) ABORT("Could not create communicator.\n");
+  q->mpiMode = getMPIFileMode(mode);
+  if (runHere)
+#endif
+{
   strcpy(q->mode,mode);
   q->f = NULL; /*  Prevents error on first close. We assume q->f non-NULL iff file is open. */
 
@@ -158,6 +174,7 @@ int acceptq (const char *name,const char *mode,const char *deflt,sequence *q, ch
   if NOT(accepts("postproc=",&(q->postproc[0]),"",w)) return 0; /* Read in the postprocessing command. */
   if NOT(accepti("autonumber=",&(q->autonumber),1,0,1,w)) return 0; /* Read in the autonumbering flag. */
   if NOT(accepti("startfrom=",&(q->startfrom),0,INONE,INONE,w)) return 0; /* Read in the default initial number. */
+  if NOT(accepti("ignoreempty=",&(q->ignoreempty),0,0,1,w)) return 0; /* Read in the flag to ignore empty file. */
 
   /* Empty or 'null' filename means output to nowhere. */
   /* Might be needed if device has other functions apart from output to the file sequence. */
@@ -236,6 +253,17 @@ int acceptq (const char *name,const char *mode,const char *deflt,sequence *q, ch
 #endif
       }
       q->f=NULL; /* no file is expected to be open at this point */
+      
+      if (q->ignoreempty) { /* discard all empty files with biggest numbers */
+	while ((q->n) > (q->startfrom)) {
+	  (q->n)--;
+	  sprintf(q->name,q->mask,q->n);
+	  if (fsize(q->name)>0) {
+	    (q->n)++;
+	    break;
+	  }
+	}
+      }
     } else {
       q->n=q->startfrom;
     }
@@ -249,12 +277,9 @@ int acceptq (const char *name,const char *mode,const char *deflt,sequence *q, ch
 
     MESSAGE("\x01/* check: %s\"%s\",%d=\"%s\" */",name,q->mask,q->n,q->name);
   }
-#if MPI
 } /*  if(runHere) */
-#endif
-
   return 1;
-}
+} /* acceptq */
 
 
 #if MPI

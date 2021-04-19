@@ -1,10 +1,10 @@
 // Make a record of 0D pulse
 /*
-Example bbs script to produce FHN AP.
-Inputs: none
-Outputs: record with name fhn_ap.vtg
-To run, use the command:
-Beatbox_SEQ fhn0_ap.bbs
+  Example bbs script to produce FHN AP.
+  Inputs: fhn.par with common parameters. 
+  Outputs: record with name fhn_ap.vtg
+  To run, use the command:
+  Beatbox_SEQ fhn0_ap.bbs
 */
 state xmax=1 ymax=1 zmax=1 vmax=3;
 
@@ -19,12 +19,13 @@ def real begin;
 def real often;
 def real end;
 def real T;
+def real T0; // start time of the chosen pulse
 
 k_func name=timing nowhere=1 pgm={
 	T=t*ht;
 	begin =eq(t,0);
 	often =eq(mod(t,dt),0);
-	end = eq(T,100);
+	end =ge(T,100);
 };
 
 // Point sample
@@ -43,8 +44,8 @@ def real chosenpulse;
 k_func name=restTest nowhere=1 pgm={
 	Iu=lt(U,U_rest+0.05)*lt(V,V_rest+0.05);
 	pulsecount=pulsecount+gt(Iu,0);
-	chosenpulse=ge(pulsecount,1);
-	end=gt(T,100);
+	chosenpulse=ge(pulsecount,5)*often;
+	end=end+ge(pulsecount,6);
 };
 
 k_func name=fb pgm={
@@ -63,6 +64,6 @@ Output
 */
 def real voltage;
 sample x0=0 y0=0 z0=0 v0=0 result=voltage;
-k_print nowhere=1 when=often append=0 file=fhn_ap.vtg valuesep=" " list={T; voltage;};
+k_print nowhere=1 when=chosenpulse append=0 file=fhn_ap.vtg valuesep=" " recordsep=" \n" list={T; voltage;};
 stop when=end;
 end;

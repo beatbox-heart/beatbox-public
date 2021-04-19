@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -40,9 +40,6 @@
 			    #endif
 #include "system.h"
 #include "beatbox.h"
-#include "HA.on"
-
-#if HA
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -163,5 +160,3 @@ RHS_CREATE_HEAD(ha ) {
   #include "ha_var.h"
   #undef _
 } RHS_CREATE_TAIL(ha,1L*N)
-
-#endif /* HA */

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -28,9 +28,6 @@
 #include <string.h>
 #include "system.h"
 #include "beatbox.h"
-#include "NOBLE.on"
-
-#if NOBLE
 #include "device.h"
 #include "state.h"
 #include "bikt.h"
@@ -96,4 +93,3 @@ RHS_CREATE_HEAD(noble_gbk) {
   memcpy (*u, _Y, sizeof(Arneq));
   ACCEPTP(gbk,gbK,RNONE,RNONE);
 } RHS_CREATE_TAIL(noble_gbk,neqn)
-#endif

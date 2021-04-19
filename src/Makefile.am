@@ -1,3 +1,23 @@
+/**
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * (see ../AUTHORS for the full list of contributors)
+ *
+ * This file is part of Beatbox.
+ *
+ * Beatbox is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Beatbox is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 # If this file is modified you need to run:
 #
 # autoreconf --install
@@ -20,9 +40,7 @@ common_sources = \
 	beatbox.c beatbox.h \
 	activation.c \
 	ap.c \
-        AP.on \
 	b02.c \
-        B02.on \
 	bgi.c \
 	bgi.h \
 	bikt.c \
@@ -32,11 +50,10 @@ common_sources = \
 	br77.c br77_fddt.h br77_ftab.h br77_fun.h br77_ngate.h br77_other.h br77_par.h br77_tgate.h  br77_const.h\
 	byte.c \
 	byte.h \
+	byteout.c \
 	bzoregon.c \
 	bzr.c \
-        BZ.on \
 	cgle.c \
-        CGLE.on \
 	cglel.c \
 	cglep.c \
 	channel.h \
@@ -48,10 +65,9 @@ common_sources = \
 	chtbvar.h \
 	clock.c \
 	crn98.c crn98_fun.h  crn98_ngate.h crn98_other.h crn98_par.h crn98_tgate.h crn98_const.h crn98_ftab.h crn98_fddt.h \
-	crn.c crn_par.h crn_step.h crn_var.h crnach.on \
+	crn.c crn_par.h crn_step.h crn_var.h \
 	crnach.c crnach_par.h crnach_step.h crnach_var.h \
-	ctlpoint.c \
-	ctlpoint.h \
+	ctlpoint.c ctlpoint.h \
 	d_dt.c \
 	device.c \
 	device.h \
@@ -71,21 +87,17 @@ common_sources = \
 	euler.c \
 	extern.h \
 	fhncub.c \
-	FHNBKL.on \
 	fhnbkl.c \
 	fhncubpar.c \
-        FHNCUB.on \
 	fk.c \
-        FK.on \
 	fk.h \
-	FKMOD.on \
 	fkmod.c \
 	fkmod.h \
 	flow2d.c \
 	front.c \
-        FRONT.on \
 	geometry.c \
 	geometry.h \
+	glerr.h \
 	gpcell.c \
 	gpcell.h \
         gpc_var.h \
@@ -95,17 +107,14 @@ common_sources = \
 	gpv_var.h \
 	grad2d.c \
 	ha.c \
-        HA.on \
 	ha_cur.h \
 	ha_par.h \
 	ha_un.h \
 	ha_var.h \
 	hh.c \
-        HH.on \
 	hh.h \
 	init.c init.h \
 	ionic.h ioniclist.h \
-	channel.h\
 	k_.c \
 	k_.h \
 	k_calc.h \
@@ -123,7 +132,6 @@ common_sources = \
 	k_print.c \
 	load.c \
 	lrd.c \
-        LRD.on \
 	lrd_par.h \
 	lrd_step.h \
 	lrd_var.h \
@@ -131,12 +139,13 @@ common_sources = \
 	mchtb.h \
 	mchtbpar.h \
 	mchtbvar.h \
+	mouse.c  mouse_init.h  mouse_par.h  mouse_step.h  \
+	mousevent.c  mousevent_init.h  mousevent_par.h  mousevent_step.h  \
 	mpi_io_choice.h \
+	ms.c \
 	n62.c \
-        N62.on \
 	n62.h \
 	noble.c \
-        NOBLE.on \
 	noble.h \
 	noble2.c \
 	noble2.h \
@@ -156,17 +165,14 @@ common_sources = \
 	noblestu.c \
 	noblestu.h \
 	noble_gbk.c \
-	on.h \
-	ord.c ord.on ord_par.h ord_step.h ord_init.h \
+	ord.c ord_par.h ord_step.h ord_init.h \
 	p2clib.c p2c.h \
 	pause.c \
 	pipe.c pipe.h \
-        PLANKTON.on \
 	poincare.c \
 	ppmout.c \
+	pw_mult.c \
 	qpp.c qpp.h \
-	record.c \
-	skrecord.c \
 	reduce.c \
 	rhs.h rhslist.h \
 	rk4.c \
@@ -181,19 +187,16 @@ common_sources = \
 	stop.c \
 	system.c system.h \
 	tb.c tbpar.h tbvar.h \
-	ttnp.c ttnp.on ttnp_par.h ttnp_step.h ttnp_init.h ttnnp04.c ttnnp04_par.h ttnnp04_var.h ttnnp04_step.h ttnnp04.on\
-	ttp06.c  ttp06.on ttp06_par.h ttp06_step.h ttp06_var.h\
+	ttnp.c ttnp_par.h ttnp_step.h ttnp_init.h ttnnp04.c ttnnp04_par.h ttnnp04_var.h ttnnp04_step.h \
+	ttp06.c  ttp06_par.h ttp06_step.h ttp06_var.h\
 	ttp2006.c ttp2006_const.h ttp2006_fddt.h ttp2006_ftab.h ttp2006_fun.h ttp2006_ngate.h ttp2006_other.h ttp2006_par.h ttp2006_tgate.h\
 	trivial.c\
 	update.c \
 	vtkout2.c \
 	windraw.c \
 	windraw.h \
-        ZEEMAN.on \
 	zeeman.c \
-	zfk.c ZFK.on \
-	mouse.c  mouse_init.h  mouse_par.h  mouse_step.h  mouse.on \
-	mousevent.c  mousevent_init.h  mousevent_par.h  mousevent_step.h  mousevent.on
+	zfk.c
 
 Beatbox_SOURCES = \
 	${common_sources} \
@@ -203,6 +206,9 @@ Beatbox_SOURCES = \
 Beatbox_SEQ_SOURCES = \
 	${common_sources} \
 	adi3d.c \
+	ezpaint.c ezpaint.h \
+	ezstep.c ezstep.h  ezstep1.h  ezstep2.h ezstep3.h ezstep4.h ezstep0d.h ezstep2d.h ezstep3d.h \
+	ezview.c ezgraph3d.c ezmarching.c ezview.h ezpar.h ezfix.h ezvar.h ezini.h ezarr.h ezgraph3d.h ezmarching.h ezgenerators.h \
 	imgout.c \
 	k_clock.c \
 	k_draw.c \
@@ -210,4 +216,8 @@ Beatbox_SEQ_SOURCES = \
 	k_paint.c \
 	k_paintgl.c \
 	k_plot.c \
+	matout.c \
+	ppmin.c \
+	record.c \
+	skrecord.c \
 	screen_dump.c

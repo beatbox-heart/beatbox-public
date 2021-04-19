@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* 
  *	Carry out reduction operation over the space and assign result to a given k_variable.
@@ -71,7 +70,7 @@ typedef struct {
   char operation[10];		// Name of reduction operation to use.
   reduce_t code;                // code (0..3) of the operation
   Reduce *local_reduce;		// Function performing the local reduction
-  double *result; 		// Address of k_var to which result will be assigned
+  REAL *result; 		// Address of k_var to which result will be assigned
   char *resultname;		// Name of k_var to which result will be assigned
   char debugname[MAXPATH];
   FILE *debug;

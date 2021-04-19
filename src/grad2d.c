@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -39,25 +39,28 @@ typedef struct {
 
 /****************/
 RUN_HEAD(grad2d)
-	DEVICE_CONST(real,hx)
-	int x, y, z;
-	real *u;
-	for(x=s.x0;x<=s.x1;x++) {
-		for(y=s.y0;y<=s.y1;y++){
-			for(z=s.z0;z<=s.z1;z++){
-				u=New+ind(x,y,z,s.v0);
-				u[DV*(s.v1-s.v0)] = hypot(u[DX]-u[-DX],u[DY]-u[-DY])/hx;
-			} /* for z */
-		} /* for y */
-	} /* for x */
-RUN_TAIL(grad2d)
+{
+  DEVICE_CONST(real,hx);
+  int x, y, z;
+  real *u;
+  size_t V1=DV*(s.v1-s.v0);
+  for(x=s.x0;x<=s.x1;x++) {
+    for(y=s.y0;y<=s.y1;y++){
+      for(z=s.z0;z<=s.z1;z++){
+	u=New+ind(x,y,z,s.v0);
+	u[V1] = hypot(u[DX]-u[-DX],u[DY]-u[-DY])/hx;
+      } /* for z */
+    } /* for y */
+  } /* for x */
+} RUN_TAIL(grad2d)
 
 DESTROY_HEAD(grad2d)
 DESTROY_TAIL(grad2d)
 
 CREATE_HEAD(grad2d)
-	DEVICE_REQUIRES_SYNC
-	ACCEPTR(hx,RNONE,RSUCC(0),RNONE);
-	ASSERT( dev->s.v1 != dev->s.v0 );
-CREATE_TAIL(grad2d,1)
+{
+  DEVICE_REQUIRES_SYNC;
+  ACCEPTR(hx,RNONE,RSUCC(0),RNONE);
+  ASSERT( dev->s.v1 != dev->s.v0 );
+} CREATE_TAIL(grad2d,1)
 

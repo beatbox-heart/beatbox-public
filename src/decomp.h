@@ -39,7 +39,7 @@
  *                be stored.
  *	\return The number of active processes in the preferred decomposition.
  */
-int decompose(int num_procs, int *nx, int *ny, int *nz);
+int decompose (int num_procs, long *nx, long *ny, long *nz);
 
 /* Allocates subdomains to processes, omitting empty ones if any */
 int decomp_allocateSubdomains(void);
@@ -51,7 +51,7 @@ int decomp_allocateSubdomains(void);
  *	\param iy Address at which the y supergrid coordinate should be stored.
  *	\param iz Address at which the z supergrid coordinate should be stored.
  */
-void decomp_getSuperindices(int rank, int *ix, int *iy, int *iz);
+void decomp_getSuperindices(int rank, long *ix, long *iy, long *iz);
 
 /*! Computes the local subdomain's dimensions. 
  *	Results for all subdomains are stored in subdomain_limits.

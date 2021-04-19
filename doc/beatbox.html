@@ -66,7 +66,7 @@ development.
 A special feature of Beatbox is its flexibility in setting various
 experimental protocols, without the need to recompile the package.  A
 simulation is set up by constructing an input script that spatial
-model (1D, 2D, box, or geometry) details, and "devices", which perform
+model (1D cable, 2D rectangel, 3D box, or 2D/3D geometry) details, and "devices", which perform
 computations, input/output, and control functions. The simulation
 script is typically called <code>filename.bbs</code>, where the
 conventional extension <code>bbs</code> stands for "beatbox script",
@@ -377,7 +377,7 @@ The possible options are:
 <li><code>-mute</code>: no default output to stdout. The default is
   to copy a (possibly shorter) version of the log file information to
   the standard output.</li>
-<li><code>-nograph</code>: do not use run-time graphics. The default
+<li><code>-nograph</code>: do not use run-time VGA graphics. The default
   is to use it if there is at least one device that has something to
   show. This is only effective with the sequential version as the
   run-time graphics are not yet implemented for the parallel
@@ -401,7 +401,7 @@ The possible options are:
   the number of processes allocated for the job by the <code>-np
   &lt;num_procs&gt;</code> option of the <code>mpirun</code>
   command. If using tissue geometry (see <a
-   href="#Anatomically_Realistic_Tissue_Geometry">below</a>) then the
+   href="#Tissue_Geometry:_simulating_in_non-rectangular_domains">below</a>) then the
   number of subdomains can be more than the number of processes, as
   long as the number of processes is sufficient to cover all non-empty
   subdomains, i.e. subdomains containing any tissue points. Default is
@@ -420,7 +420,9 @@ be addressed one day, perhaps by making them like
 </p>
 
 <p> The arguments can be used in the input script, where they appear
-  as pre-defined string macros, see below. The parsing is usual for
+  as pre-defined string macros, see
+  <a href="#Predefined_k-variables_and_string_macros">below</a>.
+  The parsing is usual for
   the unix shells, that is each word makes a separate argument, except
   when quotes are used.
 
@@ -649,7 +651,7 @@ obey the C rules. The exception is string macros
 <code>[1]</code>, <code>[2]</code>, <code>[3]</code> ..., which cannot
 be defined within the script, and which contain the values of the
 command line arguments (see above). There some more pre-defined string
-macros, e.g. names of colours used in graphical devices.  The values
+macros, e.g. names of colours used in VGA graphical devices.  The values
 of ordinary string macros are assigned at the moment of their
 definition. Whenever they are used in the script, their values are
 simply substituted in place of <code>[...]</code> and the result is
@@ -661,9 +663,11 @@ expression.
 
 <p>
 In the parallel version, the computational grid (and the geometry
-array) are split between the thread: if a particular value belongs to
+array) are split between the threads: if a particular value belongs to
 one subdomain it is not accessible to another subdomain (with the
-exception of halo points, see below). On the contrary, any arithmetic
+exception of halo points, see
+<a href="#Specifics_of_the_parallel_execution">below</a>).
+On the contrary, any arithmetic
 variable or string macro is available in all threads; however
 depending on its use, they may have different values in different
 threads. 
@@ -677,7 +681,7 @@ threads.
 <h2 class="numbered">The Beatbox Scripting Language</h2>
 
 <p>
-After preprocessing (see below), a Beatbox script consists of a series
+After preprocessing (see <a href="#Preprocessing">below</a>), a Beatbox script consists of a series
 of <em>commands</em>. A command is a sequence of characters (being
 part of one line of script or spanning across several lines), 
 beginning with a recognised keyword and ending with a semicolon
@@ -719,11 +723,12 @@ at the beginning of the command being the verb.
 <li><code>def</code> - Defines a variable or macro.</li>
 <li><code>state</code> - Sets the dimensions of the computational grid.</li>
 <li><code>screen</code> - Sets parameter for on-screen display for the
-  run-time graphics.</li>
+  run-time VGA graphics.</li>
 <li>A device name - Adds an instance of the named device, with the
   parameters as described in the body of the command, to the ring of
-devices. Some of the recognized device names are discussed below; the
-  full list is in <code>devlist.h</code>.</li>
+  devices. Some of the recognized device names are discussed
+  <a href="#Beatbox_Device_Reference">below</a>;
+  the full list is in <code>devlist.h</code> source file.</li>
 <li><code>end</code> - Marks the end of the script. Anything after
   such statement is ignored.</li>
 </ul>
@@ -1053,13 +1058,13 @@ implicitly from the geometry.</li>
 <li> <code>Graph</code> - integer, 0 if <code>-nograph</code>
 command line option was given or the parallel version of the program
   is run, and 1 otherwise.</li>
-<li> <code>graphon</code> - integer, nonzero if graphical output has
+<li> <code>graphon</code> - integer, nonzero if VGA graphical output has
 actually been initiated (e.g. connection to the X server successful). </li>
-<li> <code>XMAX,YMAX </code> - integer, sizes of the graphical screen
+<li> <code>XMAX,YMAX </code> - integer, sizes of the VGA graphical screen
 when run-time graphics is on, in pixels, as specified
 by <code>screen</code> command. </li>
 <li> <code>WINX,WINY</code> - integer, the coordinates of the
-graphical window on the screen, as specified by <code>screen</code>
+VGA graphical window on the screen, as specified by <code>screen</code>
 command. </li>
 <li> <code>
   BLACK,
@@ -1079,7 +1084,7 @@ command. </li>
   YELLOW,
   WHITE
 </code> - integer codes of the standard VGA colours to be used in the
-run-time graphics.</li>
+run-time VGA graphics.</li>
 <li> <code>pi</code> - the real number pi=3.1415926...</li>
 <li> <code>always</code> - the real 1.0.</li>
 <li> <code>never</code> - the real 0.0.</li>
@@ -1102,25 +1107,37 @@ as <code>6*5</code> or <code>count/2</code>.
 Beatbox expressions can use the standard infix arithmetic operators:
 addition (+), subtraction (-), multiplication (*), division (/) and
 exponentiation (** or ^), as well unary plus and minus. For more
-complex operations Beatbox provides a collection of functions:
+complex operations Beatbox provides a collection of functions, that
+includes replicas of standard <code>C</code> functions
+<code>acos</code>,
+<code>asin</code>,
+<code>atan2</code>,
+<code>atan</code>,
+<code>ceil</code>,
+<code>cos</code>,
+<code>erf</code>,
+<code>exp</code>,
+<code>fabs</code>,
+<code>floor</code>,
+<code>fmod</code>,
+<code>hypot</code>,
+<code>log10</code>,
+<code>log</code>,
+<code>pow</code>,
+<code>sin</code>,
+<code>sqrt</code>,
+<code>tan</code>,
+<code>tanh</code>,
+and also 
 </p>
-
 <ul>
 <li>
-<code>atan2(a, b)</code> - Returns the arctangent of <code>a/b</code>,
-using the signs of the arguments to compute the quadrant of the return
-value.
+<code>J0(a)</code> - Returns the Bessel function of the first kind
+of argument <code>a</code> and index 0. 
 </li>
+
 <li>
-<code>hypot(a, b)</code> - Returns the square root of the sum of the
-squares of <code>a</code> and <code>b</code>.
-</li>
-<li>
-<code>tanh(a)</code> - Returns the hyperbolic tangent
-of <code>a</code>.
-</li>
-<li>
-<code>erf(a)</code> - Returns the Gauss error function
+<code>J1(a)</code> - Returns the Bessel index-1 function
 of <code>a</code>.
 </li>
 <li>
@@ -1188,8 +1205,7 @@ and <code>b</code> are equal.
 and <code>b</code> are not equal.
 </li>
 <li>
-<code>mod(a, b)</code> - Returns the remainder of the integer division
-of <code>a</code> by <code>b</code>.
+<code>mod(a, b)</code> - A synonym for </code>fmod</code>.
 </li>
 <li>
 <code>max(a, b)</code> - Returns the greater of <code>a</code>
@@ -1207,6 +1223,28 @@ is strictly less than <code>max</code>. Returns
 <code>test</code> otherwise.
 </li>
 <li>
+<code>u(x,y,z,v)</code> - Returns the value of dynamic variable in the layer
+<code>v</code> at point <code>(x,y,z)</code> in the mesh. The values
+of the arguments are cropped into the corresponding meaningful
+intervals, e.g. [0,<code>vmax-1</code>] for <code>v</code> etc. 
+If
+non-integer values are given for <code>x</code>, <code>y</code> or
+<code>z</code>, the value is linearly interpolated from surrounding
+grid points. Non-integer values for <code>v</code> are rounded down. 
+</li>
+<li>
+<code>geom(x,y,z,v)</code> is similar to <code>u()</code>, but provides
+access to geometry data rather than computational grid data.
+This function is defined only if a complex geometry is
+used. Again,
+non-integer values for <code>x</code>, <code>y</code> imply linear
+interpolation. 
+For <code>v=0</code>, the function returns 1.0 for a
+tissue point and 0.0 for a void point. For <code>v=1,2,3</code>, the
+function returns the values of the fiber direction coefficients; these
+are only available if anisotropy option is used. 
+</li>
+<li>
 <code>rnd(a, b)</code> - Returns a random real number greater than or
 equal to <code>a</code> and strictly less than <code>b</code>,
 uniformly distributed in between (sequential version only).
@@ -1216,17 +1254,10 @@ uniformly distributed in between (sequential version only).
 distributed with mean <code>a</code> and standard
 deviation <code>b</code>, Box-Muller 1958 transformation (sequential version only). 
 </li>
-<li>
-<code>u(x,y,z,v)</code> - Returns the value of dynamic
-variable <code>v</code> at point <code>(x,y,z)</code> in the mesh. If
-non-integer values are given for <code>x</code> or <code>y</code>, the
-value is linearly interpolated from surrounding <code>z</code>
-points. Non-integer values for <code>v</code> are rounded down  (sequential version only).
-</li>
 </ul>
 
 <p>
-The last three functions are not thread-safe or would be too
+The last two functions are not thread-safe or would be too
 communicationally expensive to implement in the parallel mode, so are
 only allowed in the sequential mode.
 </p>
@@ -1379,7 +1410,8 @@ in practice.
   computational grid, i.e. the number of computational layers. Note
   that this number may and ofter is larger that the number of
   equations in the model, as extra layers may be required as working
-  arrays for computational purposes (more detail below). 
+  arrays for computational purposes (details are in the description of the
+  devices that use this feature). 
 </p>
 
 <p>
@@ -1414,58 +1446,180 @@ Any Beatbox input script must contain exactly one <code>state</code>
 command, and it should precede any device-defining commands. 
 </p>
 
-<h3 class="numbered">Anatomically Realistic Tissue Geometry</h3>
+<h3 class="numbered">Tissue Geometry: simulating in non-rectangular domains</h3>
 
 <p>
 If you would like to use an anatomically realistic mesh for your
-simulation, you can specify it in the geometry parameter of
-the <code>state</code> module. For
+simulation, you can specify it in the <code>geometry</code> parameter of
+the <code>state</code> command. For
 example, <code>geometry=ffr.bbg</code> will select
 the <code>ffr.bbg</code> geometry file. 
 </p>
+
 <p>
 When using a geometry file, there is no need to specify the dimensions
-of the mesh, in fact Beatbox will complain if you do. You do still
+of the mesh, in which case Beatbox will find them automatically by analysing the geometry
+file. The set of points read from geometry files will be padded on all
+sides by <code>padding</code> grid points, which is a parameter defaulting to 1. 
+You do still
 need to define <code>vmax</code>, however, to suit your chosen RHS
 module and any other dynamic variables your simulation needs. Beatbox
 will also complain if the fibre directions specified in your geometry
 file are not unit vectors. If you like, Beatbox will normalise the
 fibre directions for you, if you set the <code>normaliseVectors</code>
 parameter to 1. If you would like to model anisotropy, set the
-<code>ansiotropy</code> parameter to 1. This only works when a
-geometry is specified. When the <code>anisotropy=1</code>, the
+<code>ansiotropy</code> parameter to 1.
+When the <code>anisotropy=1</code>, the
 behaviour and required parameters of some devices may change. In
 particular, the <code>diff</code> device, performing the diffusion
 substep, will require two diffusion coefficients, <code>Dpar</code>
 and <code>Dtrans</code> for the diffusivity along and across the
 fibres, instead of the isotropic <code>D</code>.
+</p>
+
+
+<p>
+<strong> Further details, for more advanced users:</strong>
+Perhaps paradoxically, it is possible to specify both the grid sizes
+<code>x0=...</code>, ... <code>z1=...</code> and the BBG file
+<code>geometry=...</code>. In this case, the priority is given to the grid
+sizes, and the points in the BBG file are expected to comply: any points in
+BBG file that do not fit within the expected dimensions are simply discarded. This
+makes sense for very big geometries if many runs with the same geometry are
+required, since an extra round of reading the whole BBG file is needed to
+determine the dimensions, and this can take a long time for a large BBG file.
+It is also possible to use nontrivial geometry and/or anisotropy even
+without a BBG file. This possibility is realized by specifying
+<code>anisotropy=1</code> without a <code>geometry=...</code> parameter. In
+this case, the grid sizes are mandatory, and the geometry can be defined by a
+<code>k_func</code> device on the whole grid, assigning nonzero values to the <code>geom0</code>
+local variable at all points that are intended to represent the tissue, zero
+values for the voids, and assigning <code>geom1,geom2,geom3</code> the
+corresponding fiber
+direction cosines with the x,y and z axes respectively. A delicate detail here
+is that these computations must be done <strong>BEFORE</strong> the geometry grid is used, and
+it is used say by <code>diff</code> device <strong>at parse time</strong>. So
+the k-function filling the geometry grid must be executed at parse time (and
+earlier in the script than any device that may use this grid). To make it
+possible, <code>k_func</code> device has a parameter <code>advance</code>. By
+setting <code>when=never advance=1</code>, you would ensure that this
+<code>k_func</code> device is executed at and only at parse time when the
+initialization script reads the input file, which is precisely what is needed
+for <code>diff</code> device and the like to work properly. Notice that it is
+possible to modify the values in the geometry grid, but this will have no
+effect on <code>diff</code>, <code>diffstep</code> and <code>elliptic</code>
+devices as their templates are formed at parse time only (this  behaviour may
+be reconsidered later). 
+</p>
 
 
 <h3 class="numbered">Geometry File Format</h3>
 
 <p>
-The Beatbox geometry file will typically have the
-extension <code>.bbg</code> and is a plain text file, each line of
-which describes a point belonging to the tissue.  Any such line will
-have four numbers or seven numbers: integers for x, y and z
-coordinates of a node and its tissue type, and three reals for the
-fibre orientation data. The de-facto limits of the x-, y- and
-z-components of all points in the file will be used to define the
-circumscribed box. The file does not have to describe every point in
-the box; the points that are not mentioned will simply be assumed to
-belong to the void. A zero tissue type designates the void, so such
-lines can be omitted without any loss of information.  The three reals
-of the fibre orientation data for any nonzero tissue type will be the
-directional cosines of the fibres. If no true fibre data are available
-in the source of the geometry, and/or no anisotropy is used in
-simulations, then any triple can be put as the fibre orientation data,
-say 1,0,0.
+The Beatbox geometry file will typically have the extension <code>.bbg</code>
+and is a plain text file, each line of which describes a point belonging to
+the tissue.  Any such line will have four numbers or seven numbers: integers
+for x, y and z coordinates of a node and its tissue type, and three reals for
+the fibre orientation data. The de-facto limits of the x-, y- and z-components
+of all points in the file will be used to define the circumscribed box. The
+file does not have to describe every point in the box; the points that are not
+mentioned will simply be assumed to belong to the void. A zero tissue type
+designates the void, so such lines can be omitted without any loss of
+information.  The three reals of the fibre orientation data for any nonzero
+tissue type will be the directional cosines of the fibres. If no true fibre
+data are available in the source of the geometry, and/or no anisotropy is used
+in simulations, then any triple can be put as the fibre orientation data, say
+1,0,0.
+</p>
+
+<p>
+<strong> Further details, for more advanced users:</strong>
+Normally, the directional cosines are silently expected to be
+normalised so that the sum of their squares equals one. This will be
+explicitly checked by stating <code>checkVectors=1</code> in the
+<code>state</code> command.  Moreover, the <code>state</code> command may have
+<code>normaliseVectors=1</code> specified in it in which case the directional
+cosines will be normalised as the BBG file is read. If the vector of
+directional cosines are very close to zero then instead of normalising them,
+BeatBox will replace these cosines with a precise zero which is understood
+that this particular point of the grid does not have a fiber direction and
+must be treated as isotropic.
+</p>
+
+<h2 class="numbered">About the run-time graphics</h2>
+
+<p>
+The run-time graphics in Beatbox is at present implemented only in the
+sequential mode.  It comes in two kinds.
+<ul>
+  <li>
+  Some legacy devices make graphical
+  outputs into a single window, common to all such devices, emulating the <a
+  href="https://en.wikipedia.org/wiki/Video_Graphics_Array">VGA 640x380,
+  16-colour interface</a> by means of the X11 protocol. In this manual, this method
+  is referred to as "VGA graphics" for brevity. The standard window size may
+  be changed by using a <code>screen</code> command which, as the
+  <code>state</code> command, makese effect only at parse time and must
+  precede any devices using VGA graphics. The parameters of the
+  <code>screen</code> command are:
+  <table border="1">
+    <tr>
+      <th> Type </th><th> Name </th><th> Default </th><th> Description </th>
+    </tr><tr>
+      <td><code>int</code></td>
+      <td><code>XMAX</code></td>
+      <td><code>639</code></td>
+      <td> Width of the VGA window - 1, in pixels.</td>
+    </tr><tr>
+      <td><code>int</code></td>
+      <td><code>YMAX</code></td>
+      <td><code>479</code></td>
+      <td> Height of the VGA window - 1, in pixels.</td>
+    </tr><tr>
+      <td><code>int</code></td>
+      <td><code>WINX</code></td>
+      <td><code>-1</code></td>
+      <td> Horizontal location of the VGA screen. If non-negative,
+      it is the distance of the left edge of the window from the left edge of
+      the screen. The negative values designate the distance of the right edge
+      of the window from the right end of the screen.</td>
+    </tr><tr>
+      <td><code>int</code></td>
+      <td><code>WINY</code></td>
+      <td><code>-1</code></td>
+      <td> Vertical location of the VGA screen. If non-negative,
+      it is the distance of the top edge of the window from the top edge of
+      the screen. The negative values designate the distance of the bottom edge
+      of the window from the bottom end of the screen.</td>
+    </tr><tr>
+      <td><code>int</code></td>
+      <td><code>online</code></td>
+      <td><code>0</code></td>
+      <td> Normally, when this flag is 0, the VGA emulator will update the
+	window only when the device
+	<a href="#update"><code>update</code></a>
+	described below	is called. 
+	If set to 1, this flag causes the VGA emulator will update the
+	window after every primitive. This will significantly slow down the
+	graphics, but may be useful for debugging
+	purposes purposes. </td>      
+    </tr>
+  </table>
+</li>
+  <li>
+  More recent graphical
+  devices make each their own X11 window as needed. These as rely on the
+  <a href="https://en.wikipedia.org/wiki/OpenGL">OpenGL</a>
+  extension to X11. In this manual, this method
+  is referred to as "OpenGL graphics" for brevity.</li>
+</ul>
 </p>
 
 <h2 class="numbered">More about Device-Definining Commands</h2>
 
 <p>
-Following the <code>state</code> declaration, a script can add to the
+Following the <code>state</code> declaration and possibly a
+<code>screen</code> declaration, a script can add to the
 ring of devices by invoking or ‘calling’ Beatbox devices. A device
 call takes the form of the device name, followed by parameters as
 key-value pairs, separated by spaces. The excerpt below shows
@@ -1635,7 +1789,7 @@ Beatbox. Generic parameters and their defaults are described below.
 <dd>
 <p>
 Given name for the device. If the script specifies two instances of a
-device, giving one of the devices a name will disambiguate the devices
+device, giving one of the devices a unique name will disambiguate the devices
 in any output messages. Also, some devices refer to another device in
 the simulation using its name parameter. The default
 for <code>name</code> is the device name. 
@@ -1644,17 +1798,17 @@ for <code>name</code> is the device name.
 
 <dt style="font-weight:bold;"><code>(real) when</code></dt> 
 <dd>
-<p>
-The device's condition. The value given for <code>when</code> must be
-a real k-variable. The device will be run only on timesteps (loops of
-the device ring) when the value of this variable is nonzero.  A
-literal value cannot be used for this parameter (think of this
-parameter as a codestring, where the code is restricted to just one
-real variable; allowing here a generic k-expression would be more
-consistent but also more expensive). For devices that should run on
-every timestep, Beatbox provides the predefined read-only
-variable <code>always</code>, whose value is 1,
-and <code>when=always</code> is the default.
+<p> 
+The device's condition. The value given for <code>when</code> must be the name
+of a real k-variable.  The device will be run only on timesteps (loops of the
+device ring) when the value of this variable is nonzero.  Think of this
+parameter as a codestring, where the code is restricted to just one real
+variable; allowing here a generic k-expression would be more consistent but
+also more expensive. In particular, a literal value (i.e. a numerical
+constant) cannot be used for this parameter.  For devices that should run on
+every timestep, Beatbox provides the predefined read-only variable
+<code>always</code>, whose value is 1, and <code>when=always</code> is the
+default.
 </p>
 </dd>
 <dt style="font-weight:bold;">Space Parameters</dt>
@@ -1671,7 +1825,7 @@ These specify the points of the mesh on which the device will operate:
   if <code>nowhere=0</code>, which is the default.
 </li>
 <li>
-<code>(int)x0</code> Lower <code>x</code> bound. 
+<code>(int) x0</code> Lower <code>x</code> bound. 
 Allowed values from 0 to <code>xmax-1</code>, 
 defaults
 to <code>1</code>.
@@ -1743,8 +1897,8 @@ parameter.
 <dd>
 <p> 
 These specify the placement and colouring of
-the area associated with the device within the graphical screen when
-run-time graphics is on. 
+the area associated with the device within the VGA graphical screen when
+run-time VGA graphics is on. 
 </p>
 <ul>
 <li><code>int row0</code>  Lower row.</li>
@@ -1753,6 +1907,12 @@ run-time graphics is on.
 <li><code>int col1</code>  Right column.</li>
 <li><code>int color</code>  Colour.</li>
 </ul>
+For historical reasons these parameters are defined for all devices, but used
+in fact only by VGA graphical devices. The row/column coordinates are
+zero-based, in pixels, with the window size 640x480 unless defined otherwise
+by the <code>screen</code> command. The <code>color</code> is an 8-bit integer
+encoding the "backround" or "border" VGA colour (senior 4 bits) and the "foreround" VGA
+colour (junior 4 bits); the exact interpretation of those is device-dependent. 
 </dd>
 </dl>
 
@@ -1763,7 +1923,7 @@ All the standard devices (with the exception of ad-hoc, experimental
 ones) are described in detail in
 the <a href="#Beatbox_Device_Reference">Beatbox Device Reference</a>
 below. However the <code>k_func</code> device is so important for
-understanding of the Beatbox control flow that it some consideration
+understanding of the Beatbox control flow that it warrants consideration
 immediately. This device takes a codeblock parameter
 <code>pgm</code> which is expected to be a "k-program", that is a set
 of one or more "k-assignments", separated by semicolons. A
@@ -1789,13 +1949,27 @@ point of the space. In this case, the k-programs may use the device's
 <ul>
 <li>
 <code>x,y,z</code> are numerically equal to the corresponding
-integer coordinates of the point at which the k-program is executed;
+integer (grid) coordinates of the point at which the k-program is executed;
 </li>
 <li>
 <code>u0, u1, ... u&lt;vmax-1&gt; </code> - variables containing the
 corresponding values of the computational grid at the point at which
 the k-program is executed.
 </li>
+
+<li>
+<code>geom0</code> - this is defined only when realistic geometry is used, and
+has value of 1 if the the point at which
+the k-program is executed belongs to the tissue. 
+</li>
+
+<li>
+<code>geom1, geom2, geom3</code> - this is defined only when realistic
+geometry is used and the anisotropy option is on, contains the values of the
+components of the fibre direction vector at the point at which the k-program
+is executed.
+</li>
+
 <li>
 <code>phasep, phaseu, p0, p1, ... p&lt;vmax-1&gt; </code> - variables
 used for the phase-distribution method (see the next section). 
@@ -1808,13 +1982,20 @@ read from the <code>file</code>.
 </ul>
 
 <p>
-All the local variables can be used in the left-hand sides as well as
-the right-hand sides. The resulting values of <code>u0, u1,
-... </code> variables are stored back into the computational grid. The
-resulting values of all other local variables will be lost after the
-device instance finishes its work at the given time step. In this
-mode, <code>k_func</code> can be used to fill the computational grid
-with values according to given formulas or other algorithms.  
+In addition, you can define extra local k-variables within the body of the
+<code>pgm={...}</code> codeblock, in the same syntax as the global k-variables
+outside.
+</p>
+
+<p>
+All the local k-variables can be used in the left-hand sides as well as the
+right-hand sides. The resulting values of <code>u0, u1, ... </code> as well as
+<code>geom0, geom1, ...</code> variables are stored back into the
+computational grid and geometry grid respectively. The resulting values of all
+other local variables will be lost after the device instance finishes its work
+at the given time step. In this mode, <code>k_func</code> can be used to fill
+the computational grid with values according to given formulas or other
+algorithms.
 </p>
 
 <p>
@@ -1985,8 +2166,91 @@ indirect assignment may be required if the columns in the profile go
 in a wrong order etc.
 </p>
 
+<h3 class="numbered">Enumerated output files</h3>
+
+<p>
+Some output devices generate multiple output files, or read multiple
+input files, which are
+automatically ``enumerated'', in the sence that their names are not
+fixed device parameters, but are generated at run time, and the
+variable part of the file name is a number. There are two
+different methods of such name generation. In one method, the number
+is given by a k-expression, which is evaluated when it is time to open
+the file. In the other method, the files are enumerated
+sequentially. In both methods, instead of a fixed file name, the
+script is expected to define a file mask which contains a C format
+string, such as <code>file%04d.ext</code>. 
+</p>
+
+<p>
+Enumeration by a k-expression is typically used when the output file
+name is in fact a part of a <code>filter</code> parameter, which is a
+character string containing a <code>bash</code>
+command or pipeline, which takes the output of the device at its
+standard input, such as
+<pre>
+filter="pnmtopng > image%04.0f.png"
+</pre>
+In such cases, the <code>filter</code> parameter is accompanied by a
+corresponding <code>filtercode</code> parameter which is  a character
+string containing the k-expression which is executed to generate the
+value to fill the place allocated for the number part of the output
+file. For the sake of genericity, the k-expression is interpreted as
+real, hence the C format should be accepting real values, i.e. 
+<code>%f</code> (as in the above example) or <code>%g</code>. This
+method is used e.g. by devices
+<a href="#ezpaint"><code>ezpaint</code></a>,
+<!-- <code>ezpaint3d</code>, -->
+<a href="#imgout"><code>imgout</code></a>,
+<!-- <code>k_image</code>, -->
+<a href="#k_imgout"><code>k_imgout</code></a>
+and
+<a href="#k_paintgl"><code>k_paintgl</code></a>.
+</p> 
+
+<p> Sequential enumeration, on the other hand, always operates with
+integer enumerators, hence the format string should be one accepting
+integer values, e.g. <code>%d</code>. In the device descriptions in
+this manual, the parameters defining the file masks used with this
+method, are designated as type
+<a name="sequence"><code>sequence</code></a>. Such
+<code>sequence</code> parameters by themselves are character strings, but they
+are implicitly accompanied by the
+following parameters optional with fixed names:
+<ul>  
+  <li><code>postproc</code>: a character string coding the command
+  that can do something useful with the output file, e.g. gzip it. It
+  defaults to an empty string, meaning no postprocessing is to be
+  done. If given, the string must contain <code>%s</code> in the place
+  where the file name to be processed is to be substituted.</li>
+  
+  <li><code>autonumber</code> is an integer flag (0/1), defaults to
+  1. If 1, then at start time the device checks for existing files
+  fitting the given description and skips them. </li>
+
+  <li><code>startfrom</code> is an integer, the number from each
+  enumeration starts. Defaults to 0. </li>
+
+  <li><code>ignoreempty</code> is an integer flag (0/1), defaults to
+  0. If 1 and if <code>autonumber</code> flag is also on, then any
+  zero-length files found during the check are ignored (not considered
+  as "existing").</li>
+</ul>
+This method is used e.g. by devices
+<!-- <code>byteout</code>, -->
+<a href="#ppmin"><code>ppmin</code></a>,
+<a href="#ppmout"><code>ppmout</code></a>,
+<a href="#record"><code>record</code></a>,
+<code>screen_dump</code>
+and
+<code>vtkout2</code>
+(the last two are not yet documented). 
+</p>
+
 <h2 class="numbered">Putting it all together: a simple example</h2>
 
+<p>
+</p>
 
 <p> We now consider a simple working example of a Beatbox script, <a
  href="#minimal.bbs">minimal.bbs</a>.  It corresponds to <a
@@ -2306,6 +2570,39 @@ flexibility allows you to do much more than that. To discover
 Beatbox's capabilities, do look at further sample scripts provided.
 </p>
 
+<h1 class="numbered">Specifics of the parallel execution</h1>
+
+  <p>
+BeatBox uses a straightforward MPI parallelization whereby the computational
+  mesh is divided into subdomains lines or surfaces parallel to the
+  coordinate x,y,z axes, and computations related to each subdomain are
+  performed by a dedicated thread. Any information exchange necessary to coordinate the
+  work of the threads is performed by message passing. This includes
+  information pertaning to global variables, as well as the information about
+  nearby points which is required by some devices, e.g. <code>diff</code>
+  device used in the simple example above. Hence to allow access to such
+  devices, the points in every subdomain that are next to the split
+  are considered "halo" points and included in exchange buffers served by
+  message passing.
+   Currently the notion of "nearby"
+  points is restricted to points with the difference by no more than one grid
+  point in every coordinate, x, y and z. Hence the depth of the exchange
+  buffers (==thickness of the halos) is restricted to 1 grid point. Details of
+  related algorithms can be found in
+  <a href="https://livrepository.liverpool.ac.uk/3173">
+  R. McFarlane, "High-Performance Computing for Computational Biology of the
+  Heart", Ph.D. thesis, University of Liverpool, 2011</a>
+  and
+  <a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0172292">
+  M. Antonioletti et al., "BeatBox—HPC simulation environment for
+  biophysically and anatomically realistic cardiac electrophysiology",
+  PLoS ONE 12(5): e0172292, 2017</a>
+  </p>
+
+  <p>
+  Some of the devices cannot or have not yet been parallelized, and are only
+  available in the sequential version of BeatBox. 
+  </p>
 
 <h1 class="numbered">Some more advanced scripts</h1>
 
@@ -2372,7 +2669,7 @@ use of:
   <li> <code>sample</code> device to convert grid value into a
 global k-variable, which is required for the <code>k_func</code>;
   <li> <code>screen</code> command and <code>k_draw</code> device for
-run-time graphics output: draw phase trajectory of the system as the
+run-time VGA graphics output: draw phase trajectory of the system as the
   solution progresses;</li>
   <li> <code>record</code> output device to write contents of the grid
   (in this case, just single cell) to a file.</li>
@@ -2386,8 +2683,7 @@ Inputs to this script:
 </ul>
 Output of this script:
 <ul>
-<li>The output of this script are run time graphics if using run-time
-graphics, and a record file called <code>fhn0.rec</code>.</li>
+<li>The output of this script are run time VGA graphics if using it, and a record file called <code>fhn0.rec</code>.</li>
 </ul>
 <p>
 To run this script with run-time graphics, call it using:
@@ -2401,7 +2697,7 @@ and without graphics, use:
 <pre>
 Beatbox_SEQ fhn0.bbs -nograph
 </pre>
-<p> The same applies to all examples with run-time graphics.</p>
+<p> The same applies to all examples with run-time VGA graphics.</p>
 
 <!-- ===================================== -->
 <h3 class="numbered">fhn1.bbs</h3>
@@ -2434,7 +2730,7 @@ contents of another file;</li>
   <li> <code>poincare</code> and <code>k_poincare</code> devices to
 detect arrivals of wavefronts at selected points, which is then used
 both to control execution and to calculate the propagation speed;</li>
-  <li> <code>k_plot</code> run-time graphics device: to plot spatial
+  <li> <code>k_plot</code> run-time VGA graphics device: to plot spatial
   profiles of the dynamic fields at selected moments of time.</li>
   <li> <code>pause</code> device for suspending execution and keeping
   the last picture on the screen until the user presses enter in the
@@ -2447,11 +2743,11 @@ Inputs to this script:
 </ul>
 Output of this script:
 <ul>
-<li>The output of this script are run time graphics if using run-time
-graphics, and a record file called <code>fhn1.rec</code>.</li>
+<li>The output of this script are run time VGA graphics if using it,
+and a record file called <code>fhn1.rec</code>.</li>
 </ul>
 <p>
-To run this script with run-time graphics, call it using:
+To run this script with run-time VGA graphics, call it using:
 </p>
 
 <pre>
@@ -2495,7 +2791,7 @@ discussed above. Some new things that this script illustrates:
   <li> use of computational devices <code>d_dt</code> and
   <code>grad2d</code> to compute time derivative and absolute value of
   spatial gradient of a field;</li>
-  <li> use of run-time graphics device <code>k_paint</code> to
+  <li> use of run-time VGA graphics device <code>k_paint</code> to
   crudely visualize distribution of dynamic fields in the plane using
   16-colour VGA palette;</li>
   <li> use of <code>singz</code> device which detects spiral wave tips
@@ -2533,12 +2829,12 @@ Outputs from this script are:
 <ul>
 <li>on-screen graphics if used with graphics;</li>
 <li>spiral wave trajectory in ASCII file <code>fhn2.trj</code>;</li>
-<li>png images of frames of the 2D simulation;</li>
+<li>PNG images of frames of the 2D simulation;</li>
 </ul>
 
 <p>
 Before running this script, make sure that a correct fhn1.rec has been
-created by running fhn1.bbs.  To run this bbs script with graphics,
+created by running fhn1.bbs.  To run this bbs script with VGA graphics,
 use the following command:
 </p>
 <pre>
@@ -2635,7 +2931,7 @@ Command line inputs to this script are:
 The outputs from this script are:
 <ul>
 <li>onscreen graphics if used with graphics;
-<li>pgm output files for visualisation
+<li>PGM output files for visualisation
 </ul>
 <p>
 Before running this script, please read sec 4.1.4 of beatbox.html.
@@ -2647,7 +2943,7 @@ simulations, type at the command line:
 make all
 </pre>
 <p>
-Alternatively, to run this bbs script from command line with graphics,
+Alternatively, to run this bbs script from command line with VGA graphics,
 use one of the following commands::
 </p>
 <pre>
@@ -4244,8 +4540,7 @@ powerpoint or web pages.
 call graphs to show how the code works for developer's.
 </p>
 
-<h1 class="numbered">How to implement a CellML cell model into
-Beatbox</h1>
+<h1 class="numbered">How to implement a CellML cell model into Beatbox</h1>
 
 <p>
 Following is a method involving minimal manipulation of CellML cell
@@ -4253,24 +4548,24 @@ model code to incorporate it into Beatbox format. We use the
 OHara-Rudy 2011 model as an example to illustrate the method.
 </p>
 
-<h2 class="numbered">Step 1: Get the CellML file</h2> 
+<h2>Step 1: Get the CellML file</h2> 
 
 <p>
 Published cardiac and other simulation models are distributed by means
 of the CellML Project website, that can be found
-here: <a href="http://www.cellml.org/">CellML Project</a>. In
+here: <a href="http://www.cellml.org/" target="_blank">CellML Project</a>. In
 particular, the cell models are listed in the
-repository: <a href="http://models.cellml.org/cellml">CellML
+repository: <a href="http://models.cellml.org/cellml" target="_blank">CellML
 Repository</a>. The desired CellML file should be downloaded from the
 repository. The file that we are looking for is usually has an
 extension of <code>.cellml</code>. As an example, the OHara-Rudy (ORd)
-cell model file looks like this: <a href="Ohara_Rudy_2011.cellml">ORd
+cell model file looks like this: <a href="Ohara_Rudy_2011.cellml" target="_blank">ORd
 CellML file</a>. There are other formats in which the cell model may
 be provided (C, C++, MATLAB,...) and the best location to get the
 CellML file is from the provided tar.gz download all files section.
 </p>
 
-<h2 class="numbered">Step 2: Convert the CellML file to C code</h2>
+<h2>Step 2: Convert the CellML file to C code</h2>
 
 <p>
 The information in the CellML file obtained as in Step 1 needs to be
@@ -4284,16 +4579,17 @@ software, but may be installed on Linux and MAC-OS if the operating
 system is 32 bit or if there are 32 bit emulators available. As of the
 date of this document, a Linux variant is also being developed. So the
 next thing to do is download and
-install <a href="http://cor.physiol.ox.ac.uk/">COR</a>. Once it is
+install <a href="http://www.opencor.ws/cor/index.html"  target="_blank">COR</a>.
+Once it is
 installed, open the CellML file that you downloaded in Step 1 and
 export it to C. The exported files are a <code>.c</code> and
 a <code>.h</code> with the same name as the CellML file. For example,
 the ORd exported files
-are:<a href="Ohara_Rudy_2011.c">Ohara_Rudy_2011.c</a>
-and <a href="Ohara_Rudy_2011.h">Ohara_Rudy_2011.h</a>.
+are: <a href="Ohara_Rudy_2011.c" target="_blank">Ohara_Rudy_2011.c</a>
+and <a href="Ohara_Rudy_2011.h" target="_blank">Ohara_Rudy_2011.h</a>.
 </p>
 
-<h2 class="numbered">Step 3: Define the constant modelling default
+<h2>Step 3: Define the constant modelling default
 parameters</h2>
 
 <p>
@@ -4317,26 +4613,26 @@ Take this list of constants and put them in a file called, say
 <code>ord_par.h</code>. The format of the list of constants should be further
 manipulated such that Beatbox macro's can do what they should do. The
 final <code>ord_par.h</code> should look like
-this: <a href="ord_par.h">ord_par.h</a>.
+this: <a href="ord_par.h" target="_blank">ord_par.h</a>.
 </p>
 
-<h2 class="numbered"> Step 4: Define the initial conditions to the model</h2>
+<h2> Step 4: Define the initial conditions to the model</h2>
 
 <p>
 A <code>void init(void)</code> (or similarly named function) is
-provide in the exported C file. Contents of this function without any
+provided4 in the exported C file. Contents of this function without any
 alterations should be copied to another file. In the ORd example, we
 choose to call this file <code>ord_init.h</code>. Note that none of
 the contents of the initialisation have been altered. The exported C
 file probably (hopefully) uses a vector to maintain values of dynamic
 variables, and that should also be retained to reduce manipulation of
 original code. The prepared <code>ord_init.c</code> file can be found
-here: <a href="ord_init.h">ord_init.h</a>. Note that unlike in the
+here: <a href="ord_init.h" target="_blank">ord_init.h</a>. Note that unlike in the
 parameter file of Step 3, the code in the initialisation has not been
 manipulated at all.
 </p>
 
-<h2 class="numbere"> Step 5: Define the actual model calculation</h2>
+<h2> Step 5: Define the actual model calculation</h2>
 
 <p>
 After having defined the constant real parameters and assigned initial
@@ -4349,32 +4645,20 @@ notice that in this code, there are several derived variables
 (e.g. currents, fluxes,...), integer constants, etc. These derived
 variables are typically declared as "Computed Variables" or with
 similar annotation. These declarations should be put at the top before
-the model code. The final <code>ord_step.h</code> look like this:
-<a href="ord_step.h">ord_step.h</a>. Note that no integration (forward
-Euler or otherwise) is included in this <code>ord_step.h</code> - this
-is simply the code for computing the next time step increment. A
-vector called dY[] may also be found in this code. We will deal with
+the model code. The resulting <code>ord_step.h</code> look like this:
+<a href="ord_step.h" target="_blank">ord_step.h</a>.
+Thus obtained code may be slightly optimized by hand by replacing
+<code>pow</code> function with integer exponents, which is not
+efficient in C, with inline C macros, such as
+<a href="../src/ord_step.h" target="_blank">ord_step.h</a>.
+Note that no integration (forward
+Euler or otherwise) is included in this <code>ord_step.h</code>; this
+is simply the code for computing the right-hand sides of the
+differential equations. These are stored in a vector called dY[] may also be found in this code. We will deal with
 this in a bit.
 </p>
 
-<h2 class="numbered"> Step 6: Define a variable to deal with the
-device in ord.on</h2>
-
-<p>
-A constant variable needs to be defined to tell several of Beatbox
-macros about the new cell model. For example, in case of the ORd,
-create a file ord.on with the following line of code:
-</p>
-
-<pre>
-#define ORD 1
-</pre>
-
-<p>
-You can see the file: <a href="ord.on">ord.on</a>.
-</p>
-
-<h2 class="numbered"> Step 7: Update rhslist.h</h2>
+<h2> Step 6: Update rhslist.h</h2>
 
 <p>
 The list of RHS of cell models needs to be updated. This list is in:
@@ -4390,9 +4674,7 @@ to this file:
 </p>
 
 <pre>
-#if ORD
    D(ord)
-#endif
 </pre>
 
 <p>
@@ -4400,13 +4682,12 @@ Explanations on the meaning of the macro D, the choice of names
 etc. are to be found in the developers guide.
 </p>
 
-<h2 class="numbered"> Step 8: Define the wrapper for the model
-simulation</h2>
+<h2> Step 7: Define the wrapper for the model simulation</h2>
 
 <p>
 The main C wrapper that initialises, declares local placeholders, and
 provides the cell model code to the Euler solver is given a consistent
-name. For example, in case of ORd, it is simply called ord.c. This
+name. For example, in case of ORd, it is simply called <code>ord.c</code>. This
 wrapper contains headers, macros, and basically includes the code from
 the above files. 
 </p>
@@ -4438,22 +4719,26 @@ required, add the current stimulus to the appropriate ODE variable and
 then the macro can be closed.
 </li>
 </ul>
+The result can be seen <a href="ord.c" target="_blank">here</a>. 
 
 
-<h2 class="numbered"> Step 9: Update the Makefile.am</h2>
+<h2> Step 8: Update the Makefile.am</h2>
 
 <p>
 There is a <code>Makefile.am</code> in the <code>Beatbox/src</code>
-directory. Add entries for <code>.on</code>, <code>_step.h</code>, 
+directory. Add entries for <code>_step.h</code>, 
 <code>_init.h</code>, <code>_par.h</code>, and <code>.c</code> files
 that you have just created. Save, do a distclean, configure, and make
 again. Hopefully, it all compiles. To start using the cell model, make
 a <code>bbs</code> file as shown in the template below.
 </p>
 
-<h2 class="numbered"> Step 10: Make a bbs file to simulate the AP</h2>
+<h2> Step 9: Make a bbs file to simulate the AP</h2>
 
-A <code>bbs</code> file template: <a href="ord0.bbs">ord0.bbs</a>:
+A <code>bbs</code> file example:
+<a href="ord0.bbs" target="_blank">ord0.bbs</a>.
+Use it to test the new device by generating an action potential. 
+
 
 
 <h1 class="numbered">A Practical Guide for Automake if you add new modules</h1>
@@ -4481,10 +4766,6 @@ The building of a new rhs module starts by including its name into the <code>rhs
 #endif
 </pre>
 
-<p>
-The rhs modules also require to add a macro definition to the file <code>on.h</code> and generate a new file <code>&lt;rhs&gt;.on</code> with the same macro. This macro reads as:
-</p>
-
 <pre class="example">
 #define HH 1
 </pre>
@@ -4502,7 +4783,6 @@ common_sources = \
   hh52.c hh52_other.h hh52_tgate.h hh52_par.h hh52_ftab.h\
   hh52m.c hh52m_ik.h hh52m_ina.h\
   hh.c \
-  HH.on \
   hh.h \
 </pre>
 
@@ -4734,7 +5014,8 @@ on the command line.
 <h2 class="numbered">clock</h2>
 <h3>Overview</h3>
 <p>
-Prints the current integer timestep to <code>stdout</code>.
+Prints the current integer timestep to <code>stdout</code> and VGA graphics
+window. 
 </p>
 <h3>Parameters</h3>
 <table border="1">
@@ -4743,9 +5024,11 @@ Prints the current integer timestep to <code>stdout</code>.
 </tr><tr>
 <td><code>int</code></td><td><code>when</code></td><td>rate of output</td>
 </tr><tr>
-<td><code>int</code></td><td><code>col0</code></td><td> starting column of graphics.</td>
+<td><code>int</code></td><td><code>col0</code></td><td> starting column of VGA
+  graphics window (measured in characters).</td>
 </tr><tr>
-<td><code>int</code></td><td><code>row0</code></td><td> starting row of graphics.</td>
+<td><code>int</code></td><td><code>row0</code></td><td> starting row of VGA
+  graphics window (measured in characters).</td>
 </tr><tr>
 <td><code>int</code></td><td><code>color</code></td><td> Color code of line graphics.</td>
 </tr>
@@ -4754,7 +5037,7 @@ Prints the current integer timestep to <code>stdout</code>.
 <h3>Typical Syntax</h3>
 
 <p>
-The clock device is mainly used during run time graphics simulations.
+The clock device is mainly used during simulations with run time VGA graphics.
 The typical syntax of <code>clock</code> device is as follows.
 The clock device is mainly used during run time graphics simulations.
 The typical syntax of <code>clock</code> device is as follows.
@@ -5320,15 +5603,13 @@ step.</td>
   levels 0, 1, ...
 </tr><tr>
 
-<td><code>str</code></td><td><code>debug</code></td><td> none
-</td><td>
+<td><code>str</code></td><td><code>debug</code></td><td>-</td><td>
   Relative path
 to output file for debugging purposes. If <code>stdout</code>, will
-print to screen.</td>
+print to screen of the parent shell.</td>
 </tr><tr>
 
-<td><code>str</code></td><td><code>profile</code></td><td> none
-</td><td>
+<td><code>str</code></td><td><code>profile</code></td><td>-</td><td>
   Relative path
   to output profiling information. This will measure separately time spent at
   each of the levels of the multigrid (and noticeably slow down
@@ -5473,20 +5754,1557 @@ beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
 </pre>
 
 <p>
-Indeed, all bbs scripts in the examples use the euler device.
+Indeed, most bbs scripts in the examples use the euler device.
 </p>
+
+<!-- ========================= -->
+<h2 class="numbered">ezpaint</h2>
+
+<h3>Overview</h3>
+
+<p>
+
+This is 2D visualising device using <code>OpenGL</code>, based on the
+graphical part of D. Barkley's <a
+href="http://homepages.warwick.ac.uk/~masax/Software/ez_software.html">
+<code>EZSPIRAL</code> </a>.
+In comparison to EZSPIRAL, it does not provide any run-time dialogue, but does include the
+function of plotting tip path on top of the raster. The position of
+the tip is not computed in this device, but is expected to
+be computed elsewhere, say by the singz device, and passed via
+k-variables. The colour scheme is either defined by k-functions
+computing the RGB colour components, or by linear mapping of grid values of
+selected layers to these components. The possibility of saving the
+graphics as image files is provided. Further detail are in the
+description of the parameters that follows, and
+<a href="#ezpaint-explanations">after it</a>. 
+
+<h3>Parameters</h3>
+<table border="1">
+<thead>
+<tr>
+<th scope="col" class="left">Type</th>
+<th scope="col" class="left">Name</th>
+<th scope="col" class="left">Default</th>
+<th scope="col" class="left">Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td class="left"><code>codeblock</code></td>
+<td class="left"><code>pgm</code></td>
+<td class="left"><code>""</code></td>
+<td class="left">k-program computing colour of a particular rectangle
+  constituting the raster to be painted. In its absence (i.e. when
+  <code>pgm=</code> key is absent in the device description in the script), the raster is
+  defined by the alternative methods, based on grid values. 
+  In addition to standard
+  global k-variables, the following local variables are defined:
+  <code>abs</code> (abscissa, the horizontal coordinate in the raster),
+  <code>ord</code> (ordinate, the vertical coordinate in the raster),
+  <code>app</code> ("applicate", a term denoting the third Cartesian
+  coordinate, in the present context may be described as "depth" but its exact meaning is discussed <a href="#ezpaint-explanations">below</a>);
+  <code>red</code> (red colour component),
+  <code>grn</code> (green colour component),
+  <code>blu</code> (blue colour component).
+  All the six variables are real; the coordinates are input variables
+  (to be used only in right-hand sides of the assignments), whereas
+ the colour variables are output variables (each of them must appear
+  in the left-hand side of an assignment at least once). The
+  coordinate values are assigned values according to loop parameters
+  described below. The meaningful range of a colour variable is between 0
+  (absence of colour component) and 1.0 (maximal intensity of the
+  colour component). 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>nabs</code></td>
+<td class="left"><code>-</code></td>
+<td class="left">Number of <code>abs</code> values, i.e. number of
+  "pixels" in the raster in the horizontal direction.
+  To be used only with the <code>pgm={...}</code> codeblock,
+  otherwise it is defined by the Space parameters of this device instance. 
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>absmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">Mininal value of <code>abs</code> variable.
+  To be used only with the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>absmax</code></td>
+<td class="left"><code>nabs-1</code></td>
+<td class="left">Maximal value of <code>abs</code> variable.
+  To be used only with the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>nord</code></td>
+<td class="left"><code>-</code></td>
+<td class="left">Number of <code>ord</code> values, i.e. number of
+  "pixels" in the raster in the horizontal direction.
+  To be used only with the <code>pgm={...}</code> codeblock,
+  otherwise it is defined by the Space parameters of this device instance.   
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>ordmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">Mininal value of <code>ord</code> variable.
+  To be used only with the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>ordmax</code></td>
+<td class="left"><code>nord-1</code></td>
+<td class="left">Maximal value of <code>ord</code> variable.
+  To be used only with the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>napp</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">Number of <code>app</code> values, i.e. number of
+  "pixels" in the raster in the "depth" direction.
+  To be used only with the <code>pgm={...}</code> codeblock,
+  otherwise it is defined by the Space parameters of this device instance. 
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>appmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">Mininal value of <code>app</code> variable.
+  To be used only with the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>appmax</code></td>
+<td class="left"><code>napp-1</code></td>
+<td class="left">Maximal value of <code>app</code> variable.
+  To be used only with the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>str</code></td>
+<td class="left"><code>aspec</code></td>
+<td class="left"><code>"xy"</code></td>
+<td class="left"> When used in 3D with the "grid colours" option, defines
+  which pair of Cartesian coordinates are used to paint the raster. Valid
+  values are "xy", "yx", "xz", "zx", "yz" and "zy". 
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>rlayer</code></td>
+<td class="left"><code>-1</code></td>
+<td class="left">For the values between 0 and <code>vmax-1</code>
+  inclusive, this defines the grid layer that determines the red
+  colour componenent. Negative values mean red component will not be
+  included. 
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>rmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">Values at or below this will produce zero red
+  colour componenent.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>rmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">Values at or above this will produce maximal red
+  colour componenent.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>glayer</code></td>
+<td class="left"><code>-1</code></td>
+<td class="left">For the values between 0 and <code>vmax-1</code>
+  inclusive, this defines the grid layer that determines the green
+  colour componenent. Negative values mean green component will not be
+  included. 
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>gmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">Values at or below this will produce zero green
+  colour componenent.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>gmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">Values at or above this will produce maximal green
+  colour componenent.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>blayer</code></td>
+<td class="left"><code>-1</code></td>
+<td class="left">For the values between 0 and <code>vmax-1</code>
+  inclusive, this defines the grid layer that determines the blue
+  colour componenent. Negative values mean blue component will not be
+  included. 
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">Values at or below this will produce zero blue
+  colour componenent.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">Values at or above this will produce maximal blue
+  colour componenent.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+ 
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bg_r</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">red component of the background colour representing
+  the void.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bg_g</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">green component of the background colour representing
+  the void.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</tr>
+  
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bg_b</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">blue component of the background colour representing
+  the void.
+  To be used only without the <code>pgm={...}</code> codeblock. 
+</tr>
+  
+<tr>
+<td class="left"><code>k-variable</code></td>
+<td class="left"><code>xtip</code></td>
+<td class="left"><code>""</code></td>
+<td class="left">Name of the k-variable containing the current
+  x-coordinate of the tip (in the grid system of coordinates). </td>
+</tr>
+  
+<tr>
+<td class="left"><code>k-variable</code></td>
+<td class="left"><code>ytip</code></td>
+<td class="left"><code>""</code></td>
+<td class="left">same, y-coordinate. </td>
+</tr>
+  
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>ntipmax</code></td>
+<td class="left"><code>100</code></td>
+<td class="left">Maximal number of preceding tip positions used to draw
+  the tip path. Only used when <code>xtip</code> and <code>ytip</code>
+  are specified.
+</td>
+</tr>
+  
+<tr>
+<td class="left"><code>str</code></td>
+<td class="left"><code>filter</code></td>
+<td class="left"><code>""</code></td>
+<td class="left">The mask of a shell command line that will receive the content of
+the window in the PPM format; expected to be used to produce an image
+  file of the same. The mask can contain a C-style format field for
+printing a floating-point value, e.g. "%.0f" which can be used to enumerate the
+  output files. </td>
+</tr>
+
+<tr>
+<td class="left"><code>k-expression</code></td>
+<td class="left"><code>filtercode</code></td>
+<td class="left"><code>t</code></td>
+<td class="left">a formula to compute the enumerator for the images: 
+  will be interpreted as a real and printed through the format defined
+by <code>filter</code> to produce the actuall shell command. </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>winx</code></td>
+<td class="left"><code>-1</code></td>
+<td class="left">horizontal position of the window from left edge of screen, pixels </td>
+</tr>
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>winy</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">vertical position of the window from top edge of screen, pixels</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>width</code></td>
+<td class="left"><code>640</code></td>
+<td class="left">window width, pixels</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>height</code></td>
+<td class="left"><code>640</code></td>
+<td class="left">window height, pixels</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>doublebuffer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">A 0/1 flag showing whether the double buffer will be
+  used for rendering. The advantages and disadvantages are probably
+  minor but are platform dependent. </td>
+</tr>
+
+<tr>
+<td class="left"><code>str</code></td>
+<td class="left"><code>title</code></td>
+<td class="left"><code>"ezpaint t=%.0f"</code></td>
+<td class="left">The title of the window. May contain one '%' field. </td>
+</tr>
+  
+
+<tr>
+<td class="left"><code>k-expression</code></td>
+<td class="left"><code>titlecode</code></td>
+<td class="left"><code>t</code></td>
+<td class="left">The formula computing the value to be displayed in
+  the window title.</td>
+</tr>  
+</table>
+
+<p id="ezpaint-explanations">
+<h3> Further detail </h3>
+</p>
+
+<p>
+Some explanation is required regarding usage of <code>ezpaint</code> in the 3D
+case, and in particular the use of the "applicate" (depth) dimension.
+</p>
+
+<p>
+In the "grid colours" version, any pair of Cartesian coordinates can be used
+to generate the raster, as defined by the <code>aspect</code> parameter. 
+The most straightforward use in 3D is for <code>aspect=xy</code> by setting 
+<code>z0=z1</code> in its Space. This would then display the selected
+z-cross-section of the solution. Setting instead <code>z0 &lt; z1</code>
+allows the possibility to represent a layer of grid as a 2D image. This is
+done by averaging the colours of all the points with the given <code>x</code>
+and <code>y</code> coordinates and for all <code>z0 &le; z &le; z0</code>,
+excluding any void points. If all points in this range happen to be
+void, then the "background colour" <code>bg_r, bg_g, bg_b</code> is displayed.
+Similar for other aspects (<code>yx,xz,zx,yz,zy</code>), <i>mutatis mutandis</i>. 
+</p>
+
+<p>
+The "k-version" (with the <code>pgm={...}</code> block) allows more
+flexibility, e.g. it can be used to represent cross-sections other than
+orthogonal to any coordinate axis. In fact, it allows depiction of an arbitrary 2D raster
+in which the colour of each pixel is defined by an arbitrary formula depending
+on any k-variables and functions including any grid values. In this context,
+the k-variable <code>app</code> merely allows this function to be defined as a result of
+<code>napp</code> iterations of the same k-program, which may involve the
+variable <code>app</code> which runs through a regular grid of values from
+<code>appmin</code> through to <code>appmax</code>.
+</p>
+
+<p>
+Note that the <code>xtip</code> and <code>ytip</code> variables always
+represent the position of the tip in the raster coordinates, rather than grid
+coordinates even in the case of "grid colour" version. 
+</p>
+
+<h3>Instances of ezpaint in Example Scripts</h3>
+
+<p>
+Examples of ezpaint device can be found in the
+following:
+</p>
+
+<pre class="example">
+beatbox/data/scripts/sequential/Barkley_model/ezspiral.bbs
+beatbox/data/scripts/sequential/Barkley_model/rabbit.bbs
+</pre>
+
+
+
+<!-- ========================= --> <h2 class="numbered">ezstep</h2>
+
+<h3>Overview</h3>
+<p>
+This is a timestepper emulating those of the "basic" model of
+D. Barkley's
+<a href="http://homepages.warwick.ac.uk/~masax/Software/ez_software.html">
+<code>EZSPIRAL</code> and <code>EZSCROLL</code>
+</a>
+(depending on the dimensionality of the grid for which it is called).
+That is, it can be used to simulate Barkley's model in 2D and 3D,
+including both the reaction and diffusion.  Care is taken to reproduce
+as far as possible all the optimizations used in
+there. Correspondingly, this timestepper works only in sequential
+mode, with box geometries, isotropic diffusion and spatially uniform
+parameters.  However, the compilation flags from <code>EZSPIRAL</code>
+and <code>EZSCROLL</code> are now device parameters.
+</p>
+
+<p>
+As a trivial extension, this device can also do reaction-only
+computations for the Barkley model, without the diffusion. In this case, the
+device may be used in nontrivial geometries.
+With the
+choice <code>explicit=1</code>, this is mathematically equivalent to using <code>euler
+ode=fhnbkl ...;</code> except for the advantage of optimizations done
+in EZSPIRAL's <code>ezstep</code> which make it noticeably
+faster. This possibility is realised by setting <code>D=0</code> in
+the parameter list, in which case it is expected that
+<code>Dv=0</code> as well. Naturally, this choice renders parameters
+<code>hx</code>, <code>split</code> and <code>manypoints</code>
+(described below) irrelevant, so setting them in the script will cause
+warning messages.
+</p>
+
+<h3>Parameters</h3>
+
+<table border="1">
+<thead>
+<tr>
+<th scope="col" class="left">Type</th>
+<th scope="col" class="left">Name</th>
+<th scope="col" class="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>a</code></td>
+<td class="left">kinetic constant (slope of fast null-cline)</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>b</code></td>
+<td class="left">kinetic constant (threshold)</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>eps</code></td>
+<td class="left">kinetic constant (time separation)</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>D</code></td>
+<td class="left">diffusivity of the activator (u-variable)</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>Dv</code></td>
+<td class="left">diffusivity of the inhibitor (v-variable)</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>hx</code></td>
+<td class="left">space discretization step</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>ht</code></td>
+<td class="left">time discretization step</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>delta</code></td>
+<td class="left"> shortcut round-up tolerance </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>explicit</code></td>
+<td class="left">if 0 then implicit u-kinetics, else explicit;
+  defaults to 0</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>split</code></td>
+<td class="left">if nonzero then split diffusion and kinetics steps;
+  defaults to 1</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>manypoint</code></td>
+<td class="left">Equivalent of <code>NINEPOINT</code> and
+  <code>NINETEENPT</code> flags from EZ software. Defaults to 0.</td>
+</tr>
+</table>
+
+<h3>Instances of ezstep in Example Scripts</h3>
+
+<p>
+Examples of ezstep device can be found in the
+following:
+</p>
+
+
+<pre class="example">
+beatbox/data/scripts/sequential/Barkley_model/ezspiral.bbs
+beatbox/data/scripts/sequential/Barkley_model/ezscroll.bbs
+beatbox/data/scripts/sequential/Barkley_model/rabbit.bbs
+</pre>
+
+<!-- ========================= -->
+<h2 class="numbered">ezview</h2>
+
+<h3>Overview</h3>
+
+<p>
+
+This is 3D visualising device using <code>OpenGL</code>, based on the
+graphical part of D. Barkley and M. Dowle's <a
+href="http://homepages.warwick.ac.uk/~masax/Software/ez_software.html">
+<code>EZSCROLL</code> </a>.  It provides similar (somewhat extended)
+run-time dialogue possibilities as the original. The list of device parameters
+is also extended compared to what is specified in the "task file" of the
+original. The possibility of saving the graphics as image files and of the
+detected filament as text files is provided.  The layers containing the
+variables for finding the surface, and for finding the filaments, are
+(independent) parameters.  There are variations of the algorithm of painting
+the surface compared the original.
+An extra option, available for anisotropic diffusion case,
+is visualization by plotting "fibres" constructed according to fibre directions
+defined by the geometry. 
+More explanation
+<a href="#ezview-explanations">ahead</a>, below the list of parameters.
+
+<h3>Parameters</h3>
+
+<table border="1">
+<thead>
+<tr>
+<th scope="col" class="left">Type</th>
+<th scope="col" class="left">Name</th>
+<th scope="col" class="left">Default</th>
+<th scope="col" class="left">Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>winx</code></td>
+<td class="left"><code>-1</code></td>
+<td class="left">horizontal position of the window from left edge of screen, pixels </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>winy</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">vertical position of the window from top edge of screen, pixels</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>width</code></td>
+<td class="left"><code>640</code></td>
+<td class="left">window width, pixels</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>height</code></td>
+<td class="left"><code>640</code></td>
+<td class="left">window height, pixels</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>theta</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> view angle: rotation about z axis </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>phi</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> view angle: elevation about z=0 plane </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>psi</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> view angle: rotation around view line </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>distance</code></td>
+<td class="left"><code>5.0</code></td>
+<td class="left"> former <code>DISTANCE</code> of <code>ezgraph3d.h</code> in <code>EZSCROLL</code> </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>theta0</code></td>
+<td class="left"><code>20</code></td>
+<td class="left"> initial </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>phi0</code></td>
+<td class="left"><code>60</code></td>
+<td class="right"> &nbsp; values  </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>psi0</code></td>
+<td class="left"><code>0</code></td>
+<td class="right"> &nbsp; of the  </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>distance0</code></td>
+<td class="left"><code>5.0</code></td>
+<td class="right"> &nbsp; same    </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>imin</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> 3D  subset     </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>imax</code></td>
+<td class="left"><code>xmax-2</code></td>
+<td class="right"> &nbsp;  of the box    </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>jmin</code></td>
+<td class="left"><code>1</code></td>
+<td class="right"> &nbsp; to be displayed       </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>jmax</code></td>
+<td class="left"><code>ymax-2</code></td>
+<td class="right"> &nbsp;  (similar to <code>Space</code>   </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>kmin</code></td>
+<td class="left"><code>1</code></td>
+<td class="right"> &nbsp; parameters <code>x0,...,z1</code>     </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>kmax</code></td>
+<td class="left"><code>zmax-2</code></td>
+<td class="right"> &nbsp; but changeable in dialogue) </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>norm_res</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> view and run mode resolution </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>rot_res</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> rotate mode resolution </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>show_surface</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> whether to draw the surface </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>ulayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> isosurface channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>uc</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> isosurface critical value </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>vlayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> "other variable" channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>vc</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> "other variable" critical value </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>vmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> "other variable" range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>maxv</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> "other variable" range upper end
+  (NB: global variable <code>vmax</code> is reserved for the total
+  number of layers)
+</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>rlayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> red       channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>rmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> red       range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>rmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> red       range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>glayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> green     channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>gmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> green     range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>gmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> green     range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>blayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> blue      channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> blue      range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> blue      range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>alayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> alpha     channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>amin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> alpha     range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>amax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> alpha     range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>color_mode</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> surface colouring algorithm </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>alphamin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> minimal opaqueness </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>alphamax</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> maximal opaqueness </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>show_filament</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> whether to draw filaments </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>layer1</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> singular filament layer 1 </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>const1</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> singular filament constant 1 </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>layer2</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> singular filament layer 2 </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>const2</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> singular filament layer constant 2 </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>flm_r</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> filament          </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>flm_g</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">  &nbsp;  colour         </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>flm_b</code></td>
+<td class="left"><code>0.8</code></td>
+<td class="left">  &nbsp;  components     </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>flm_wt</code></td>
+<td class="left"><code>3.0</code></td>
+<td class="left"> &nbsp;  and the linewidth </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>flm_balls</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> .., plot it by spheres once=1 or twice=2 </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>flm_em</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> emission property </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>remove_backs</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> remove (positive=1/negative=-1/none=0) part of surface </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>clipping</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> use the extra clipping plane </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>ezdepth</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> use the depth buffer </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>write_images</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> save all images </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>write_filament</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> write all filament data </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bg_r</code></td>
+<td class="left"><code>0.0</code></td>
+<td class="left"> background        </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bg_g</code></td>
+<td class="left"><code>0.0</code></td>
+<td class="left"> &nbsp;   colour         </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bg_b</code></td>
+<td class="left"><code>0.0</code></td>
+<td class="left"> &nbsp;   components     </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bbox_r</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> bounding box      </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bbox_g</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left">  &nbsp;  colour         </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bbox_b</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> &nbsp;   components,    </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bbox_a</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> &nbsp;   its transparency </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>bbox_wt</code></td>
+<td class="left"><code>2.0</code></td>
+<td class="left"> &nbsp;   and the linewidth </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>verbose</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> verbosity level of <code>ezview</code> </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>autostart</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> autostart flag </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>lightx</code></td>
+<td class="left"><code>-50.0</code></td>
+<td class="left"> position  </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>lighty</code></td>
+<td class="left"><code>+10.0</code></td>
+<td class="left"> &nbsp;  of the </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>lightz</code></td>
+<td class="left"><code>+10.0</code></td>
+<td class="left"> &nbsp;  directional </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>lightw</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> &nbsp;  light </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>amb_r</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> color </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>amb_g</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> &nbsp;  of the </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>amb_b</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> &nbsp;  ambient </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>amb_a</code></td>
+<td class="left"><code>0.5</code></td>
+<td class="left"> &nbsp;  light </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>show_fibres</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> whether to show fibres </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_dx</code></td>
+<td class="left"><code>xmax/10</code></td>
+<td class="left">number of grid points between fibre stems in the
+  <code>x</code> direction</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_dy</code></td>
+<td class="left"><code>fib_dx</code></td>
+<td class="left">number of grid points between fibre stems in the
+  <code>y</code> direction</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_dz</code></td>
+<td class="left"><code>fib_dx</code></td>
+<td class="left">number of grid points between fibre stems in the
+  <code>z</code> direction</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_x0</code></td>
+<td class="left"><code>imin</code></td>
+<td class="left"><code>x</code>-coordinate of the initial point of the
+  fibre stems grid </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_y0</code></td>
+<td class="left"><code>jmin</code></td>
+<td class="left"><code>y</code>-coordinate of the initial point of the
+  fibre stems grid </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_z0</code></td>
+<td class="left"><code>kmin</code></td>
+<td class="left"><code>z</code>-coordinate of the initial point of the
+  fibre stems grid </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_step</code></td>
+<td class="left"><code>1.0</code></td>
+<td class="left">length of fibre segments</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_len</code></td>
+<td class="left"><code>10*xmax</code></td>
+<td class="left">number of fibre segments either way from the stem</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_rlayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">fibres red channel in input files</td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_rmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> fibre red range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_rmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left"> fibre red range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_glayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">fibre green channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_gmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">fibre green range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_gmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">fibre green range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>fib_blayer</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">fibre blue channel in input files </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_bmin</code></td>
+<td class="left"><code>0</code></td>
+<td class="left">fibre blue range lower end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_bmax</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">fibre blue range upper end </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>fib_wt</code></td>
+<td class="left"><code>1.0</code></td>
+<td class="left">fibre linewidth </td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>show_marker</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> whether to show the marker </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_size</code></td>
+<td class="left"><code>0</code></td>
+<td class="left"> size and             </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_x</code></td>
+<td class="left"><code>xmax/2-1</code></td>
+<td class="left">  &nbsp;  coordinates       </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_y</code></td>
+<td class="left"><code>ymax/2-1</code></td>
+<td class="left"> &nbsp;   of the marker     </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_z</code></td>
+<td class="left"><code>zmax/2-1</code></td>
+<td class="left"> &nbsp;   position          </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_r</code></td>
+<td class="left"><code>1.0</code></td>
+<td class="left"> marker               </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_g</code></td>
+<td class="left"><code>1.0</code></td>
+<td class="left">  &nbsp;  colour            </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_b</code></td>
+<td class="left"><code>0.0</code></td>
+<td class="left">  &nbsp;  components,       </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_a</code></td>
+<td class="left"><code>1</code></td>
+<td class="left">  &nbsp;  its transparency  </td>
+</tr>
+
+<tr>
+<td class="left"><code>real</code></td>
+<td class="left"><code>marker_wt</code></td>
+<td class="left"><code>2.0</code></td>
+<td class="left"> &nbsp;   and the linewidth </td>
+</tr>
+
+
+<tr>
+<td class="left"><code>file</code></td>
+<td class="left"><code>filament</code></td>
+<td class="left"><code>-</code></td>
+<td class="left">text file to output the found filaments</td>
+</tr>
+
+<tr>
+<td class="left"><code>string</code></td>
+<td class="left"><code>images</code></td>
+<td class="left"><code>-</code></td>
+<td class="left">template for filenames to output the images</td>
+</tr>
+
+<tr>
+<td class="left"><code>k-expression</code></td>
+<td class="left"><code>imagescode</code></td>
+<td class="left"><code>-</code></td>
+<td class="left">a formula to compute the enumerator for the images' filenames</td>
+</tr>
+
+</table>
+
+<p id="ezview-explanations">
+
+<h3> Further detail </h3>
+
+The surface is defined as isosurface of level <code>uc</code> of the field
+contained in the layer <code>ulayer</code>. Parameter values
+<code>color_mode=1,2,3</code> has similar meaning to the original, where
+<code>ulayer</code> plays the role of the u-variable and <code>vlayer</code>
+plays the role of the v-variable; <code>color_mode=4,5</code> is the same new
+algorithm in which the colour components are defined by: for red,
+<code>rlayer</code> is the field, the value <code>rmin</code> maps to its zero
+and <code>rmax</code> to its full strength, and similarly for the green, blue
+and alpha (opacity) components. Additionally, "zero" and "full strength" of
+the opacity component are defined correspondingly by <code>alphamin</code> and
+<code>alphamax</code>. Other values of the <code>color_mode</code> correspond
+to the default algorithm where colour components are defined by spatial
+coordinates.  The filaments, when requested, are computed as intersection of
+isosurfaces of fields in <code>layer1</code> and <code>layer2</code> with at
+levels <code>const1</code> respectively <code>const2</code>. Unlike in the
+original, an attempt is made to connect the segments of the found filaments
+into contiguous chains, both for display and for text output purposes. There
+is an option to visualise filaments not by segments of straight lines but by
+balls, by parameter <code>flm_balls</code>.  Another new facility is "marker",
+whose position and size, in gridpoits, color and weight can be
+specified. Parameters of the directional and ambient light can also be
+specified. </p>
+
+<p>
+The visualization "by fibres" involves plotting curves that are tangent to the
+fibre directions and colouring them using a scheme similar to
+<code>color_mode=4</code> used for surfaces as described above, only the
+parameters of the colour coding are prefixed with a <code>fib_</code> to allow
+simultaneous and independent use of surface and fibres coloured differently
+(this is not a recommendation or endorsement, just statement of the
+possibility!). The algorithm is as follows. The "fibres" are drawn from
+selected grid points called here "stems", in both directions. They are
+constructed by effectively solving the initial-value problem for a system of 3
+ODEs defined by the fiber direction field. The
+ODE system is solved numerically using the forward Euler method with step
+<code>fib_step</code>. The direction field between the grid nodes is defined
+by tri-linear interpolation. Solution continues for <code>fib_len</code> steps
+or until the curve reaches the void, whichever comes first. The initial points
+for the curves, or the "stems", are selected in a regular subgrid. This
+"grid of stems" is
+defined thus: the <code>x</code> coordinates start from <code>fib_x0</code>
+and go with the sep <code>fib_dx</code> for as long as the <code>x</code>
+coordinate stays within the <code>Space</code> of the device, and similar for
+<code>y</code> and <code>z</code> coordinates.
+</p>
+
+<p>
+The mouse and hot-key control of the visualization are possible in much the
+same way as in the original, with some extensions.  Parameter
+<code>autostart=0</code> means that the program will stop after drawing the
+first image and await user's instructions in the dialogue mode. Mouse click-and-draw gestures can
+be used to change the view. The use of keyboards is considerably extended, and
+is explained briefly by a table below. Features different compared to
+<code>EZSCROLL</code> are marked by *. Caveat: original features may be assigned to different letters. 
+</p>
+
+<table border="1">
+<thead>
+<tr>
+<th scope="col" class="left">Key</th>
+<th scope="col" class="left">Action</th>
+</tr>
+</thead>
+<tbody>
+
+<tr><td class="left"><code>P,p</code></td><td class="left">pause <code>BeatBox</code>  and enter into <code>ezview</code> dialogue mode </td></tr>
+<tr><td class="left"><code>Q,q</code></td><td class="left">exit <code>ezview</code> device and command <code>BeatBox</code> to stop </td></tr>
+<tr><td class="left"><code>(space)</code></td><td class="left">exit <code>ezview</code> dialogue mode and let <code>BeatBox</code> resume simulation </td></tr>
+
+<tr><td class="left"><code>S,s</code></td><td class="left"> * toggle Surface drawing </td></tr>
+<tr><td class="left"><code>F,f</code></td><td class="left"> toggle Filament plotting </td></tr>
+<tr><td class="left"><code>B,b</code></td><td class="left"> * toggle fiBres plotting </td></tr>
+<tr><td class="left"><code>M,m</code></td><td class="left"> * toggle Marker drawing </td></tr>
+<tr><td class="left"><code>K,k</code></td><td class="left"> * switch remoVal of fronts/backs/none </td></tr>
+<tr><td class="left"><code>V,v</code></td><td class="left"> toggle Clipping plane </td></tr>
+<tr><td class="left"><code>D,d</code></td><td class="left"> toggle Depth buffer </td></tr>
+<tr><td class="left"><code>O,o</code></td><td class="left"> Original view <code>theta=theta0</code> etc </td></tr>
+<tr><td class="left"><code>R,r</code></td><td class="left"> Redraw </td></tr>
+<tr><td class="left"><code>W,w</code></td><td class="left"> Write "all" (image and filament) </td></tr>
+<tr><td class="left"><code>X,x</code></td><td class="left"> * view along/against X axis </td></tr>
+<tr><td class="left"><code>Y,y</code></td><td class="left"> * view along/against Y axis </td></tr>
+<tr><td class="left"><code>Z,z</code></td><td class="left"> view along/against Z axis </td></tr>
+<tr><td class="left"><code>0..9</code></td><td class="left"> change the <code>color_mode</code </td></tr>
+
+<tr><td class="left"><code>(arrows)</code></td><td class="left"> * rotate the box by changing <code>theta</code> and <code>phi</code> angles; SHIFT+: big steps (same below)</td></tr>
+<tr><td class="left"><code>(PgUp/PgDn)</code></td><td class="left"> * tilt the image: change the <code>psi</code> angle </td></tr>
+<tr><td class="left"><code>(ALT+arrows,PgUp/PgDn)</code></td> <td class="left"> * rotate the image in an alternative way ("yaw","pitch","roll")</td></tr>
+<tr><td class="left"><code>(CTRL+arrows)</code></td> <td class="left"> * move the window about the screen</td></tr>
+<tr><td class="left"><code>(CTRL+ALT+arrows,PgUp/PgDn)</code></td> <td class="left"> * move the marker (change its x,y,z coords)</td></tr>
+<tr><td class="left"><code>CTRL+, CTRL-</code></td><td class="left"> * increase and decrease <code>distance</code> of the viewpoint from the box</td></tr>
+<tr><td class="left"><code>=</code></td><td class="left"> * change the parameters in a text dialogue </td></tr>
+
+</table>
+
+<p>
+The "removal" function is a slight extension of <code>EZSCROLL</code>'s
+function of "back removals". Here it is not a toggle but a three-position
+switch: remove "fronts" (polygons of the surface for which
+<code>v&lt;vc</code>), remove "backs" (<code>v&gt;</code>) or do not remove
+any, where <code>v</code> is the field value in the layer
+<code>vlayer</code>. 
+</p>
+
+<p>
+The (rather rudimentary) text dialogue that follows pressing a <code>=</code>
+key takes place in the parent shell from which <code>BeatBox</code> was
+started, and requires the user to enter a parameter name to be changed
+following the <code>parameter=</code> prompt, and then the new value following
+<code>old value=XXX new value=</code> prompt. Trailing spaces in user inputs
+are ignored. Empty string entered as the value confirms the old value; empty
+string entered as the parameter name finishes the dialogue and returns control
+to the <code>ezview</code> graphics window. Entering anything that is not a
+valid parameter name will print the list of known parameter names.
+</p>
+
+<p>
+
+Finally, the window and icon name is composed of two parts, customizable and
+standard. The customizable part is defined in the script by parameters
+<code>title</code> and <code>titlecode</code> and interpreted in much the same
+way as for <a href="#ezpaint"><code>ezpaint</code></a> device. The standard
+part includes a "busy" indicator in angular brackets, a sequence of upper- or
+lower-case characters "SFBM VCD" in square brackets for the flags, and the camera position in
+round brackets. The "busy" indicator is one of:
+<ul>
+  <li> blank space for "running"
+mode, meaning that this instance of <code>ezview</code> is not busy neither in
+  drawing nor in dialogue with the user, </li>
+  <li> '-' meaning that drawing is in progress
+  (this phase may not be noticeable for simple scenes), </li>
+  <li> '+' meaning that the
+execution has paused, drawing of the current scene is completed, and
+  <code>ezview</code> is waiting for the user's input;
+  <li> '=' meaning that <code>ezview</code> is in "rotating" mode,
+  i.e. changing the viewing angle, either caused by mouse gestures or hot
+  keys.
+</ul>
+The flag string displays characters corresponding to toggle hot keys,
+uppercase when the flag is "on" and lowercase when the flag is "off"; the 'V'
+flag is prefixed by '+' or '-' for removal of fronts/backs respectively.
+The position of the camera is represented by the current values of parameters
+<code>theta</code>, <code>phi</code>, <code>psi</code> and
+<code>distance</code>. 
+</p>
+
+<h3>Instances of ezview in Example Scripts</h3>
+
+<p>
+Examples of ezview device can be found in the
+following:
+</p>
+
+<pre class="example">
+beatbox/data/scripts/sequential/Barkley_model/ezscroll.bbs
+beatbox/data/scripts/sequential/Barkley_model/rabbit.bbs
+</pre>
 
 <!-- ========================= -->
 <h2 class="numbered">grad2d</h2>
 <h3>Overview</h3>
 
 <p>
-Computes the 2D gradient at a given x,y,z location.
+Computes the absolute value of the 2D gradient of the field in layer
+<code>v0</code>, and puts it into layer <code>v1</code>.
+Computation is done using second-order accurate central differences. 
 </p>
 
 <h3>Parameters</h3>
 <p>
-The only parameter is the space step.
+The only parameter is the space step, <code>hx</code>. 
 <h3>Typical Syntax</h3>
 grad2d hx=hx;
 <h3>Instances in Example Scripts</h3>
@@ -5502,50 +7320,118 @@ previously.
 <h3>Overview</h3>
 
 <p>
-Produces png images of the space. Values from specified layers of the
+The purpose of this device is to produces image files representing the current
+state of the grid. Values from specified layers of the
 simulation medium are mapped to colour channels by linear
-interpolation using specified minima and maxima. imgout produces a
-new, sequentially numbered file every time it is run.
+interpolation using specified minima and maxima. This device is intended to produce a
+new file every time it is run, enumerated in a prescribed way. 
 </p>
 
 <h3>Parameters</h3>
 
 <table border="1">
-<tr>
-<th>Type</th><th>Name</th><th>Description</th>
-</tr><tr>
-<td><code>Sequence</code></td><td>filter</td><td>On the fly producing
-png images.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>r</code></td><td> Layer of the
-simulation medium from which the red colour channel should be
-mapped.</td>
-</tr><tr> 
-<td><code>real</code></td><td><code>r0</code></td><td> Value of the
-layer assigned to r that should map to 0. </td>
-</tr><tr>
-<td><code>real</code></td><td> <code>r1</code> </td><td> Value of the
-layer assigned to r that should map to 255. </td>
-</tr><tr>
-<td><code>int</code></td><td><code>g</code></td><td> Layer of the simulation
-medium from which the blue colour channel should be mapped.</td>
-</tr><tr>
-<td><code>real</code></td><td><code>g0</code></td><td> Value of the
-layer assigned to <code>g</code> that should map to 0.</td>
-</tr><tr>
-<td><code>real</code></td><td><code>g1</code></td><td> Value of the
-layer assigned to <code>g</code> that should map to 255.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>b</code></td><td> Layer of the
-simulation medium from which the green colour channel should be
-mapped.</td>
-</tr><tr>
-<td><code>real</code></td><td><code>b0</code></td><td> Value of the
-layer assigned to b that should map to 0.</td>
-</tr><tr>
-<td><code>real</code></td><td><code>b1</code></td><td> Value of the
-layer assigned to <code>b</code> that should map to 255.</td>
-</tr>
+  <tr>
+    <th scope="col" class="left">Type</th>
+    <th scope="col" class="left">Name</th>
+    <th scope="col" class="left">Default</th>
+    <th scope="col" class="left">Description</th>
+  </tr>
+  <tr>
+    <td class="left"><code>str</code></td>
+    <td class="left"><code>filter</code></td>
+    <td class="left"><code> - </code></td>
+    <td class="left">The mask of a shell command line that will receive the
+      generated image in the PPM format; expected to be used to produce actual
+      image file of the same, using appropriate NETPBM modules and/or other
+      appropriate command-line tools. The mask can contain a C-style format
+      field for printing a floating-point value, e.g. "%.0f" which can be used
+      to enumerate the output files. </td>
+    </tr>
+  <tr>
+    <td class="left"><code>k-expression</code></td>
+    <td class="left"><code>code</code></td>
+    <td class="left"><code>t</code></td>
+    <td class="left">a formula to compute the enumerator for the images: 
+      will be interpreted as a real and printed through the format defined
+      by <code>filter</code> to produce the actuall shell command. </td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>r</code></td>
+    <td> - </td>
+    <td> Layer of the simulation medium from which the red colour channel should be mapped.</td>
+  </tr>
+  <tr> 
+    <td><code>real</code></td><td><code>r0</code></td>
+    <td> - </td>
+    <td> Value of the layer assigned to r that should map to 0. </td>
+  </tr>
+  <tr>
+    <td><code>real</code></td>
+    <td><code>r1</code> </td>
+    <td> - </td>
+    <td> Value of the layer assigned to r that should map to 255. </td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>g</code></td>
+    <td> - </td>
+    <td> Layer of the simulation medium from which the blue colour channel should be mapped.</td>
+  </tr>
+  <tr>
+    <td><code>real</code></td>
+    <td><code>g0</code></td>
+    <td> - </td>
+    <td> Value of the layer assigned to <code>g</code> that should map to 0.</td>
+  </tr>
+  <tr>
+    <td><code>real</code></td>
+    <td><code>g1</code></td>
+    <td> - </td>
+    <td> Value of the layer assigned to <code>g</code> that should map to 255.</td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>b</code></td>
+    <td> - </td>
+    <td> Layer of the simulation medium from which the green colour channel should be mapped.</td>
+  </tr>
+  <tr>
+    <td><code>real</code></td>
+    <td><code>b0</code></td>
+    <td> - </td>
+    <td> Value of the layer assigned to b that should map to 0.</td>
+  </tr>
+  <tr>
+    <td><code>real</code></td>
+    <td><code>b1</code></td>
+    <td> - </td>
+    <td> Value of the layer assigned to <code>b</code> that should map to 255.</td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>bgr</code></td>
+    <td><code>255</code></td>
+    <td> Red value of the background colour, to be displayed at void points.</td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>bgg</code></td>
+    <td><code>255</code></td>
+    <td> Green value of the background colour, to be displayed at void points.</td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>bgb</code></td>
+    <td><code>255</code></td>
+    <td> Blue value of the background colour, to be displayed at void points.</td>
+  </tr>
+  <tr>
+    <td><code>str</code></td>
+    <td><code>debug</code></td>
+    <td> "" </td>
+    <td> Path to output file for debugging purposes. If <code>stdout</code>, will print to screen of the parent shell.</td>
+  </tr>
 </table>
 
 <h3>Typical Syntax</h3>
@@ -5553,10 +7439,16 @@ The typical syntax of <code>imgout</code> device is as follows.
 <pre>
 imgout filter="pnmflip -tb | pnmtopng > [outdir]/uvi%07.0f.png" mode="w" r=[u] r0=umin r1=umax g=[v] g0=vmin g1=vmax b=[i] b0=-1 b1=1;
 </pre>
-<h3>Instances of ppmout in Example Scripts</h3>
-Examples of ppmout device can be found in the following:
+<h3>Instances of <code>imgout</code> in Example Scripts</h3>
+Examples of using <code>imgout</code> device can be found in the following:
 <pre>
+beatbox/data/scripts/sequential/TenTusscherPanfilov_modelS/ttp06/benchmark.bbs
+beatbox/data/scripts/sequential/CRN_model/pd_crn2.bbs
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn_crossFieldStim_ffr_slice.bbs
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn_spiral_ffr_slice_aniso.bbs
 beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
+beatbox/data/scripts/sequential/ZFK_model/zfkbid2.bbs
+beatbox/data/scripts/sequential/ZFK_model/zfkmon2.bbs
 </pre>
 
 <!-- ========================= -->
@@ -5564,29 +7456,32 @@ beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
 
 <h3>Overview</h3>
 <p>
-Prints the current time to <code>stdout</code>.
+Prints the current time to <code>stdout</code> and VGA graphics window. 
 </p>
 <h3>Parameters</h3>
 <table border="1">
 <tr>
 <th> Type </th><th> Name </th><th> Description </th>
 </tr><tr>
-<td><code>int</code></td><td><code>when</code></td><td>rate of output</td>
+<td><code>int</code></td><td><code>col0</code></td><td> starting column of VGA
+  graphics (measured in characters).</td>
 </tr><tr>
-<td><code>int</code></td><td><code>col0</code></td><td> starting column of graphics.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>row0</code></td><td> starting row of graphics.</td>
+<td><code>int</code></td><td><code>row0</code></td><td> starting row of
+  graphics (measured in characters).</td>
 </tr><tr>
 <td><code>int</code></td><td><code>color</code></td><td> Color code of line graphics.</td>
 </tr><tr>
-<td><code>real</code></td><td><code>code</code></td><td> usually set to t*dt</td>
+<td><code>real</code></td><td><code>code</code></td><td> k-expression for the
+  value to be displayed.</td>
 </tr><tr>
 <td><code>string</code></td><td><code>format</code></td><td>string defining format of output real</td>
 </tr>
 </table>
 
 <h3>Typical Syntax</h3>
-The k_clock device is mainly used during run time graphics simulations.
+The <code>k_clock</code> device is mainly used during simlations with run time VGA
+graphics. It is similar to <code>clock</code> but offers more flexibility by
+allowing the displayed value to be defined by an arbitrary k-expression. 
 The typical syntax of <code>k_clock</code> device is as follows.
 <pre>
 k_clock when=often color=WHITE row0=1 col0=21 code=t*ht format="T=%4.1f ms"; 
@@ -5602,7 +7497,8 @@ have been described in previous sections.
 <!-- ========================= -->
 <h2 class="numbered">k_draw</h2>
 <h3>Overview</h3>
-Draws the visualisation window.
+Draws a curve in the VGA graphics window. Unlike <code>k_plot</code> device,
+this one adds one segment or point to the curve at each call. 
 <h3>Parameters</h3>
 <table border="1">
 <tr>
@@ -5631,7 +7527,7 @@ beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn0.bbs
 </pre>
 
 <!-- ========================= -->
-<h2 class="numbered">k func</h2>
+<h2 class="numbered">k_func</h2>
 
 <h3>Overview</h3>
 
@@ -5661,10 +7557,10 @@ part of the simulation run.
   
 </tr><tr>
   
-  <td><code>str</code></td><td><code>debug</code></td><td>
-    Relative path to output file for debugging purposes. If
-    <code>stdout</code>, will print to screen.
-  </td>
+<td><code>str</code></td><td><code>debug</code></td><td>
+  Relative path to output file for debugging purposes. If
+  <code>stdout</code>, will print to screen of the parent shell.
+</td>
   
 </tr><tr>
   
@@ -5707,31 +7603,199 @@ k_func name=timing nowhere=1 pgm={
 beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn0.bbs
 </pre>
 
+<!-- ========================= -->
+<h2 class="numbered">k_imgout</h2>
+
+<h3>Overview</h3>
+
+<p>
+Produces png images of the space. Similar to <code>imgout</code> device, with
+more flexibility due to use of k-expressions to code the colours instead of
+direct linear mapping of the grid values.
+</p>
+
+<h3>Parameters</h3>
+
+<table border="1">
+  <tr>
+    <th scope="col" class="left">Type</th>
+    <th scope="col" class="left">Name</th>
+    <th scope="col" class="left">Default</th>
+    <th scope="col" class="left">Description</th>
+  </tr>
+  <tr>
+    <td class="left"><code>str</code></td>
+    <td class="left"><code>filter</code></td>
+    <td class="left"><code> - </code></td>
+    <td class="left">The mask of a shell command line that will receive the
+      generated image in the PPM format; expected to be used to produce actual
+      image file of the same, using appropriate NETPBM modules and/or other
+      appropriate command-line tools. The mask can contain a C-style format
+      field for printing a floating-point value, e.g. "%.0f" which can be used
+      to enumerate the output files. </td>
+  </tr>
+  <tr>
+    <td class="left"><code>k-expression</code></td>
+    <td class="left"><code>filtercode</code></td>
+    <td class="left"><code>t</code></td>
+    <td class="left">a formula to compute the enumerator for the images: 
+      will be interpreted as a real and printed through the format defined
+      by <code>filter</code> to produce the actuall shell command. </td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>width</code></td>
+    <td> - </td>
+    <td> Horizontal size of the images, in pixels.</td>
+  </tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><code>height</code></td>
+    <td> - </td>
+    <td> Vertical size of the images, in pixels.</td>
+  </tr>
+  <tr>
+    <td class="left"><code>codeblock</code></td>
+    <td class="left"><code>pgm</code></td>
+    <td class="left"><code>-</code></td>
+
+    <td class="left">A k-program computing the colour of each pixel of the
+      output image. In the lexical scope of this program, local variables
+      <code>i</code>, <code>j</code> (integer) <code>r</code>, <code>g</code>
+      and <code>b</code> (real) are defined. If synonymous global variables
+      exist, these local variables supercede those. 
+      The real variables <code>r</code>,
+      <code>g</code> and <code>b</code> are output variables.
+      Their values have to be computed (each of them must
+      occur at least once in the left hand-sides of the assignments in the
+      k-program). They are then cropped to the range <code>0..1</code> and
+      represent correspondingly the red, green and blue components of the
+      pixel colour. Their values may depend on the read-only variables
+      <code>i</code> and <code>j</code> which represent the integer
+      coordinates of the pixel (running in the ranges <code>0..width-1</code>,
+      <code>0..height-1</code> respectively, inclusive).
+    </td>
+  </tr>
+</table>
+
+<h3>Typical Syntax</h3>
+An example of the <code>imgout</code> syntax:
+<pre>
+k_imgout when=out
+  filter="pnmflip -tb | pnmtopng > [outdir]/udg%06.0f.png"
+  filtercode="t/tout"
+  width=nx height=ny
+  pgm={
+    r=(u(1+i,1+j,0,[u])-umin)/(umax-umin);
+    g=fabs(u(1+i,1+j,0,[d]))/2.0;
+    b=u(1+i,1+j,0,[g])/2.0;
+  };
+</pre>
+<h3>Instances of ppmout in Example Scripts</h3>
+Examples of <code>k_imgout</code> device can be found in the following:
+<pre>
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn_crossFieldStim_ffr_slice.bbs
+beatbox/data/scripts/sequential/TenTusscherPanfilov_modelS/ttp06/benchmark.bbs
+</pre>
+
 
 <!-- ========================= -->
 <h2 class="numbered">k_paint</h2>
 
 <h3>Overview</h3>
 
-<code>k_paint</code> is a device for run-time graphics to paint the field using VGA colour palette.
+<code>k_paint</code> is a device for run-time graphics to paint the field using VGA emulator.
 
 <h3>Parameters</h3>
+
 <table border="1">
-<tr>
-<th> Type </th><th> Name </th><th> Description </th>
-</tr><tr>
-<td><code>int</code></td><td><code>when</code></td><td>Output rate</td>
-</tr><tr>
-<td><code>int</code></td><td><code>col0</code></td><td> starting column of graphics.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>col1</code></td><td> end column of graphics.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>row0</code></td><td> starting row of graphics.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>col1</code></td><td> end column of graphics.</td>
-</tr><tr>
-<td><code>int</code></td><td><code>color</code></td><td> Color code of line graphics.</td>
-</tr>
+  <tr>
+    <th scope="col" class="left">Type</th>
+    <th scope="col" class="left">Name</th>
+    <th scope="col" class="left">Default</th>
+    <th scope="col" class="left">Description</th>
+  </tr>
+
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>nabs</code></td>
+    <td> - </td>
+    <td>Horizontal (abscissa) size of the virtual raster</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>absmin</code></td>
+    <td><code>0</code></td>
+    <td>Minimal value of he abscissa counter</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>absmax</code></td>
+    <td><code>nabs-1</code></td>
+    <td>Maximal value of the abscissa counter</td>
+  </tr>
+
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>nord</code></td>
+    <td> - </td>
+    <td>Vertical (ordinate) size of the virtual raster</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>ordmin</code></td>
+    <td><code>0</code></td>
+    <td>Minimal value of he ordinate counter</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>ordmax</code></td>
+    <td><code>nord-1</code></td>
+    <td>Maximal value of the ordinate counter</td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>codeblock</code></td>
+    <td class="left"><code>pgm</code></td>
+    <td class="left"><code>-</code></td>
+
+    <td class="left">A k-program computing the colour of each virtual pixel of the
+      output image. In the lexical scope of this program, local variables
+      <code>abs</code>,
+      <code>ord</code>,
+      <!-- <code>app</code>, -->
+      <code>red</code>,
+      <code>grn</code> and
+      <code>blu</code>
+      (all real) are defined. If synonymous global variables
+      exist, these local variables supercede those. 
+      The variables <code>red</code>,
+      <code>grn</code> and <code>blu</code> are output variables.
+      Their values have to be computed (each of them must
+      occur at least once in the left hand-sides of the assignments in the
+      k-program). They are then cropped to the range <code>0..1</code> and
+      represent correspondingly the red, green and blue components of the
+      pixel colour. 
+      Their values may depend on the read-only real variables
+      <code>abs</code>
+      and
+      <code>ord</code>,
+      <!-- <code>app</code>, -->
+      for "abscissa" and "ordinate" of the image raster, which in this device
+      are distinint from pixel enumeration. These scan
+      <code>nabs</code> values from <code>absmin</code> to <code>absmax</code>,
+      respectively
+      <code>nord</code> values from <code>ordmin</code> to <code>ordmax</code>
+      which are linearly mapped to the
+      area of the VGA emulator with coordinates
+      <code>col0..col1</code> and <code>row0..row1</code>.
+    </td>
+  </tr>
 </table>
 
 <h3>Typical Syntax</h3>
@@ -5757,9 +7821,196 @@ beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
 </pre>
 
 <!-- ========================= -->
+<h2 class="numbered">k_paintgl</h2>
+
+<h3>Overview</h3>
+
+This is similar in purpose to the <code>k_paint</code>, but uses its own X
+window and produces run-time graphics using OpenGL. 
+A copy of each image can be written to a file through a filter.
+This device is obsolete by <code>ezpaint</code> and is retained only for
+compatibility with legacy scripts. 
+
+<h3>Parameters</h3>
+
+<table border="1">
+  <tr>
+    <th scope="col" class="left">Type</th>
+    <th scope="col" class="left">Name</th>
+    <th scope="col" class="left">Default</th>
+    <th scope="col" class="left">Description</th>
+  </tr>
+
+  <tr>
+    <td class="left"><code>str</code></td>
+    <td class="left"><code>title</code></td>
+    <td class="left"><code>k_paintgl t=%.0f</code></td>
+    <td class="left">Title of the window. May countaing a C format specifier for a real value.</td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>str</code></td>
+    <td class="left"><code>titlecode</code></td>
+    <td class="left"><code>t</code></td>
+    <td class="left">k-expression computing the real value to be represented in the windown title.</td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>int</code></td>
+    <td class="left"><code>winx</code></td>
+    <td class="left"><code>-1</code></td>
+    <td class="left">horizontal position of the window from left edge (or
+    right, if negative) of screen, pixels </td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>int</code></td>
+    <td class="left"><code>winy</code></td>
+    <td class="left"><code>1</code></td>
+    <td class="left">vertical position of the window from top edge (or bottom,
+    if negative) of screen, pixels</td>
+  </tr>
+
+  <tr>
+    <td><code>int</code></td>
+    <td><code>width</code></td>
+    <td> 512 </td>
+    <td> Horizontal size of the window, in pixels.</td>
+  </tr>
+
+  <tr>
+    <td><code>int</code></td>
+    <td><code>height</code></td>
+    <td> 512 </td>
+    <td> Vertical size of the window, in pixels.</td>
+  </tr>
+
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>nabs</code></td>
+    <td> - </td>
+    <td>Horizontal (abscissa) size of the virtual raster</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>absmin</code></td>
+    <td><code>0</code></td>
+    <td>Minimal value of he abscissa counter</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>absmax</code></td>
+    <td><code>nabs-1</code></td>
+    <td>Maximal value of the abscissa counter</td>
+  </tr>
+
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>nord</code></td>
+    <td> - </td>
+    <td>Vertical (ordinate) size of the virtual raster</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>ordmin</code></td>
+    <td><code>0</code></td>
+    <td>Minimal value of he ordinate counter</td>
+  </tr>
+  
+  <tr>
+    <td><code>int</code></td>    
+    <td><code>ordmax</code></td>
+    <td><code>nord-1</code></td>
+    <td>Maximal value of the ordinate counter</td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>codeblock</code></td>
+    <td class="left"><code>pgm</code></td>
+    <td class="left"><code>-</code></td>
+
+    <td class="left">A k-program computing the colour of each virtual pixel of the
+      output image. In the lexical scope of this program, local variables
+      <code>abs</code>,
+      <code>ord</code>,
+      <!-- <code>app</code>, -->
+      <code>red</code>,
+      <code>grn</code> and
+      <code>blu</code>
+      (all real) are defined. If synonymous global variables
+      exist, these local variables supercede those. 
+      The variables <code>red</code>,
+      <code>grn</code> and <code>blu</code> are output variables.
+      Their values have to be computed (each of them must
+      occur at least once in the left hand-sides of the assignments in the
+      k-program). They are then cropped to the range <code>0..1</code> and
+      represent correspondingly the red, green and blue components of the
+      pixel colour. 
+      Their values may depend on the read-only real variables
+      <code>abs</code>
+      and
+      <code>ord</code>,
+      <!-- <code>app</code>, -->
+      for "abscissa" and "ordinate" of the image raster, which in this device
+      are distinint from pixel enumeration. These scan
+      <code>nabs</code> values from <code>absmin</code> to <code>absmax</code>,
+      respectively
+      <code>nord</code> values from <code>ordmin</code> to <code>ordmax</code>
+      which are linearly mapped to 
+      <code>width*height</code>
+      of the X raster. 
+    </td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>str</code></td>
+    <td class="left"><code>filter</code></td>
+    <td class="left"><code> "" </code></td>
+    <td class="left">The mask of a shell command line that will receive the
+      generated image (screen shot) in the PPM format; expected to be used to produce actual
+      image file of the same, using appropriate NETPBM modules and/or other
+      appropriate command-line tools. The mask can contain a C-style format
+      field for printing a floating-point value, e.g. "%.0f" which can be used
+      to enumerate the output files. </td>
+  </tr>
+
+  <tr>
+    <td class="left"><code>k-expression</code></td>
+    <td class="left"><code>filtercode</code></td>
+    <td class="left"><code>t</code></td>
+    <td class="left">a formula to compute the enumerator for the image files: 
+      will be interpreted as a real and printed through the format defined
+      by <code>filter</code> to produce the actuall shell command. </td>
+  </tr>
+
+</table>
+
+<h3>Typical Syntax</h3>
+
+<p>
+The typical syntax of <code>k_paintgl</code> device is as follows.
+</p>
+
+<pre>
+k_paintgl when=out width=300 height=300 nabs=100 nord=100
+  pgm={red=u(abs,ord,0,0); grn=u(abs,ord,0,1)/0.8; blu=0};
+</pre>
+
+
+<h3>Instances in Example Scripts</h3>
+<pre>
+beatbox/data/scripts/sequential/Barkley_model/ez.bbs
+</pre>
+
+<!-- ========================= -->
 <h2 class="numbered">k_plot</h2>
 <h3>Overview</h3>
-Plots the visualised variables.
+Plots curves in the VGA graphics window. Unlike <code>k_draw</code>, this
+device plots a whole curve at each call. 
+
 <h3>Parameters</h3>
 <table border="1">
 <tr>
@@ -5830,32 +8081,35 @@ with <code>nowhere=1</code>.
 
 <table border="1">
 <tr>
-<th>Type</th><th>Name</th><th>Description</th>
+<th>Type</th><th>Name</th><th>Default</th><th>Description</th>
 </tr><tr>
-  <td> <code>codeblock</code> </td><td><code>pgm</code></td><td>Semicolon-separated set of
+  <td>
+    <code>codeblock</code> </td>
+    <td><code>pgm</code></td>
+    <td><code>-</code></td>
+    <td>Semicolon-separated set of
     k-assignments, defining the trajectory. Semantics of the
     k-assignments are not the same and are not straightforward; the
-    details are
-    explained below under "Typical syntax". This is a mandatory
-    parameter.  
+    details are explained below under "Typical syntax". 
   </td>
   </tr><tr>
     <td><code>int</code></td>
     <td><code>which</code></td>
+    <td><code>0</code></td>
     <td>Identifies which trajectory component is watched for. Here
       <code>which=0</code> means it will be the component defined by
       the first assignment, <code>which=1</code> means it will be the
-      second assignment, etc. Defaults to <code>0</code>. </td>
+      second assignment, etc. </td>
   </tr><tr>
     <td><code>int</code></td>
-    <td><code>sign</code></td
-    ><td>The sign of the crossings to be detected:
+    <td><code>sign</code></td>
+    <td><code>1</code></td>
+    <td>The sign of the crossings to be detected:
       <ul>
 	<li><code>1</code> indicates positive crossings only (from negative to positive),</li> 
 	<li><code>-1</code>  indicates negative crossings only (from positive to negative),</li>
 	<li><code>0</code>  indicates that crossings in either direction will be accepted.</li>
       </ul>
-      Defaults to <code>1</code>.
     </td>
   </tr>
 </table>
@@ -5894,6 +8148,97 @@ value of the step counter <code>t</code> will be stored
 <pre>
 beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn1.bbs
 </pre>
+
+<!-- ========================= -->
+<h2 class="numbered">k_print</h2>
+<h3>Overview</h3>
+
+<p> Outputs values of k-expressions into a text file/stream. In that
+it is different from <code>record</code> device which outputs only the
+grid values. It is the possibile to repeat the output expressions
+<code>N</code> times, with the expressions depend on k-variable
+<code>i</code> local to this device which runs from 0 to
+<code>N-1</code> inclusive. As the <code>record</code> device,
+<code>k_print</code> uses a hierarchical set of separators, which are
+<code>valuesep</code>, <code>fieldsep</code> and
+<code>recordsep</code>. As a matter of convenience, some extra text at the
+beginning of the file and/or at the beginning of each line may be specified. </p>
+
+<p>
+The <code>k_print</code> is allowed to work with k-expressions
+involving global k-variables, but not any subset of the dynamic grid,
+so must be run with <code>nowhere=1</code>.
+</p>
+
+
+
+<h3>Parameters</h3>
+<table border="1">
+<tr>
+<th> Type </th><th> Name </th><th> Default </th><th> Description </th>
+</tr><tr>
+<td><code>str</code></td><td><code>file</code></td><td>-</td><td> Path
+to the output file.</td>
+</tr><tr>
+<td><code>int</code></td><td><code>append</code></td><td>0</td><td> Should the
+file be appended to? (0 for no, 1 for yes) </td>
+</tr><tr>
+<td><code>str</code></td><td><code>filehead </code></td><td>""</td><td> Text to 
+be placed at the beginning of the output file, or at the beginning of
+  the newly written section, if the file is appended to.</td>
+</tr><tr>
+<td><code>str</code></td><td><code>headformat</code></td><td>""</td><td> If
+  non-empty, defines the text in the beginning of each output line. May
+contain a C format specifiers (using <code>%</code> sign), which will
+  then be used to represent the current value produced by <code>headcode</code>.</td>
+</tr><tr>
+<td><code>k-expression</code></td><td><code>headcode</code></td><td>""</td><td>
+ k-expression to be represented in <code>headcode</code>; evaluated as
+real. </td>
+</tr><tr>
+<td><code>long</code></td><td><code>N</code></td><td>1</td><td> How man times
+  should the contents of the <code>list</code> be output? </td>
+</tr><tr>
+<td><code>listblock</code></td><td><code>list</code></td><td>-</td><td> A list
+  of k-expressions, separated by <code>;</code> and enclosed in <code>{...}</code> </td>
+</tr><tr>
+<td><code>str</code></td><td><code>valuesep</code></td><td>","</td><td> Separator
+  between the values in the <code>list</code>. Must be at most 80 characters in length.</td>
+</tr><tr>
+<td><code>str</code></td><td><code>fieldsep</code></td><td>" "</td><td> Separator
+  between different <code>i</code>-iterations of the output. Must be
+  at most 80 characters in length.</td>
+</tr><tr>
+<td><code>str</code></td><td><code>recordsep</code></td><td>"\n"</td><td> Separator
+  between records, i.e. outputs produced by individual calls of the
+  device.</td>
+</tr>
+</table>
+
+<h3>Typical Syntax</h3>
+
+<p>
+The typical syntax of <code>k_plot</code> device is as follows:
+</p>
+
+<pre>
+// Calculate and report the propagation speed to standard output
+k_print nowhere=1 when=end file=stdout headformat="c=" headcode=0 list={(xout2-xout1)*hx/(T2-T1)};
+
+// Output the record of dynamical variables u and v at the "samplepoint" 
+// while "paceout" is nonzero into the file fhn1.rec.
+k_print nowhere=1 when=paceout file=[0].rec append=0 valuesep="\t" list={U2;V2};
+</pre>
+
+
+<h3>Instances in Example Scripts</h3>
+<pre>
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn1.bbs
+beatbox/data/scripts/sequential/FitzHughNagumo_model/singz.bbs
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn0_ap.bbs
+beatbox/data/scripts/parallel/Barkley/scroll.bbs
+</pre>
+and many more
     
 <!-- ========================= -->
 <h2 class="numbered">load</h2>
@@ -5952,6 +8297,182 @@ at the end of the run. To run this script, use the following command:
 
 <pre>
 Beatbox_SEQ fhn1_load.bbs
+</pre>
+
+<!-- ========================= -->
+<h2 class="numbered">matout</h2>
+
+<h3>Overview</h3>
+<p>
+Saves grid data to a Matlab readable file ("MAT-file").  The current
+implementation saves data as a 5-dimensional array, with dimensions
+<code>v*z*y*x*t</code> (in that order, <code>v</code> index changing
+the fastest, and <code>t</code> the slowest); any of these dimensions
+may be equal to 1.  The (possibly counter-intuitive) order
+<code>v*z*y*x</code> corresponds to the order in which the grid data
+are allocated in BeatBox memory. The actual dimensions are not
+specified as such, but are determined by this devices Space parameters
+and the "decimation" parameters <code>dx,dy,dz,dv</code> defined
+below.  The <code>t</code>-dimension is filled up one by one by
+successive calls of this instance of <code>matout</code> device, by
+the end of the current run the last timension of the output array will
+be 7 if this instance has been called 7 times during the run, but will
+contain a smaller array, with the corresponding correct value of the
+<code>t</code>-dimension, if the job has been killed before
+completion. 
+</p>
+
+<p>
+The user has the choice of the Matlab type of data to be saved: the eight
+integer types (from signed 8-bit to unsigned 64-bit) and two floating
+point (single and double). The default is the BeatBox's main floating
+point format (normally double, but depends on how BeatBox has been
+compiled). For the integer types, the script will need to specify the
+range of real numbers that is to be mapped to the full scale of the
+integers representable by the chosen type. 
+</p>
+
+<p> <strong> Limitations: </strong>
+
+<ul>
+
+  <li> Currently the device is implemented only for the sequential
+  mode, 
+
+  <li> and ignores the geometry, i.e. outputs grid values in the same
+  way for tissue points and void points. 
+  
+  <li> This implementation produces only non-compressed MAT-files,
+  containing exactly one array with 5 dimensions, some of which may be
+  equal to 1. If a compressed MAT-file and/or arrays without singleton
+  dimensions are desired, one can process it in Matlab using its
+  <code>load</code>, <code>squeeze</code> and <code>save</code>
+  functions.</li>
+  
+  <li> Matlab documentation states that the format of MAT-files is
+  endian-neutral in that Matlab will accept files written on machines
+  with either endianness. However the current implementation is
+  written on a little-endian platform and tested by Matlab running on
+  the same platform. It will probably need to be
+  amended if it is to be used on a big-endian platform.</li>
+
+</ul>
+
+<h3>Parameters</h3>
+
+
+<table border="1">
+<tr>
+<th>Type</th><th>Name</th><th>Default</th><th>Description</th>
+</tr><tr>
+  
+<td><code>str</code></td><td><code>head</code></td><td>(automatic)</td><td>
+  Text of the header of the MAT-file. Default is an automatically
+  generated text reporting the version of BeatBox and the date and
+  time of creation of the MAT-file</td>
+</tr><tr>
+
+<td><code>str</code></td><td><code>file</code></td><td>-</td><td>
+    Relative path to the file to be written.</td>
+</tr><tr>
+
+<td><code>str</code></td><td><code>array_name</code></td><td>"beatbox"</td><td>
+  Matlab name of the array to be created. This must be a valid Matlab
+  identifier (not checked by BeatBox, so is the user's responsibility)</td>
+</tr><tr>
+
+<td><code>str</code></td><td><code>array_type</code></td><td>"native"</td><td>
+  Matlab type of the array to be created. Valid values are:
+  "int8",
+  "uint8",
+  "int16",
+  "uint16",
+  "int32",
+  "uint32",
+  "int64",
+  "uint64",
+  "single",
+  "double",
+  "native".
+  In the integer types, prefix "u" stands for unsigned, and the
+  digital postfix is the number of bits in the type, so in C terms, "uint8" is <code>unsigned
+  char</code>, and "int64" is 8-byte signed <code>long int</code>. 
+  Value "native" stands for the <code>real</code> (floating-point) type used by
+  BeatBox for calculations (usually "double"). 
+</td>
+</tr><tr>
+
+<td><code>real</code></td><td><code>u0</code></td><td>-</td><td>
+  Only used when <code>array_type</code> is one of the integer types.
+  Grid values that are less or equal to <code>u0</code> will be output
+  as the minimal possible value allowed by <code>array_type</code>,
+  e.g. <code>-128</code> for "int8". 
+</td>
+</tr><tr>
+
+<td><code>real</code></td><td><code>u1</code></td><td>-</td><td>
+  Only used when <code>array_type</code> is one of the integer types.
+  Grid values that are greater or equal to <code>u1</code> will be output
+  as the maximal possible value allowed by <code>array_type</code>,
+  e.g. <code>127</code> for "int8".
+  Grid values that are between
+  <code>u0</code> and <code>u1</code> will be linearly interpolated
+  and discretized to the full range of values allowed by
+  <code>array_type</code>. 
+</td>
+</tr><tr>
+
+<td><code>int</code></td><td><code>dx</code></td><td>1</td><td>
+    
+  Must be a positive integer. The output data will include only the
+  points of the grid whose <code>x</code> coordinate is such that
+  <code>x-x0</code> is divisible by <code>dx</code> where
+  <code>x0</code> is value from this instance's Space parameters.
+
+  E.g. for <code>dx=3</code>, every third gridpoint in <code>x</code>
+  direction will be output.
+
+</td>
+</tr><tr>
+
+<td><code>int</code></td><td><code>dy</code></td><td>1</td><td>
+  Same, for the <code>y</code> dimension.     
+</td>
+</tr><tr>
+
+<td><code>int</code></td><td><code>dy</code></td><td>1</td><td>
+  Same, for the <code>z</code> dimension.
+</td>
+</tr><tr>
+  
+<td><code>int</code></td><td><code>dy</code></td><td>1</td><td>
+  Same, for the <code>v</code> dimension. So, the overall size of data
+  output to the MAT-file will be roughtly <code>dx*dy*dz*dv</code>
+  times smaller than the default. 
+</td>
+</tr><tr>
+
+<td><code>str</code></td><td><code>debug</code></td><td>-</td><td>
+  Relative path to output file for debugging purposes. If
+  <code>stdout</code>, will print to screen of the parent shell.
+</td>
+</tr><tr>
+
+</table>
+
+<h3>Example</h3>
+
+<p>
+of using this device is available as the test script 
+<pre>
+beatbox/data/tests/matout.bbs
+</pre>
+
+To run this script, use the following command:
+</p>
+
+<pre>
+Beatbox_SEQ matout.bbs
 </pre>
 
 <!-- ========================= -->
@@ -6038,6 +8559,80 @@ beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn1.bbs
 </pre>
 
 <!-- ========================= -->
+<h2 class="numbered">ppmin</h2>
+
+<h3>Overview</h3>
+
+<p>
+Reads PPM images and maps its colour components into grid values; quasi-inverse of the <code>ppmout</code> device described below.
+Makes little sense in actual simulations, but can be used e.g. for post-processing previously computed data recorded via <code>ppmout</code>.
+</p>
+
+<h3>Parameters</h3>
+
+<table border="1">
+<tr>
+<th>Type</th><th>Name</th><th>Description</th>
+</tr><tr>
+<td><a href="#sequence"><code>sequence</code></a></td><td>file</td><td>Format specifier for
+the sequence of the read files.</td>
+</tr><tr>
+<td><code>int</code></td><td><code>r</code></td><td> Layer of the
+simulation medium to which the red colour channel is
+mapped.</td>
+</tr><tr> 
+<td><code>real</code></td><td><code>r0</code></td><td> Value of the
+layer <code>r</code> to which 0 of the red colour component is mapped. </td>
+</tr><tr>
+<td><code>real</code></td><td> <code>r1</code> </td><td> Value of the
+layer <code>r</code> to which 255 of the red colour component is mapped. </td>
+</tr><tr>
+<td><code>int</code></td><td><code>g</code></td><td> Layer of the
+simulation medium to which the green colour channel is
+mapped.</td>
+</tr><tr> 
+<td><code>real</code></td><td><code>g0</code></td><td> Value of the
+layer <code>g</code> to which 0 of the green colour component is mapped. </td>
+</tr><tr>
+<td><code>real</code></td><td> <code>g1</code> </td><td> Value of the
+layer <code>g</code> to which 255 of the green colour component is mapped. </td>
+</tr><tr>
+<td><code>int</code></td><td><code>b</code></td><td> Layer of the
+simulation medium to which the blue colour channel is
+mapped.</td>
+</tr><tr> 
+<td><code>real</code></td><td><code>b0</code></td><td> Value of the
+layer <code>b</code> to which 0 of the blue colour component is mapped. </td>
+</tr><tr>
+<td><code>real</code></td><td> <code>b1</code> </td><td> Value of the
+layer <code>b</code> to which 255 of the blue colour component is mapped. </td>
+</tr>
+</table>
+
+<h3>Typical Syntax</h3>
+
+<p>
+The typical syntax of <code>ppmin</code> device is as follows.
+</p>
+
+<pre>
+ppmin when=always
+  file="[in]/%06d.ppm3"			// input files 
+  filecode=t	                        // .. enumerated by the step number
+  r=[u]    r0=umin r1=umax		// the first channel from u, umin->0, umax->255
+  g=[v]    g0=vmin g1=vmax		// the second channel from v, ...
+  b=[i]    b0=-1 b1=1			// the third channel from [i]; rarely used
+;
+</pre>
+
+<h3>Instances of ppmin in Example Scripts</h3>
+
+<p>
+(none for the moment)
+</p>
+
+
+<!-- ========================= -->
 <h2 class="numbered">ppmout</h2>
 
 <h3>Overview</h3>
@@ -6048,7 +8643,10 @@ simulation medium are mapped to colour channels by linear
 interpolation using specified minima and maxima. ppmout produces a
 new, sequentially numbered file every time it is run. In
 three-dimensional meshes, ppmout produces non-standard PPM files, in
-which multiple z-layers are stacked into a single file.
+which multiple <code>z</code>-layers are stacked into a single
+file. For a reading program, the <code>z</code> dimension an be
+inferred from the <code>x</code> and <code>y</code> dimensions
+specified in the PPM header and the file size. 
 </p>
 
 <h3>Parameters</h3>
@@ -6057,7 +8655,7 @@ which multiple z-layers are stacked into a single file.
 <tr>
 <th>Type</th><th>Name</th><th>Description</th>
 </tr><tr>
-<td><code>Sequence</code></td><td>file</td><td>Format specifier for
+<td><a href="#sequence"><code>sequence</code></a></td><td>file</td><td>Format specifier for
 the sequence of files produced.</td>
 </tr><tr>
 <td><code>int</code></td><td><code>r</code></td><td> Layer of the
@@ -6134,7 +8732,7 @@ beatbox/data/scripts/sequential/fhn2.bbs
 <h3>Overview</h3>
 
 <p>
-record writes values from the simulation medium to file in ASCII
+Writes values from the computational grid to file(s) in ASCII
 format. A hierarchical set of separators
 — <code>vsep</code>, <code>xsep</code>, <code>ysep</code>
 and <code>zsep</code> — are used between
@@ -6146,31 +8744,77 @@ runs of the record device.
 
 <table border="1">
 <tr>
-<th>Type</th><th>Name</th><th>Description</th>
+  <th>Type</th><th>Name</th><th>Default</th><th>Description</th>
 </tr><tr>
-<td><code>str</code></td><td><code>file</code></td><td> Relative path
-to the file to be written.</td>
+  <td><a href="#sequence"><code>sequence</code></a></td>
+  <td>filesequence</td>
+  <td><code>""</code></td>
+  <td>Format specifier for the sequence of files produced. This is alternative to <code>file</code>. Exactly one of these must be specified. </td>
 </tr><tr>
-<td><code>int</code></td><td><code>append</code></td><td> Should the
-file be appended to?</td>
+  <td><code>str</code></td>
+  <td><code>file</code></td>
+  <td><code>""</code></td>
+  <td> Path to the (single) file to be written. This is alternative to <code>filesequence</code>. Exactly one of these must be specified. </td>
 </tr><tr>
-<td><code>str</code></td><td><code>filehead </code></td><td> Data to
-be placed at the top of the record file.</td>
+  <td><code>int</code></td>
+  <td><code>append</code></td>
+  <td><code>1</code></td>
+  <td> Should the file be appended to? (0/1) </td>
 </tr><tr>
-<td><code>str</code></td><td><code>vsep</code></td><td> v-axis
-separator. Must be at most 2 characters in length.</td>
+  <td><code>str</code></td>
+  <td><code>filehead </code></td>
+  <td><code>""</code></td>  
+  <td> Text to be placed at the top of (each of) the record file(s).</td>
 </tr><tr>
-<td><code>str</code></td><td><code>xsep</code></td><td> x-axis
-separator. Must be at most 2 characters in length.</td>
+  <td><code>int</code></td>
+  <td><code>timestamp</code></td>
+  <td><code>0</code></td>
+  <td>Should a time stamp showing the current value value of <code>t</code> precede each record? (0/1)</td>
 </tr><tr>
-<td><code>str</code></td><td><code>ysep</code></td><td> y-axis
-separator. Must be at most 2 characters in length.</td>
+  <td><code>str</code></td>
+  <td><code>timestampformat</code></td>
+  <td><code>"%-6ld\t"</code></td>
+  <td>Format of the time stamp. May contain text but must contain a C format specifier for an integer.</td>
 </tr><tr>
-<td><code>str</code></td><td><code>zsep</code></td><td> z-axis
-separator. Must be at most 2 characters in length.</td>
+  <td><code>int</code></td>
+  <td><code>timestampwidth</code></td>
+  <td><code>8</code></td>
+  <td>Number of characters to be occupied by a time stamp. Agreement with <code>timestampformat</code> is responsibility of the user.</td>
 </tr><tr>
-<td><code>str</code></td><td><code>recordsep</code></td><td> Record
-separator. Must be at most 2 characters in length.</td>
+  <td><code>str</code></td>
+  <td><code>format</code></td>
+  <td><code>"%38f"</code></td>
+  <td>Format for writing the recorded grid values. Must contain a C format specifier for a float.</td>
+</tr><tr>
+  <td><code>int</code></td>
+  <td><code>formatwidth</code></td>
+  <td><code>38</code></td>
+  <td>Number of characters to be occupied by a grid value record. Agreement with <code>format</code> is responsibility of the user.</td>
+</tr><tr>
+  <td><code>str</code></td>
+  <td><code>vsep</code></td>
+  <td><code>"  "</code></td>
+  <td> v-axis separator. Must be at most 2 characters in length.</td>
+</tr><tr>
+  <td><code>str</code></td>
+  <td><code>zsep</code></td>
+  <td><code>", "</code></td>
+  <td> z-axis separator. Must be at most 2 characters in length.</td>
+</tr><tr>
+  <td><code>str</code></td>
+  <td><code>ysep</code></td>
+  <td><code>"; "</code></td>
+  <td> y-axis separator. Must be at most 2 characters in length.</td>
+</tr><tr>
+  <td><code>str</code></td>
+  <td><code>xsep</code></td>
+  <td><code>" \n"</code></td>  
+  <td> x-axis separator. Must be at most 2 characters in length.</td>
+</tr><tr>
+  <td><code>str</code></td>
+  <td><code>recordsep</code>
+  <td><code>"\n\n"</code></td>  
+  </td><td> Record separator. Must be at most 2 characters in length.</td>
 </tr>
 </table>
 <h3>Typical Syntax</h3>
@@ -6644,7 +9288,7 @@ be obtained by post-processing, say by
 
 <p>
 The results of the device are available in three forms:
-shown graphically, 
+shown graphically in the VGA graphics window, 
 written in an output file
 and remembered in k-variables.
 The graphical window for the device is defined in
@@ -6983,15 +9627,18 @@ in all the example bbs scripts.
 
 <!-- ========================= -->
 <h2 class="numbered">update</h2>
-<code>update</code> updates the run time visualisation.
+
+This device updates the VGA run time visualisation window.  Typically this is
+expected to be called in the end of each lap in which any VGA graphics output
+was done.
+
 <h3>Parameters</h3>
 <table border="1">
-<tr>
-<th> Type </th><th> Name </th><th> Description </th>
-</tr><tr>
-<td><code>int</code></td><td><code>when</code></td><td> Frequency of updating</td>
-</tr>
-</table>
+
+  <p>
+  This device does not have any device-specific parameters. It only uses the
+  standard <code>when</code> parameter.
+  </p>
 
 <h3>Typical Syntax</h3>
 
@@ -7037,74 +9684,135 @@ data/scripts/sequential/FentonKarma_model/fk2_san.bbs
 <!-- ========================= -->
 <h2 class="numbered">Generic ODE definitions</h2>
 
+<p> We present here only a very brief outline of the most popular
+models available in Beatbox. For the full list of available models,
+see <code>beatbox/src/rhslist.h</code>. For the detailed description
+of a model with code name e.g. "<code>rhsmodel</code>", employed
+e.g. by <code>euler</code> device via <code>ode=rhsmodel</code>, see
+<code>beatbox/src/rhsmodel.c</code>. You are welcome to contact the
+developers for clarifications. </p>
+
 <!-- ========================= -->
-<h3 class="numbered">Fitz-Hugh Nagumo Cell Model</h3>
+<h3 class="numbered">ap: Aliev-Panfilov cell model </h3>
 
 <p>
 This model was published in:
 </p>
 
 <blockquote>
-"Varieties of spiral wave behavior: An
-experimentalist’s approach to the theory of excitable media", by
-Arthur Winfree, <i>Chaos</i> <b>1(3):</b> pp. 303-334, 1991,
+R. R. Aliev and A. V. Panfilov, 
+"A Simple Two-variable Model of Cardiac Exciation", 
+<i>Chaos Solitons and Fractals</i>
+  <b>7</b>(3):293-301, 1996.
 </blockquote>
 
+It aims to mimick the realistic shape of cardiac AP and APD
+restitution curves. It involves 2 dynamic variables. The variable
+representing the voltage is in layer 0. Both variables are
+dimensionless.
+
+<!-- ========================= -->
+<h3 class="numbered">cgle: Complex Ginzburg-Landau equation</h3>
+
 <p>
-and simulates a generic action potential. It consists of 2
-variables. The voltage is in layer 0. The name of the module
-is <code>fhncub</code> and <code>fhncubpar</code>. This implementation
-is based on formulas given in the Chaos paper. The time integration is
-using explicit Euler for both variables.  The example of FHN cell
-model AP is in:
+This RHS module is not a cellular model as such, but can be used to
+run simulations of the important theoretical reaction-diffusion
+system, known as Complex Ginzburg-Landau Equation, assumed in the
+complex-valued form
 </p>
 
+<p class="math">
+ &part;<i>w</i>/&part;<i>t</i>
+  &nbsp;=&nbsp;
+  (1+<i>i</i>&Omega;) <i>w</i>
+  +
+  (-1+<i>i</i>&alpha;) <i>w</i>|<i>w</i>|<sup>2</sup>
+  +
+  (1+<i>i</i>&beta;) &nabla;<sup>2</sup><i>w</i>
+</p>
+
+<p> (different but equivalent formulations can be found in literature). 
+The RHS module consists of 2 dimensionless variables, layer 0 containing the
+real part <i>u</i> and layer 1 containing the imaginary part <i>v</i> of the complex
+field <i>w</i>. Apart from <code>Omg</code> for &Omega;,
+<code>alp</code> for &alpha; and <code>bet</code> for &beta;, this
+module accepts parameters <code>Iu</code> and <code>Iv</code>, which
+are expected to contain the Laplacians of the fields <i>u</i> and
+<i>v</i> respectively, perhaps computed by the <code>diff</code>
+device.  This RHS module is used in one example in the distribution,
+in <code>beatbox/data/scripts/sequential/RK4</code>. See the
+description of the <a href=#rk4><code>rk4</code></a> device for detail
+of this example. </p>
+
+<!-- ========================= -->
+<h3 class="numbered">crn: Courtemanche-Ramirez-Nattel 1998 cell model</h3>
+
+<p>
+This model was published in:
+</p>
+
+<blockquote>
+"Ionic mechanisms underlying human atrial action potential properties:
+insights from a mathematical model", by Courtemanche M, Ramirez RJ,
+Nattel S<i>, Am J Physiol Heart Circ Physiol</i>
+<b>275:H301-H321.</b>: pp. H301-H321, 1998,
+</blockquote>
+
+<p> and simulates the human atrial action potential. It consists of 21
+variables. The voltage is in layer 0 and is in millivolts. This
+implementation is based on code received from the M. Courtemanche. It
+does not provide the true ODE right-hand sides, instead it performs
+the timestep, using Rush-Larsen formula for all gating variables and
+explicit Euler for all other variables.  Hence it requires the time
+step as parameter <code>ht</code>.  The example of CRN cell model AP
+is in: </p>
+
 <pre>
-beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn0_ap.bbs
+beatbox/data/scripts/sequential/CRN_model/crn0_ap.bbs
 </pre>
 
 <p>
-This bbs script has no inputs, and its output is a record file called
-<code>fhn_ap.vtg</code>.  To run, use the command:
+This script requires no input and outputs a vtg file with the AP
+data. It can be run using:
 </p>
 
 <pre>
-Beatbox_SEQ fhn0_ap.bbs
+Beatbox_SEQ crn0_ap.bbs
 </pre>
 
 <p>
-After running this bbs script, you can produce an AP profile as shown
-in the figure below.
+You can produce an AP profile as shown in the figure below.
 </p>
 
 <table>
 <tr><td>
   <img
-    src="imgs/fhn0_ap.png"
+    src="imgs/crn0_ap.png"
     width="294" height="240"
-    alt="FHN AP profile."
+    alt="CRN AP profile."
     style="margin:auto;display:block;"
-    id="fig-3b"/>
+    id="fig-8"/>
 </td></tr>
 </table>
 
-<h3 class="numbered">Fenton Karma Cell Model</h3>
+<!-- ========================= -->
+<h3 class="numbered">fk: Fenton Karma cell model</h3>
 
 <p>
-The Fenton Karma model (FK) consists of 3 variables. The voltage is in
-layer 0. The name of the module is <code>fk</code>.  This model was
-published in:
+The Fenton Karma model (FK) consists of 3 variables. It aims to mimick
+the realistic cardiac AP and APD shape as well as the most principal
+features of the structure of the right-hand sides typical for realisic
+ionic cardiac exciation models. The voltage is in layer 0. This model
+was published in:
 </p>
 <blockquote>
 "Vortex dynamics in three-dimensional continuous myocardium with fiber
 rotation: Filament instability and fibrillation", by F Fenton and A
-Karma, <i>Chaos</i>, <b>8(1):</b> pp. 20-47, 1998,
+Karma, <i>Chaos</i>, <b>8(1):</b> pp. 20-47, 1998.
 </blockquote>
 
 <p>
-and simulates a generic action potential. This implementation is based
-on formulas given in the paper. The time integration is using explicit
-Euler for both variables. The example of FK cell model AP is in:
+The example of FK cell model AP is in:
 </p>
 
 <pre>
@@ -7136,14 +9844,14 @@ in the figure below.
 </td></tr>
 </table>
 
-<h3 class="numbered">Fenton Karma Modified Cell Model</h3>
+<!-- ========================= -->
+<h3 class="numbered">fkmod: Fenton-Karma Modified cell model</h3>
 
 <p>
-The FK model (previous subsection) was modified during the Beatbox
+This is a variation of the FK model (previous subsection) was modified during the Beatbox
 project (2011-2013) and developed to produce mouse sinoatrial node and
 atrial action potentials. It has been accepted for publication as
-a <i>IEEE Proceedings (EMBC 2013)</i>. The name of the module is
-called <code>fkmod</code>.  The examples of the cell model are in:
+a <i>IEEE Proceedings (EMBC 2013)</i>. The examples of the cell model are in:
 </p>
 
 <pre>
@@ -7198,7 +9906,58 @@ and atrial AP profile as shown below.
 </td></tr>
 </table>
 
-<h3 class="numbered">LRD</h3>
+
+
+<!-- ========================= -->
+<h3 class="numbered">fhncub, fhncubpar: FitzHugh-Nagumo cell model</h3>
+
+<p>
+This model was published in:
+</p>
+
+<blockquote>
+"Varieties of spiral wave behavior: An
+experimentalist’s approach to the theory of excitable media", by
+Arthur Winfree, <i>Chaos</i> <b>1(3):</b> pp. 303-334, 1991,
+</blockquote>
+
+<p> and simulates anc action potential in generic excitable system. It
+consists of 2 variables. The voltage is in layer 0. Both variables are
+dimensionless. The <code>fhncubpar</code> is different in that it
+involves more parameters, not present in the original FitzHugh and
+Winfree formulations. The example of FHN cell model AP is in: </p>
+
+<pre>
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn0_ap.bbs
+</pre>
+
+<p>
+This bbs script has no inputs, and its output is a record file called
+<code>fhn_ap.vtg</code>.  To run, use the command:
+</p>
+
+<pre>
+Beatbox_SEQ fhn0_ap.bbs
+</pre>
+
+<p>
+After running this bbs script, you can produce an AP profile as shown
+in the figure below.
+</p>
+
+<table>
+<tr><td>
+  <img
+    src="imgs/fhn0_ap.png"
+    width="294" height="240"
+    alt="FHN AP profile."
+    style="margin:auto;display:block;"
+    id="fig-3b"/>
+</td></tr>
+</table>
+
+<!-- ========================= -->
+<h3 class="numbered">lrd: Luo-Rudy "dynamic" cell model</h3>
 
 <p>
 This model was published in:
@@ -7209,17 +9968,17 @@ This model was published in:
 Luo and Y Rudy, <i>Circ. Res.</i>, <b>74(6):</b> pp. 1071-1096, 1994,
 </blockquote>
 
-<p>
-and simulates the human ventricular action potential.  It consists of
-24 variables. The voltage is in layer 0. The name of the module
-is <code>lrd</code>.  This code is based on Darren Sandham's code,
-University of Liverpool, 2005. The time integration of gating
-variables is using Rush-Larsen method, and all other variables is
-using explicit Euler.  The example of LRd cell model AP is in:
-</p>
-<pre>
-beatbox/data/scripts/sequential/LRD_model/lrd0_ap.bbs
-</pre>
+<p> and simulates the human ventricular action potential.  It consists
+of 24 variables. The voltage is in layer 0 and is in millivolts. This
+code is based on Darren Sandham's code, University of Liverpool,
+2005. The time integration of gating variables is sneakily using Rush-Larsen
+method, hence the list of required paramters includes the times step
+<code>ht</code>; other variables are expected to be treated in the
+usual way via explicit Euler or any other timestepping method. 
+The example
+of LRd cell model AP is in: </p>
+
+<pre> beatbox/data/scripts/sequential/LRD_model/lrd0_ap.bbs </pre>
 
 <p>
 This script requires no input and outputs a vtg file with the AP
@@ -7245,75 +10004,32 @@ You can produce an AP profile as shown in the figure below.
 </td></tr>
 </table>
 
-<h3 class="numbered">CRN</h3>
+<!-- ========================= -->
+<h3 class="numbered">ms: Mitchell-Schaeffer  cell model</h3>
 
+<p> This is a popular 2-variable variant of the Fenton-Karma model.
+It was published in
+<blockquote>
+  C C Mitchell and D G Schaeffer, 
+  "A Two-Current Model for the Dynamics of Cardiac Membrane"
+  Bull Math Biol 65: 767-793 (2003). 
+</blockquote>
+
+<!-- ========================= -->
+<h3 class="numbered">ttnnp04: Ten Tussscher et al. 2004 cell model</h3>
 <p>
 This model was published in:
 </p>
 
-<blockquote>
-"Ionic mechanisms underlying human atrial action potential properties:
-insights from a mathematical model", by Courtemanche M, Ramirez RJ,
-Nattel S<i>, Am J Physiol Heart Circ Physiol</i>
-<b>275:H301-H321.</b>: pp. H301-H321, 1998,
-</blockquote>
-
-<p>
-and simulates the human atrial action potential. It consists of 21
-variables. The voltage is in layer 0. The name of the module
-is <code>crn</code>. This implementation is based on code received
-from the author.  It does not provide the true ODE right-hand sides,
-instead it performs the timestep, using Rush-Larsen formula for all
-gating variables and explicit Euler for all other variables.  Hence it
-requires the time step as parameter <code>ht</code>.  The example of
-CRN cell model AP is in:
-</p>
-
-<pre>
-beatbox/data/scripts/sequential/CRN_model/crn0_ap.bbs
-</pre>
-
-<p>
-This script requires no input and outputs a vtg file with the AP
-data. It can be run using:
-</p>
-
-<pre>
-Beatbox_SEQ crn0_ap.bbs
-</pre>
-
-<p>
-You can produce an AP profile as shown in the figure below.
-</p>
-
-<table>
-<tr><td>
-  <img
-    src="imgs/crn0_ap.png"
-    width="294" height="240"
-    alt="CRN AP profile."
-    style="margin:auto;display:block;"
-    id="fig-8"/>
-</td></tr>
-</table>
-
-<h3 class="numbered">TTNNP04 Human Ventricle Model from author source code</h3>
-
-<p>
-This model was published in:
-</p>
-
-<blockquote>
-"A model for human ventricular tissue",
-by K. H. W. J. ten Tusscher, D. Noble, P. J. Noble and A. V. Panfilov,
-<i>Am J Physiol Heart Circ Physiol</i>
-<b>286</b>: pp. H1573-H1589, 2004, 
-</blockquote>
+<blockquote> "A model for human ventricular tissue", by
+K. H. W. J. ten Tusscher, D. Noble, P. J. Noble and A. V. Panfilov,
+<i>Am J Physiol Heart Circ Physiol</i> <b>286</b>: pp. H1573-H1589,
+2004, </blockquote>
 
 <p>
 and simulates the human ventricular action potential. It consists of
-17 variables. The voltage is in layer 0. The name of the module
-is <code>ttnnp04</code>. This implementation is based on
+17 variables. The voltage is in layer 0 and is in millivolts. 
+This implementation is based on
 <a href="http://www-binf.bio.uu.nl/khwjtuss/SourceCodes/HVM/Source/">
 author's code</a> retrieved 2013/02/02. It does not provide the true
 ODE right-hand sides, instead it performs the timestep, using
@@ -7351,7 +10067,8 @@ You can produce an AP profile as shown in the figure below.
 </td></tr>
 </table>
 
-<h3 class="numbered">TTP Human Ventricle Model from CELLML source</h3>
+<!-- ========================= -->
+<h3 class="numbered">ttnp, ttp06: Ten Tusscher-Panfilov 2006 cell model</h3>
 
 <p>
 This model was published in:
@@ -7363,32 +10080,38 @@ K. H. W. J. ten Tusscher and A. V. Panfilov,
 <i>J Physiol Heart Circ Physiol</i> <b>291</b>: pp. H1088–H1100, 2006, 
 </blockquote>
 
-<p>
-and simulates the human ventricular action potential. It consists of
-19 variables. The voltage is in layer 0. The name of the module
-is <code>ttnp</code>. This implementation is based on CELLML version
-and provides true ODE right-hand sides, unlike TTP06 implementation
-described below. Note that the resulting ODEs are very stiff and
-require very small time steps.  The example of TTNP cell model AP is
-in
-</p>
+<p> and simulates the human ventricular action potential. It consists
+of 19 variables. The voltage is in layer 0 and is in millivolts. </p>
+
+<p> The <code>ttnp</code> implementation is based on the
+CELLML description of the model, and provides true ODE description of
+right-hand sides. Note
+that the resulting ODEs are very stiff and require very small time
+steps.</p>
+
+<p> The <code>ttp06</code> implementation is based on <a
+href="http://www-binf.bio.uu.nl/khwjtuss/SourceCodes/HVM2/Source/">
+author's code </a> retrieved 2013/02/08. This implementation does not
+provide the true ODE right-hand sides, instead it performs the
+timestep, using Rush-Larsen formula for all gating variables and
+explicit Euler for all other variables.  Hence it requires the time
+step as parameter <code>ht</code>.</p>
+
+<p> An example using <code>ttnp</code> implementations given in </p>
 
 <pre>
 beatbox/data/scripts/sequential/TenTusscherPanfilov_modelS/ttp06_ap.bbs
 </pre>
 
-<p>
-Beatbox program to demonstrate the ten Tusscher et al. 2006 human
-ventricle AP.  There are no inputs,and the output is ttp06_ap.vtg.  To
-run,
-</p>
+<p> produces an AP. There are no inputs,and the output is
+ttp06_ap.vtg.  To run, </p>
 
 <pre>
 Beatbox_SEQ ttp06_ap.bbs
 </pre>
 
 <p>
-You can produce an AP profile as shown in the figure below.
+This should produce an AP profile as shown in the figure below.
 </p>
 
 <table>
@@ -7402,34 +10125,15 @@ You can produce an AP profile as shown in the figure below.
 </td></tr>
 </table>
 
-<h3 class="numbered">TTP06 from author source code</h3>
-
-<p>
-This model was published in:
-</p>
-
-<blockquote>
-"Alternans and spiral breakup in a human ventricular tissue model",
-by K. H. W. J. ten Tusscher and A. V. Panfilov, 
-<i>J Physiol Heart Circ Physiol</i> <b>291</b>: pp. H1088 –H1100, 2006,
-</blockquote>
-
-<p>
-and simulates the human ventricular action potential. It consists of
-19 variables. The voltage is in layer 0. The name of the module
-is <code>ttp06</code>. This implementation is based on
-<a href="http://www-binf.bio.uu.nl/khwjtuss/SourceCodes/HVM2/Source/">
-author's code </a> retrieved 2013/02/08. Unlike implementation TTNP
-described above, this one does not provide the true ODE right-hand
-sides, instead it performs the timestep, using Rush-Larsen formula for
-all gating variables and explicit Euler for all other variables.
-Hence it requires the time step as parameter <code>ht</code>.  The
-following script simulates the AP:
+<p> An example simulating an AP using the  <code>ttp06</code>
+implementation is given in
 </p>
 
 <pre>
 beatbox/data/scripts/sequential/TenTusscherPanfilov_modelS/ttp06.bbs
 </pre>
+
+and should produce an AP profile like this: 
 
 <table>
 <tr><td>
@@ -7455,47 +10159,6 @@ job, <code>Makefile</code> describes the workflow leading to the final
 report and <code>report.pdf</code> is the report itself.
 </p>
 
-
-
-
-
-
-
-
-
-
-
-<h3 class="numbered">cgle</h3>
-
-<p>
-This RHS module is not a cellular model as such, but can be used to
-run simulations of the important theoretical reaction-diffusion
-system, known as Complex Ginzburg-Landau Equation, assumed in the
-complex-valued form
-</p>
-
-<p class="math">
- &part;<i>w</i>/&part;<i>t</i>
-  &nbsp;=&nbsp;
-  (1+<i>i</i>&Omega;) <i>w</i>
-  +
-  (-1+<i>i</i>&alpha;) <i>w</i>|<i>w</i>|<sup>2</sup>
-  +
-  (1+<i>i</i>&beta;) &nabla;<sup>2</sup><i>w</i>
-</p>
-
-<p> (different but equivalent formulations can be found in literature). 
-The RHS module consists of 2 variables, layer 0 containing the
-real part <i>u</i> and layer 1 containing the imaginary part <i>v</i> of the complex
-field <i>w</i>. Apart from <code>Omg</code> for &Omega;,
-<code>alp</code> for &alpha; and <code>bet</code> for &beta;, this
-module accepts parameters <code>Iu</code> and <code>Iv</code>, which
-are expected to contain the Laplacians of the fields <i>u</i> and
-<i>v</i> respectively, perhaps computed by the <code>diff</code>
-device.  This RHS module is used in one example in the distribution,
-in <code>beatbox/data/scripts/sequential/RK4</code>. See the
-description of the <a href=#rk4><code>rk4</code></a> device for detail
-of this example.
 
 <!-- ========================= -->
 <h2 class="numbered">Ionic model definitions</h2>
@@ -7526,9 +10189,9 @@ following scripts simulates the AP:
 </p>
 
 <pre>
-beatbox/data/scripts/sequential/BR/tgo.bbs
-beatbox/data/scripts/sequential/BR/tgo.bbs
-beatbox/data/scripts/sequential/BR/tog.bbs
+beatbox/data/scripts/sequential/BeelerReuter_model/tgo.bbs
+beatbox/data/scripts/sequential/BeelerReuter_model/tgo.bbs
+beatbox/data/scripts/sequential/BeelerReuter_model/tog.bbs
 </pre>
 
 <p>
@@ -7694,9 +10357,9 @@ beatbox/data/scripts/sequential/hh52/hh52m.bbs
 </div><!-- End contents section -->
 <hr/>
 <p>
-Copyright &copy; (2010-2013) Vadim Biktashev, Alexander
-Karpov,Irina Biktasheva, Ross McFarlane;<br/>
-Copyright &copy; (2012-2013) Sanjay Kharche<br/> 
+Copyright &copy; (2010-2018) Vadim Biktashev, 
+Irina Biktasheva and others, see <a href="../AUTHORS">AUTHORS</a> for
+full list of contributors.<br/> 
 This file is part of the Beatbox distribution<br/>
 </p>
 

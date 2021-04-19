@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* 
  * Load contents of a 4D subset from a binary file
@@ -47,7 +46,18 @@ typedef struct {
 
 /* "Respectful" alias, to tell apart from eponymous parameter */
 void (*Rewind) (FILE *stream) = rewind;
- 
+
+#if MPI
+#else
+#define error(size) { \
+    if (feof(file)) { \
+      EXPECTED_ERROR("end of file in '%s' while reading %d number(s); aborting\n",S->filename,size); \
+    } else { \
+      EXPECTED_ERROR("error %d in '%s' while reading %d number(s); aborting\n",ferror(file),S->filename,size); \
+    } \
+  }
+#endif
+
 RUN_HEAD(load)
 #if MPI
 	DEVICE_CONST(MPI_File, file)
@@ -71,18 +81,19 @@ RUN_HEAD(load)
 	int x, y, z, v;
 	if (!file) return 1;
 	if (rewind) Rewind(file);
-	if (s.x0==0 && s.x1==xmax-1 && s.y0==0 && s.y1==ymax-1 && s.z0==0 && s.z1==zmax-1 && s.v0==0 && s.v1==vmax-1){
-		fread(New,sizeof(real),xmax*ymax*zmax*vmax,file);
-	}else{
-		for(x=s.x0;x<=s.x1;x++){
-			for(y=s.y0;y<=s.y1;y++){
-				for(z=s.z0;z<=s.z1;z++){
-					for(v=s.v0;v<=s.v1;v++){
-						fread(New+ind(x,y,z,v),sizeof(real),1,file);
-					}
-				}
-			}
+	if (s.x0==0 && s.x1==xmax-1 && s.y0==0 && s.y1==ymax-1 && s.z0==0 && s.z1==zmax-1 && s.v0==0 && s.v1==vmax-1) {
+	  size_t size=xmax*ymax*zmax*vmax;
+	  if (size!=fread(New,sizeof(real),size,file)) error(size);
+	} else {
+	  for (x=s.x0;x<=s.x1;x++) {
+	    for (y=s.y0;y<=s.y1;y++) {
+	      for (z=s.z0;z<=s.z1;z++) {
+		for(v=s.v0;v<=s.v1;v++) {
+		  if (1!=fread(New+ind(x,y,z,v),sizeof(real),1,file)) error(1);
 		}
+	      }
+	    }
+	  }
 	}
 #endif	
 RUN_TAIL(load)
@@ -96,7 +107,7 @@ DESTROY_HEAD(load)
 		}
 	}
 #else
-	if (S->file) fclose(S->file); S->file=NULL;
+  SAFE_CLOSE(S->file);
 #endif
 DESTROY_TAIL(load)
 
@@ -145,15 +156,12 @@ CREATE_HEAD(load)
 		MPI_File_seek(file,0,MPI_SEEK_SET); /*  Equivalent to rewind() */
 		
 		MPI_File_get_size(file, &filesize);
-		if(filesize == 0){
-			MESSAGE("/* WARNING empty file %s */",S->filename);
-		}
-		
-		if(filesize%field_size!=0) MESSAGE(
-		  "/* WARNING field size %ld is not divisor of file size %ld %s */",
+		if (filesize == 0) MESSAGE("/* WARNING empty file %s */",S->filename);
+		if (filesize < field_size) EXPECTED_ERROR("\n file size %ld < field size %ld\n",filesize,field_size);
+		if (filesize%field_size!=0) MESSAGE(
+		  "/* WARNING field size %ld is not divisor of file size %ld */",
 		  field_size, 
-		  filesize,
-		  S->filename
+		  filesize
 		);
 		
 		/*  Assign file to the parameter structure. */
@@ -174,11 +182,13 @@ CREATE_HEAD(load)
 	load_file_size=ftell(S->file);
 	MESSAGE("/* size of %s is %ld */",S->filename,load_file_size);
 	Rewind(S->file);
-	if(load_file_size==0) MESSAGE("/* WARNING empty file %s */",S->filename);
-	if(load_file_size%field_size!=0) MESSAGE(
-	  "/* WARNING field size %ld is not divisor of file size %ld %s */",
+	if (load_file_size==0) MESSAGE("/* WARNING empty file %s */",S->filename);
+        if (load_file_size < field_size) EXPECTED_ERROR("\n file size %ld < field size %ld\n",load_file_size,field_size);
+        if (load_file_size%field_size!=0) MESSAGE(
+	  "/* WARNING field size %ld is not divisor of file size %ld */",
 	  field_size, 
 	  load_file_size
 	);
+printf("and divisible\n");
 #endif
 CREATE_TAIL(load,0)
