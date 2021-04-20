@@ -1,0 +1,10 @@
+*.la
+*.lo
+*.o
+.DS_Store
+Makefile
+Makefile.in
+config.status
+gitfix
+tag.pl
+
