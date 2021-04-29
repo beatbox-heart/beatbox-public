@@ -2,7 +2,8 @@
 COMMENT=\#@ignore
 BBXS=Beatbox_SEQ
 BBXP=Beatbox
-MPIRUN=mpirun -np 
+MPIOPT:=${shell mpirun --version | perl -ane '$$.==1 and $$v=pop @F and $$f=substr($$v,0,1) and $$f>=3 and print("--oversubscribe");'}
+MPIRUN:=export TMPDIR=/tmp; mpirun $(MPIOPT) -np
 
 TEST=echo -n test $* :
 OK=echo ' ok'
