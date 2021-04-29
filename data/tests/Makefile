@@ -9,12 +9,17 @@ TEST=echo -n test $* :
 OK=echo ' ok'
 FAIL=echo ' failed'; ./admitfailure
 
-NEGATIVE=nodev depth nexist notype reserved declared diff0d nomem nomem-4
-POSITIVE=fhn0 fhn1 fhn2 fhn3 fhn3side fhn3side-16 bkl3cont-0 bkl3cont-4 br0 reduce reduce-4 hh52mrl
+NEGATIVE=nodev depth nexist notype reserved declared divzero diff0d nomem nomem-4
+POSITIVE=funcs matout record reduce reduce-4 \
+	fhn0 fhn1 fhn2 fhn3 fhn3side fhn3side-16 \
+	bkl3cont-0 bkl3cont-4 br0 hh52mrl \
+	ballf ballfcont-0 ballfcont-4 balldcont-0 balldcont-4 
 ALL=$(NEGATIVE) $(POSITIVE)
-all: closeenough ignore admitfailure ${foreach t,$(ALL),$t.test}
-ignore: ignore.c
-	cc $< -o $@
+all: closeenough admitfailure ${foreach t,$(ALL),$t.test}
+clean:
+	-rm -f *.log *.out **.fullout *.sorted
+	-rm -f bkl3cont-*.exact
+	-rm -rf ball*.exact ball*.ctl ball*BAK ball*ct~
 
 .PHONY: %.test
 
@@ -51,15 +56,15 @@ ignore: ignore.c
 	@rm $*.sorted
 	@rm $*.out
 %.sorted: %.out
-	$(COMMENT) '%.sorted'
+	$(COMMENT)
 	@sort $< > $@
 # .PRECIOUS: fhn0.out
 %.out: %.bbs
-	$(COMMENT) '%.out'
+	$(COMMENT)
 	@-rm -rf $@
 	@$(BBXS) $< $@ -log /dev/null > /dev/null
 %.fullout: %.bbs
-	$(COMMENT) '%.fullout'
+	$(COMMENT)
 	$(BBXS) $< $@ -log $@.log -verbose | tee $@.stdout
 %-4.out: %.bbs
 	$(COMMENT)
@@ -89,9 +94,51 @@ bkl3cont-%.exact: bkl3.full
 	$(COMMENT)
 	@cp -p $< $@
 bkl3cont-0.out: bkl3cont.bbs bkl3.half
+	$(COMMENT)
 	@$(BBXS) $+ $@ -log /dev/null > /dev/null
 bkl3cont-4.out: bkl3cont.bbs bkl3.half
+	$(COMMENT)
 	@$(MPIRUN) 4 $(BBXP) $+ $@ -log /dev/null > /dev/null
+
+.PRECIOUS: ballfcont-%.exact # seq and mpi ctlpoints done in one go
+ballfcont-0.exact ballfcont-4.exact ballf.out ballf.ctl: ballf.bbs ball.bbg
+	$(COMMENT)
+	@if [ -e ballf.ctl ]; then rm -f ballf.ctl; fi # do not start from control point
+#	@$(BBXS) $+ ballf.ctl ballf.out -log /dev/null > /dev/null
+	@$(BBXS) $+ ballf.ctl ballf.out -verbose -log $@.log  -debug log > /dev/null
+	@cp -p ballf.out ballfcont-0.exact
+	@cp -p ballf.out ballfcont-4.exact
+ballfcont-0.out: ballfcont.bbs ball.bbg ballf.ctl # do start from control point
+	$(COMMENT)
+#	@$(BBXS) $+ $@ -log /dev/null > /dev/null
+	@$(BBXS) $+ $@ -verbose -log $@.log  -debug log > /dev/null
+ballfcont-4.out: ballfcont.bbs ball.bbg ballf.ctl # do start from control point
+	$(COMMENT)
+#	@$(MPIRUN) 4 $(BBXP) $+ $@ -log /dev/null > /dev/null
+	@$(MPIRUN) 4 $(BBXP) $+ $@ -verbose -debug stdout > $@.log
+
+
+.PRECIOUS: balldcont-%.exact # seq and mpi ctlpoints are incompatible and done separately
+balldcont-0.exact balld-0.out balld-0.ctl: balld.bbs ball.bbg
+	$(COMMENT)
+	@if [ -e balld-0.ctl ]; then rm -rf balld-0.ctl; fi # do not start from control point
+#	@$(BBXS) $+ balld-0.ctl balld-0.out -log /dev/null > /dev/null
+	@$(BBXS) $+ balld-0.ctl balld-0.out -verbose -log $@.log  -debug log > /dev/null
+	@cp -p balld-0.out balldcont-0.exact
+balldcont-4.exact balld-4.out balld-4.ctl: balld.bbs ball.bbg
+	$(COMMENT)
+	@if [ -e balld-4.ctl ]; then rm -rf balld-4.ctl; fi # do not start from control point
+#	@$(MPIRUN) 4 $(BBXP) $+ balld-4.ctl balld-4.out -log /dev/null > /dev/null
+	@$(MPIRUN) 4 $(BBXP) $+ balld-4.ctl balld-4.out -verbose -debug stdout > $@.log
+	@cp -p balld-4.out balldcont-4.exact
+balldcont-0.out: balldcont.bbs ball.bbg balld-0.ctl # do start from control point
+	$(COMMENT)
+#	@$(BBXS) $+ $@ -log /dev/null > /dev/null
+	@$(BBXS) $+ $@ -verbose -log $@.log  -debug log > /dev/null
+balldcont-4.out: balldcont.bbs ball.bbg balld-4.ctl # do start from control point
+	$(COMMENT)
+#	@$(MPIRUN) 4 $(BBXP) $+ $@ -log /dev/null > /dev/null
+	@$(MPIRUN) 4 $(BBXP) $+ $@ -verbose -debug stdout > $@.log
 
 ##########################
 # Auxiliary utilities

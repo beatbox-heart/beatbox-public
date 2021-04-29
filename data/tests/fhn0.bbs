@@ -36,7 +36,7 @@ k_func nowhere=1 pgm={
   end=end+gt(pulsecount,whichpulse);
 };
 k_func when=Iu pgm={u[u]=u[u] + Iu};
-record when=chosenpulse file=[0].out append=0 v0=[u] v1=[v];
-record when=chosenpulse file=[0].rec append=0 v0=[u] v1=[v];
+record when=chosenpulse file=[0].out append=0 recordsep=" \n" v0=[u] v1=[v];
+record when=chosenpulse file=[0].rec append=0 recordsep=" \n" v0=[u] v1=[v];
 stop when=end;
 end;
