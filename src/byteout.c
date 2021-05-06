@@ -48,6 +48,9 @@ typedef struct {
   long global_size;	/*  Size of the pre-filling buffer */
   unsigned char *Prefill; /* Pre-filling buffer. Maybe too big for stack so use heap */
 #endif
+  char debugname[MAXPATH];
+  FILE *debug;
+  int debugWriter;
 } STR;
 
 RUN_HEAD(byteout)
@@ -66,6 +69,8 @@ RUN_HEAD(byteout)
   DEVICE_CONST(long,global_size);
   DEVICE_ARRAY(unsigned char,Prefill);
 #endif
+  DEVICE_CONST(int, debugWriter)
+  DEVICE_CONST(FILE *,debug)
   long v, x, y, z;
   long nv = (s.v1-s.v0) + 1;
   long nx = (s.x1-s.x0) + 1;
@@ -108,8 +113,8 @@ RUN_HEAD(byteout)
 
 #if MPI
   MPIDO(MPI_FILE_WRITE(file->f,Buf,local_size,MPI_CHAR,MPI_STATUS_IGNORE),"Couldn't write raster to file\n");
-  if (mpi_rank==root)
-    MESSAGE("byteout [%d:%d]x[%d:%d]x[%d:%d]x[%d:%d] to %s at t=%ld\n",
+  if (debug && debugWriter) 
+    fprintf(debug,"byteout [%d:%d]x[%d:%d]x[%d:%d]x[%d:%d] to %s at t=%ld\n",
 	    s.global_x0, s.global_x1,
 	    s.global_y0, s.global_y1,
 	    s.global_z0, s.global_z1,
@@ -117,8 +122,9 @@ RUN_HEAD(byteout)
 #else
   fwrite(Buf,sizeof(unsigned char),local_size,file->f);
   if (append) FFLUSH(file->f);
-  MESSAGE("byteout [%d:%d]x[%d:%d]x[%d:%d]x[%d:%d] to %s at t=%ld\n",
-	  s.x0, s.x1, s.y0, s.y1, s.z0, s.z1, s.v0, s.v1, file->name, t);
+  if (debug && debugWriter) 
+    fprintf(debug,"byteout [%d:%d]x[%d:%d]x[%d:%d]x[%d:%d] to %s at t=%ld\n",
+	    s.x0, s.x1, s.y0, s.y1, s.z0, s.z1, s.v0, s.v1, file->name, t);
 #endif
   
   if (!append) nextq(file);
@@ -135,6 +141,7 @@ DESTROY_HEAD(byteout)
 #else
   SAFE_CLOSE(S->file.f);
 #endif
+  SAFE_CLOSE(S->debug);
   /* Erase the last file if empty */
   /* Process 0 should be ok for that even if it is not 'runHere' */
   if (mpi_rank==0) {
@@ -225,5 +232,17 @@ CREATE_HEAD(byteout)
     #undef NDIMS
   }/*  if runHere */
 #endif
+
+#if MPI
+  /* Identifying the root process allows only one process to write debug output. */
+  if (dev->s.nowhere) {
+    S->debugWriter = (mpi_rank == 0);
+  } else {
+    S->debugWriter = (mpi_rank == getRankContainingPoint(dev->s.global_x0,dev->s.global_y0,dev->s.global_z0));
+  }
+#else
+  S->debugWriter = 1;
+#endif
+  ACCEPTF(debug,"wt","");
 }
 CREATE_TAIL(byteout,0)
