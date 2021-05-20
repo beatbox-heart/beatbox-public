@@ -192,6 +192,11 @@ CREATE_HEAD(byteout)
     #define NDIMS 4
     int sizes[NDIMS],subsizes[NDIMS],starts[NDIMS];
     MPI_Datatype filetype;
+
+    /* NB: the legacy sequential version stores bytes in "Fortran" order, */
+    /* the MPI implementation uses MPI_ORDER_C, */
+    /* hence we need to reverse the coordinate order */
+    /* similar to how it is done in ppmout. */
     
     /*  Dimensions of the global space. */
     int vsize = (dev->s.v1 - dev->s.v0) + 1;
@@ -199,10 +204,10 @@ CREATE_HEAD(byteout)
     int ysize = (dev->s.global_y1 - dev->s.global_y0) + 1;
     int zsize = (dev->s.global_z1 - dev->s.global_z0) + 1;
     S->global_size = vsize*xsize*ysize*zsize;
-    sizes[0] = vsize;
-    sizes[1] = xsize;
-    sizes[2] = ysize;
-    sizes[3] = zsize;
+    sizes[0] = zsize;
+    sizes[1] = ysize;
+    sizes[2] = xsize;
+    sizes[3] = vsize;
     /* Prefilling will be done only by root */
     if (num_empty_subdoms>0 && mpi_rank==S->root) {
       MALLOC(S->Prefill, S->global_size);
@@ -213,16 +218,16 @@ CREATE_HEAD(byteout)
     }
     
     /*  Dimensions of the local space. */
-    subsizes[0] = local_vsize;
-    subsizes[1] = local_xsize;
-    subsizes[2] = local_ysize;
-    subsizes[3] = local_zsize;
+    subsizes[0] = local_zsize;
+    subsizes[1] = local_ysize;
+    subsizes[2] = local_xsize;
+    subsizes[3] = local_vsize;
 
     /* Position of the local space in the global space */
-    starts[0] = 0;
-    starts[1] = dev->s.x0 - dev->s.global_x0;
-    starts[2] = dev->s.y0 - dev->s.global_y0;
-    starts[3] = dev->s.z0 - dev->s.global_z0;
+    starts[0] = dev->s.z0 - dev->s.global_z0;
+    starts[1] = dev->s.y0 - dev->s.global_y0;
+    starts[2] = dev->s.x0 - dev->s.global_x0;
+    starts[3] = 0;
 
     MPIDO(MPI_Type_create_subarray(NDIMS,sizes,subsizes,starts,MPI_ORDER_C,MPI_CHAR,&filetype),"Couldn't define filetype.");
     MPIDO(MPI_Type_commit(&filetype),"Couldn't commit filetype.");
