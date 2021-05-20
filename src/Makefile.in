@@ -210,8 +210,9 @@ am__objects_2 = Beatbox_SEQ-beatbox.$(OBJEXT) \
 	Beatbox_SEQ-vtkout2.$(OBJEXT) Beatbox_SEQ-windraw.$(OBJEXT) \
 	Beatbox_SEQ-zeeman.$(OBJEXT) Beatbox_SEQ-zfk.$(OBJEXT)
 am_Beatbox_SEQ_OBJECTS = $(am__objects_2) Beatbox_SEQ-adi3d.$(OBJEXT) \
-	Beatbox_SEQ-ezpaint.$(OBJEXT) Beatbox_SEQ-ezstep.$(OBJEXT) \
-	Beatbox_SEQ-ezview.$(OBJEXT) Beatbox_SEQ-ezgraph3d.$(OBJEXT) \
+	Beatbox_SEQ-bytein.$(OBJEXT) Beatbox_SEQ-ezpaint.$(OBJEXT) \
+	Beatbox_SEQ-ezstep.$(OBJEXT) Beatbox_SEQ-ezview.$(OBJEXT) \
+	Beatbox_SEQ-ezgraph3d.$(OBJEXT) \
 	Beatbox_SEQ-ezmarching.$(OBJEXT) Beatbox_SEQ-imgout.$(OBJEXT) \
 	Beatbox_SEQ-k_clock.$(OBJEXT) Beatbox_SEQ-k_draw.$(OBJEXT) \
 	Beatbox_SEQ-k_imgout.$(OBJEXT) Beatbox_SEQ-k_paint.$(OBJEXT) \
@@ -297,6 +298,7 @@ am__depfiles_remade = ./$(DEPDIR)/Beatbox-activation.Po \
 	./$(DEPDIR)/Beatbox_SEQ-bgi.Po ./$(DEPDIR)/Beatbox_SEQ-bikt.Po \
 	./$(DEPDIR)/Beatbox_SEQ-br77.Po \
 	./$(DEPDIR)/Beatbox_SEQ-byte.Po \
+	./$(DEPDIR)/Beatbox_SEQ-bytein.Po \
 	./$(DEPDIR)/Beatbox_SEQ-byteout.Po \
 	./$(DEPDIR)/Beatbox_SEQ-bzoregon.Po \
 	./$(DEPDIR)/Beatbox_SEQ-bzr.Po ./$(DEPDIR)/Beatbox_SEQ-cgle.Po \
@@ -754,6 +756,7 @@ Beatbox_SOURCES = \
 Beatbox_SEQ_SOURCES = \
 	${common_sources} \
 	adi3d.c \
+	bytein.c \
 	ezpaint.c ezpaint.h \
 	ezstep.c ezstep.h  ezstep1.h  ezstep2.h ezstep3.h ezstep4.h ezstep0d.h ezstep2d.h ezstep3d.h \
 	ezview.c ezgraph3d.c ezmarching.c ezview.h ezpar.h ezfix.h ezvar.h ezini.h ezarr.h ezgraph3d.h ezmarching.h ezgenerators.h \
@@ -967,6 +970,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-bikt.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-br77.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-byte.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-bytein.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-byteout.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-bzoregon.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-bzr.Po@am__quote@ # am--include-marker
@@ -3838,6 +3842,20 @@ Beatbox_SEQ-adi3d.obj: adi3d.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-adi3d.obj `if test -f 'adi3d.c'; then $(CYGPATH_W) 'adi3d.c'; else $(CYGPATH_W) '$(srcdir)/adi3d.c'; fi`
 
+Beatbox_SEQ-bytein.o: bytein.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-bytein.o -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-bytein.Tpo -c -o Beatbox_SEQ-bytein.o `test -f 'bytein.c' || echo '$(srcdir)/'`bytein.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-bytein.Tpo $(DEPDIR)/Beatbox_SEQ-bytein.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bytein.c' object='Beatbox_SEQ-bytein.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-bytein.o `test -f 'bytein.c' || echo '$(srcdir)/'`bytein.c
+
+Beatbox_SEQ-bytein.obj: bytein.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-bytein.obj -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-bytein.Tpo -c -o Beatbox_SEQ-bytein.obj `if test -f 'bytein.c'; then $(CYGPATH_W) 'bytein.c'; else $(CYGPATH_W) '$(srcdir)/bytein.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-bytein.Tpo $(DEPDIR)/Beatbox_SEQ-bytein.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bytein.c' object='Beatbox_SEQ-bytein.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-bytein.obj `if test -f 'bytein.c'; then $(CYGPATH_W) 'bytein.c'; else $(CYGPATH_W) '$(srcdir)/bytein.c'; fi`
+
 Beatbox_SEQ-ezpaint.o: ezpaint.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-ezpaint.o -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-ezpaint.Tpo -c -o Beatbox_SEQ-ezpaint.o `test -f 'ezpaint.c' || echo '$(srcdir)/'`ezpaint.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-ezpaint.Tpo $(DEPDIR)/Beatbox_SEQ-ezpaint.Po
@@ -4383,6 +4401,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bikt.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-br77.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-byte.Po
+	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bytein.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-byteout.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bzoregon.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bzr.Po
@@ -4641,6 +4660,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bikt.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-br77.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-byte.Po
+	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bytein.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-byteout.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bzoregon.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-bzr.Po

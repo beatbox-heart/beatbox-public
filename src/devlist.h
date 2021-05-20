@@ -63,7 +63,7 @@ D(vtkout2)
 /**************** SEQUENTIAL ONLY ******************/
 
 S(adi3d)
-D(bytein)
+S(bytein)
 S(ezpaint)
 S(ezstep)
 S(ezview)
