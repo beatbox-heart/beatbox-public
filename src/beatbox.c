@@ -25,7 +25,6 @@
  * directory after you compile for the first time.
  */
 #include <config.h>
-#include <subversion.h>
 
 #if MPI
 #include <mpi.h>
@@ -246,9 +245,9 @@ int main (int argc, char **argv) {
 	  /* "#! %s %s version compiled %s %s\n" */
 	  /* "#------------------------------------------------------------------------------------\n" */
 	  /* ,VERSTRING,VARIATION,__DATE__,__TIME__); */
-	  "#! %s revision %s, %s compile %s %s\n"
+	  "#! %s (%s) compiled %s %s\n"
 	  "#------------------------------------------------------------------------------------"
-	  ,VERSTRING,SUBVERSION,VARIATION,__DATE__,__TIME__);
+	  ,VERSTRING,VARIATION,__DATE__,__TIME__);
 
   /* Prepare for possible abort during start-up */
   t=-1;

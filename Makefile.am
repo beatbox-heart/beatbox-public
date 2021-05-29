@@ -32,9 +32,6 @@ EXTRA_DIST    = README \
                 bbx_compile_hector.sh \
                 $(docs) \
                 $(dist_examples) 
-# svn_dist_version added as per advice from
-# http://www.mhoenicka.de/system-cgi/blog/index.php?itemid=999
-
 
 # Document files.
 docs          = \

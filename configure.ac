@@ -17,8 +17,7 @@ case $myos in
    *)
    ;;
    esac
-# echo "#define SUBVERSION \""`svnversion`"\"" > subversion.h  # this does not achieve the purpose as applies outside svn
-# AC_DEFINE_UNQUOTED(SUBVERSION, "`svnversion`", [subversion number]) # this does not achieve the purpose as applies outside svn
+
 AC_SEARCH_LIBS(XOpenDisplay, [X11], [AC_SUBST(X11_AVAIL,yes)], [AC_MSG_WARN([X11 libraries not found, Beatbox will be built without graphical displays.  If you need graphical displays you will need to configure Beatbox with X11, please contact the Beatbox developers for further information.])
  AC_SUBST(X11_AVAIL,no)]
 , [])

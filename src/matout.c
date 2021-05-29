@@ -31,8 +31,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <subversion.h>
-
 #include "system.h"
 #include "beatbox.h"
 #include "bikt.h"
@@ -232,8 +230,8 @@ CREATE_HEAD(matout)
 
   /* Prepare information for writing */
   time(&now);
-  snprintf(defaulthead,HEADLEN,"Written at %24.24s by %s revision %s, %s compiled %s %s",
-	  ctime(&now),VERSTRING,SUBVERSION,VARIATION,__DATE__,__TIME__);
+  snprintf(defaulthead,HEADLEN,"Written at %24.24s by %s (%s) compiled %s %s",
+	  ctime(&now),VERSTRING,VARIATION,__DATE__,__TIME__);
   ACCEPTS(head,defaulthead);
   /* Futile: either accepts is protected against too long user input, */
   /* or it isn't .. */
