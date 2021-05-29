@@ -20,6 +20,7 @@ data/tests/*.ctl
 data/tests/*.log
 data/tests/*.out
 data/tests/admitfailure
+data/tests/closeenough
 data/tests/ball*.exact
 data/tests/bkl3.full
 data/tests/bkl3.half
