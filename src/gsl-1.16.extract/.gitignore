@@ -1,1 +1,4 @@
 .libs
+autom4te.cache/
+config.h.in~
+gsl-config
