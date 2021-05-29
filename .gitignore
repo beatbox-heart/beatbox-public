@@ -15,6 +15,7 @@ gitfix
 libtool
 stamp-h1
 tag.pl
-data/tests/*.log
-data/tests/*.ctl
+data/tests/admitfailure
 data/tests/*.BAK
+data/tests/*.ctl
+data/tests/*.log
