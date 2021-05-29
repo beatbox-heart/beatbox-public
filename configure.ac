@@ -1,4 +1,4 @@
-AC_INIT([BeatBox], [1.13], [V.N.Biktashev@exeter.ac.uk])
+AC_INIT([BeatBox],[1.13],[V.N.Biktashev@exeter.ac.uk])
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall gnu])
 myhost=`uname -n`
@@ -29,29 +29,11 @@ AC_SEARCH_LIBS(pow, [m], [], [])
 AC_PROG_CC(mpicc gcc cl cc)
 AM_PROG_CC_C_O
 AC_CONFIG_HEADERS([config.h])
-AC_TRY_LINK([#include "mpi.h"],[MPI_Init(0, 0);], [mpi_link="yes"], [mpi_link="no"])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "mpi.h"]], [[MPI_Init(0, 0);]])],[mpi_link="yes"],[mpi_link="no"])
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 ])
-
-##########################
-# As instructed in 
-# http://www.mhoenicka.de/system-cgi/blog/index.php?itemid=999
-
-# see whether subversion is installed
-AC_PATH_PROG(svnversioncommand, svnversion)
-
-# use svnversion to record the current repository revision only if
-# subversion is installed and we are in a working copy
-if test "X$svnversioncommand" = "X" || test `$svnversioncommand -n '.'` = "exported"; then
-  mysvnversion="cat svn_dist_version"
-else
-  mysvnversion="svnversion -n '.'"
-fi
-AM_CONDITIONAL(HAVESVNWC, test "X$svnversioncommand" != "X" && test `$svnversioncommand -n '.'` != "exported")
-AC_SUBST(mysvnversion)
-##########################
 
 if test "x$X11_AVAIL" = "xno"; then
   echo "***************"
