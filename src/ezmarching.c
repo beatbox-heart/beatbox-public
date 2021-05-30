@@ -38,8 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 
 #include "beatbox.h"
 #include "state.h"
@@ -47,9 +45,15 @@
 #include "device.h"
 #include "bikt.h"
 
+#if defined(NOX11) || defined (NOGL)
+#else
+#include <GL/gl.h>
+#include <GL/glx.h>
+
 #include "ezview.h"    
 #include "ezgraph3d.h"
 #include "ezmarching.h"
+
 
 /* -------------------------------------------------------------------------
  *
@@ -2213,3 +2217,4 @@ static int get_dir (STR *S,real x, real y, real z, real *kx, real *ky, real *kz,
 
 #endif
 
+#endif

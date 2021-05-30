@@ -1,3 +1,10 @@
+Version 1.14
+
+- In absence of X11 and/or OpenGL graphics, Beatbox now automatically configures so as to not depend on those libraries:
+-- In devices that have graphics as facultative functions, these are disabled;
+-- Devices that totally depend on those are replaced with dummies. 
+- Length of the "version" field in the ctlpoint files is increased to 16 (was 12). This means that ctlpoint files written by pre-1.14 versions of Beatbox will not be correctly read by version 1.14 or later. 
+
 Version 1.13
 
 - New devices: byteout, pw_mult (to be documented)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -31,13 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h> 
-#include <X11/keysym.h>
-#include <X11/keysymdef.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 
 #include "system.h"
 #include "beatbox.h"
@@ -49,6 +42,18 @@
 #include "bikt.h"
 #include "k_.h"
 #include "pipe.h"
+
+#if defined(NOX11) || defined (NOGL)
+  #include "nograph.h"
+  NOGRAPH_DUMMY(k_paintgl)
+#else
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h> 
+#include <X11/keysym.h>
+#include <X11/keysymdef.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
 
 #define TRUE             1   
 #define MAXWINDOWTITLE 512
@@ -353,5 +358,4 @@ CREATE_HEAD(k_paintgl) {
  
 } CREATE_TAIL(k_paintgl,0)
 
-
-
+#endif

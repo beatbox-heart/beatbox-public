@@ -242,9 +242,6 @@ int main (int argc, char **argv) {
   run_start_time = Wtime();
 
   sprintf(HEADLINE,
-	  /* "#! %s %s version compiled %s %s\n" */
-	  /* "#------------------------------------------------------------------------------------\n" */
-	  /* ,VERSTRING,VARIATION,__DATE__,__TIME__); */
 	  "#! %s (%s) compiled %s %s\n"
 	  "#------------------------------------------------------------------------------------"
 	  ,VERSTRING,VARIATION,__DATE__,__TIME__);

@@ -37,7 +37,9 @@
 #include "device.h"
 #include "qpp.h"
 #include "bikt.h"
+#ifdef X11
 #include "windraw.h"
+#endif
 
 #if MPI
 extern int idev;
@@ -73,7 +75,6 @@ typedef struct {
   int tag;			/* tag for messages of this device instance (don't need if private communicator?) */
   int root;			/* the rank of the instance that does the file output */
   #endif
-  /* This is for visualization of the tip trajectory on BGI screen; does not work now? */
   #define MAXSTACK 10
   real xtip[MAXSTACK],ytip[MAXSTACK],ztip[MAXSTACK]; /* array to store singular points found at previous/next step */
   int ntip;
@@ -294,7 +295,9 @@ static int isocross(STR *S,Space *s, int z) {
 RUN_HEAD(singz) {
   int i;
   int z;
+#ifdef X11
   int graphics=(w.row1>w.row0) && (w.col1>w.col0);
+#endif
 #if MPI
   int imroot=(mpi_rank==S->root);
 #else
@@ -302,12 +305,14 @@ RUN_HEAD(singz) {
 #endif
   
   /* Graphic output: repaint the old tip(s) to the foreground color */
+#ifdef X11
   if (graphics) {
     SetWindow(w);
     if NOT(SetLimits(s.x0, s.x1, s.y0, s.y1)) return 0;
     for (i=0;i<S->ntip;i++)
       Pixel (S->xtip[i],S->ytip[i],w.color%16);
-  }	
+  }
+#endif
   S->ntip=0;
 
   /* File output while finding new tip(s) */
@@ -321,10 +326,12 @@ RUN_HEAD(singz) {
   flush_buffer(S);
 
   /* Graphic output: paint the new tip(s) to the border color */
+#ifdef X11
   if (graphics) {
     for (i=0;i<S->ntip;i++) 
       Pixel (S->xtip[i],S->ytip[i],w.color/16);
   }
+#endif
 
   if (S->k_output) {
     int N=S->ntip;

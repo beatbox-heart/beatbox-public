@@ -1,5 +1,6 @@
 #COMMENT=@echo making "'$@'" stem "'$*'" out of "'$+'" due to "'$?'"
-COMMENT=\#@ignore
+#COMMENT=\#@ignore
+COMMENT=
 BBXS=Beatbox_SEQ
 BBXP=Beatbox
 MPIOPT:=${shell mpirun --version | perl -ane '$$.==1 and $$v=pop @F and $$f=substr($$v,0,1) and $$f>=3 and print("--oversubscribe");'}

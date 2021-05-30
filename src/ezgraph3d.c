@@ -38,14 +38,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h> 
-#include <X11/keysym.h>
-#include <X11/keysymdef.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
 
 #include "system.h"
 #include "beatbox.h"
@@ -54,6 +46,17 @@
 #include "bikt.h"
 #include "k_.h"
 #include "pipe.h"
+
+#if defined(NOX11) || defined (NOGL)
+#else
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h> 
+#include <X11/keysym.h>
+#include <X11/keysymdef.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glx.h>
 
 #include "ezview.h"
 #include "ezgraph3d.h"
@@ -1735,3 +1738,4 @@ void Tink (STR *S)
 } /* Tink */
 /* ========================================================================= */
 
+#endif

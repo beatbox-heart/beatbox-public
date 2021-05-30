@@ -5,7 +5,6 @@
 # To propagate the changes to the Makefile.in files.
 #
 
-#common_cppflags = -g
 GSL = gsl-1.16.extract
 SUBDIRS = $(GSL)
 
@@ -13,8 +12,10 @@ bin_PROGRAMS = Beatbox Beatbox_SEQ
 Beatbox_CPPFLAGS = -D MPI -D NO_TMPFILES ${common_cppflags} -I$(builddir)/$(GSL)
 Beatbox_LDADD = ${LDFLAGS}
 Beatbox_LDADD +=  $(GSL)/.libs/libgsl.a $(GSL)/cblas/.libs/libgslcblas.a
-Beatbox_SEQ_LDADD = ${Beatbox_LDADD}
+
 Beatbox_SEQ_CPPFLAGS = ${common_cppflags} -I$(builddir)/$(GSL)/
+Beatbox_SEQ_LDFLAGS =  ${common_ldflags}
+Beatbox_SEQ_LDADD = ${Beatbox_LDADD}
 
 common_sources = \
 	beatbox.c beatbox.h \
@@ -123,28 +124,12 @@ common_sources = \
 	mousevent.c  mousevent_init.h  mousevent_par.h  mousevent_step.h  \
 	mpi_io_choice.h \
 	ms.c \
-	n62.c \
-	n62.h \
-	noble.c \
-	noble.h \
-	noble2.c \
-	noble2.h \
-	noblecns.h \
-	nobleft1.h \
-	nobleft2.h \
-	nobleft3.h \
-	nobleftn.c \
-	nobleftn.h \
-	nobleglb.h \
-	nobleini.h \
-	nobleloc.h \
-	noblen.c \
-	noblen.h \
-	noblest2.c \
-	noblest2.h \
-	noblestu.c \
-	noblestu.h \
+	n62.c n62.h \
+	noble.c noble.h noblecns.h nobleft1.h nobleft2.h nobleft3.h nobleftn.c nobleftn.h nobleglb.h nobleini.h nobleloc.h noblest2.c noblest2.h noblestu.c noblestu.h \
+	noble2.c noble2.h \
+	noblen.c noblen.h \
 	noble_gbk.c \
+	nograph.h \
 	ord.c ord_par.h ord_step.h ord_init.h \
 	p2clib.c p2c.h \
 	pause.c \

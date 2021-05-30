@@ -32,13 +32,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h> 
-#include <X11/keysym.h>
-#include <X11/keysymdef.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 
 #include "system.h"
 #include "beatbox.h"
@@ -48,6 +41,18 @@
 #include "bikt.h"
 #include "k_.h"
 #include "pipe.h"
+
+#if defined(NOX11) || defined (NOGL)
+  #include "nograph.h"
+  NOGRAPH_DUMMY(ezpaint)
+#else
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h> 
+#include <X11/keysym.h>
+#include <X11/keysymdef.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
 
 #define TRUE 1   
 #define MAXWINDOWTITLE 512
@@ -646,3 +651,5 @@ static void Draw_markers (STR *S)
   }
 }
 /* ========================================================================= */
+
+#endif

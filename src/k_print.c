@@ -32,7 +32,6 @@
 #include "state.h"
 #include "qpp.h"
 #include "bikt.h"
-#include "windraw.h"
 #include "k_.h"
 #include "mpi_io_choice.h"
 

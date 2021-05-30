@@ -26,13 +26,6 @@
 #include <string.h>
 #include <limits.h>
 #include <math.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h> 
-#include <X11/keysym.h>
-#include <X11/keysymdef.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 
 #include "system.h"
 #include "beatbox.h"
@@ -43,6 +36,18 @@
 #include "qpp.h"
 #include "bikt.h"
 #include "k_.h"
+
+#if defined(NOX11) || defined (NOGL)
+  #include "nograph.h"
+  NOGRAPH_DUMMY(ezview)
+#else
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h> 
+#include <X11/keysym.h>
+#include <X11/keysymdef.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
 
 #define OWN
 #include "ezview.h" /* STR is defined in there! */
@@ -173,3 +178,4 @@ CREATE_HEAD(ezview)
 } CREATE_TAIL(ezview,0);
 /* ========================================================================= */
 
+#endif

@@ -23,12 +23,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 #include <X11/keysym.h>
 #include <X11/keysymdef.h>
-
+#endif
 
 #include "system.h"
 #include "k_.h"
@@ -49,7 +50,7 @@ INT WINY=20;	/* user defined window location, in pixels, from screen top  */
 char WindowName[1024];
 char IconName[1024];
 
-#if MPI
+#if MPI || defined(NOX11)
 /* make stubs */
 static char NULLSTR[]="SORRY: any graphics package is absent in this version";
 int Opengraph(void) {return 0;}

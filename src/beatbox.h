@@ -20,8 +20,8 @@
 
 /* Most important common definitions */
 
-#define VERLEN 12
-#define VARLEN 11
+#define VERLEN 16
+#define VARLEN 16
 
 #ifdef MAIN
 char VERSTRING[VERLEN]=PACKAGE_STRING;

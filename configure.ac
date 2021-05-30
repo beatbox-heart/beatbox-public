@@ -1,4 +1,4 @@
-AC_INIT([BeatBox],[1.13],[V.N.Biktashev@exeter.ac.uk])
+AC_INIT([BeatBox],[1.14],[V.N.Biktashev@exeter.ac.uk])
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall gnu])
 myhost=`uname -n`
@@ -11,19 +11,31 @@ case $myhost in
 myos=`uname`
 case $myos in
    Darwin*)
-     LIBS="-lX11 -L/opt/X11/lib"
+     LIBS="-L/opt/X11/lib"
      CFLAGS="$CFLAGS -I/opt/X11/include"
    ;;
    *)
    ;;
    esac
 
-AC_SEARCH_LIBS(XOpenDisplay, [X11], [AC_SUBST(X11_AVAIL,yes)], [AC_MSG_WARN([X11 libraries not found, Beatbox will be built without graphical displays.  If you need graphical displays you will need to configure Beatbox with X11, please contact the Beatbox developers for further information.])
- AC_SUBST(X11_AVAIL,no)]
-, [])
-AC_SEARCH_LIBS(glXQueryExtension, [GL], [AC_SUBST(GL_AVAIL,yes)], [AC_MSG_WARN([OpenGL libraries not found, Beatbox will be built without GL graphical extention. If you need graphical displays you will need to configure Beatbox with X11, please contact the Beatbox developers for further information.])
- AC_SUBST(GL_AVAIL,no)]
-, [])
+# Checks for graphics libraries
+AC_SEARCH_LIBS(XOpenDisplay,
+  [X11],
+  [AC_SUBST(X11_AVAIL,yes)],
+  [AC_MSG_WARN([X11 libraries not found, Beatbox will be built without graphical displays.  If you need graphical displays you will need to configure Beatbox with X11, please contact the Beatbox developers for further information.])
+    AC_SUBST(X11_AVAIL,no)],
+  [])
+if test "x$X11_AVAIL" = "xno"; then
+  AC_SUBST(GL_AVAIL,no)
+else
+  AC_SEARCH_LIBS(glXQueryExtension,
+    [GL],
+    [AC_SUBST(GL_AVAIL,yes)],
+    [AC_MSG_WARN([OpenGL libraries not found, Beatbox will be built without GL graphical extention. If you need graphical displays you will need to configure Beatbox with OpenGL please contact the Beatbox developers for further information.])
+      AC_SUBST(GL_AVAIL,no)],
+  [])
+fi
+
 AC_SEARCH_LIBS(pow, [m], [], [])
 AC_PROG_CC(mpicc gcc cl cc)
 AM_PROG_CC_C_O
