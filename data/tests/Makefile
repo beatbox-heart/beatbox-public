@@ -16,7 +16,7 @@ POSITIVE=funcs matout record reduce reduce-4 \
 	bkl3cont-0 bkl3cont-4 br0 hh52mrl \
 	ballf ballfcont-0 ballfcont-4 balldcont-0 balldcont-4 
 ALL=$(NEGATIVE) $(POSITIVE)
-all: closeenough admitfailure ${foreach t,$(ALL),$t.test}
+all: clean closeenough admitfailure ${foreach t,$(ALL),$t.test}
 clean:
 	-rm -f *.log *.out **.fullout *.sorted
 	-rm -f bkl3cont-*.exact

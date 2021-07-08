@@ -186,4 +186,7 @@ Beatbox_SEQ_SOURCES = \
 	ppmin.c \
 	record.c \
 	skrecord.c \
-	screen_dump.c
+	screen_dump.c \
+	torx.c \
+	tory.c \
+	torz.c
