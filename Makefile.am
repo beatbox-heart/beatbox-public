@@ -30,6 +30,8 @@ EXTRA_DIST    = README \
                 $(SVNVER) \
                 bbx_compile_local.sh \
                 bbx_compile_hector.sh \
+		mydebug.sh \
+		myrebuild.sh \
                 $(docs) \
                 $(dist_examples) 
 
