@@ -2269,18 +2269,18 @@ as defined in <cite>A.T.Winfree, Chaos
   &part;<i>v</i>/&part;<i>t</i>
   &nbsp;=&nbsp;&epsilon;(<i>u</i>+&beta;-&gamma;<i>v</i>), 
   &emsp;
- (<i>x</i>,<i>y</i>,<i>z</i>) &nbsp;&isin;&nbsp;&Omega;
+ (<i>x</i>,<i>y</i>) &nbsp;&isin;&nbsp;&Omega;
   &nbsp;=&nbsp;[0,<i>L<sub>x</sub></i>]&times;
    [0,<i>L<sub>y</sub></i>] ;
 <br />
   &part;<i>u</i>/&part;<b>n</b>&nbsp;=&nbsp; 0,
   &emsp;
- (<i>x</i>,<i>y</i>,<i>z</i>) &nbsp;&isin;&nbsp;&part;&Omega; ;
+ (<i>x</i>,<i>y</i>) &nbsp;&isin;&nbsp;&part;&Omega; ;
 <br />
-  <i>u</i>(<i>x</i>,<i>y</i>,0)={-1.7, &nbsp; <i>x</i>&le;<i>L<sub>x</sub></i>; &emsp;  1.7, &nbsp;
+  <i>u</i>(<i>x</i>,<i>y</i>,0)={-1.7, &nbsp; <i>x</i>&le;<i>L<sub>x</sub></i>/2; &emsp;  1.7, &nbsp;
  otherwise},
 <br />
-  <i>v</i>(<i>x</i>,<i>y</i>,0)={-0.7, &nbsp; <i>y</i>&le;<i>L<sub>y</sub></i>; &emsp;  0.7, &nbsp;
+  <i>v</i>(<i>x</i>,<i>y</i>,0)={-0.7, &nbsp; <i>y</i>&le;<i>L<sub>y</sub></i>/2; &emsp;  0.7, &nbsp;
  otherwise}.
 <br/>
 </p>
@@ -2352,7 +2352,8 @@ end;
  href="#skip-minimal">below</a>, and for now we consider the script
 itself, which is shown on the right.  </p>
 
-<p> The script starts with a <code>space</code> command, which the 2D
+<p> The script starts with a <code>space</code> command, which defines
+the 2D
 computational grid of 100&times;100 internal nodes (<code>zmax</code>
 defaults to 1),  and three layers,
 they will have numbers 0,1,2. Layers 0 and 1 will be used for
@@ -2375,7 +2376,7 @@ device ring, when the loop counter <code>t</code> is zero, otherwise
 <code>begin</code> is assigned zero. Variable
 <code>output</code> will be 1 at every 100th step, and 0
 otherwise. And variable <code>end</code> will be zero until the step
-2000, from which on it will be assigned 1. 
+2000, and from then on it will be assigned 1. 
 </p>
 
 <p>
