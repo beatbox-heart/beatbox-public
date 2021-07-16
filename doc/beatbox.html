@@ -3165,7 +3165,7 @@ geometry, as is the species type (human, rabbit,...).
 
 <p>
 This is a rabbit ventricle geometry. The space step in this geometry
-is 0.1 mm. There is 1 tissue type in this geomtry. The bbs program
+is 0.1 mm. The bbs program
 that can initiate a spiral wave and gives all other optimised
 simulation paramters using LRD kinetics is:
 </p>
@@ -3219,6 +3219,15 @@ To run this in parallel using np number of processors, use the command:
 <pre>
 mpirun -n np Beatbox LRD_ffr.bbs -verbose -profile
 </pre>
+
+
+Quicker calculations with the same geometry can be done using
+<ul>
+<li>
+<a href="../data/scripts/sequential/FitzHughNagumo_model/fhn_ffr.bbs">fhn_ffr.bbs</a>
+</li>
+</ul>
+
 
 <h3 class="numbered">ffr_slice.bbg</h3>
 
@@ -5201,14 +5210,14 @@ diff v0=diff_layer v1=lap_layer Dpar=D Dtrans=D/4 hx=hx;
 <h3>Instances of diff in Example Scripts</h3>
 
 <p>
-All example scripts can be found in data/scripts of the package
-distribution. Examples of isotropic diffusion can be found in the
-following:
+All example scripts can be found in <code>beatbox/data/scripts</code> of the
+distribution package. Examples of <code>dump</code> device can be
+found in the following:
 </p>
 
 <pre>
 beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn1.bbs
-beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
+beatbox/data/scripts/sequential/LRD_model/LRD_ffr.bbs
 </pre>
 
 <p>
@@ -5427,19 +5436,20 @@ dump when=end v0=ode_layer0 v1=ode_layer1 append=0 file=my_dump_file.dmp;
 
 <p>
 All example scripts can be found in <code>beatbox/data/scripts</code> of the
-distribution package. Examples of dump device can be
+distribution package. Examples of <code>dump</code> device can be
 found in the following:
 </p>
 
 <pre>
+beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn1.bbs
 beatbox/data/scripts/sequential/LRD_model/LRD_ffr.bbs
 </pre>
 
 <p>
 The simulation state saved in such a manner may be used to continue
 the simulation using the <code>load</code> device.  The inputs,
-outputs, and method of simulation for <code>LRD_ffr.bbs</code> have
-been described above.
+outputs, and method of simulation for <code>fhn1.bbs</code> and
+<code>LRD_ffr.bbs</code> are described elsewhere in this document. 
 </p>
 
 
@@ -6333,7 +6343,7 @@ beatbox/data/scripts/sequential/Barkley_model/rabbit.bbs
 
 <p>
 
-This is 3D visualising device using <code>OpenGL</code>, based on the
+This is a 3D visualising device using <code>OpenGL</code>, based on the
 graphical part of D. Barkley and M. Dowle's <a
 href="http://homepages.warwick.ac.uk/~masax/Software/ez_software.html">
 <code>EZSCROLL</code> </a>.  It provides similar (somewhat extended)
@@ -6395,28 +6405,32 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>theta</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> view angle: rotation about z axis </td>
+<td class="left"> view angle: rotation about z axis, degrees </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>phi</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> view angle: elevation about z=0 plane </td>
+<td class="left"> view angle: elevation about z=0 plane, degrees </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>psi</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> view angle: rotation around view line </td>
+<td class="left"> view angle: rotation around view line, degrees </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>distance</code></td>
 <td class="left"><code>5.0</code></td>
-<td class="left"> former <code>DISTANCE</code> of <code>ezgraph3d.h</code> in <code>EZSCROLL</code> </td>
+<td class="left"> former <code>DISTANCE</code> of
+  <code>ezgraph3d.h</code> in <code>EZSCROLL</code>.
+  <code>distance=1</code> corresponds to the largest dimension of the
+  visualized volume. 
+</td>
 </tr>
 
 <tr>
@@ -6430,21 +6444,21 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>phi0</code></td>
 <td class="left"><code>60</code></td>
-<td class="right"> &nbsp; values  </td>
+<td class="right"> &nbsp; &nbsp; values  </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>psi0</code></td>
 <td class="left"><code>0</code></td>
-<td class="right"> &nbsp; of the  </td>
+<td class="right"> &nbsp; &nbsp; of the  </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>distance0</code></td>
 <td class="left"><code>5.0</code></td>
-<td class="right"> &nbsp; same    </td>
+<td class="right"> &nbsp; &nbsp; same    </td>
 </tr>
 
 <tr>
@@ -6458,35 +6472,35 @@ More explanation
 <td class="left"><code>int</code></td>
 <td class="left"><code>imax</code></td>
 <td class="left"><code>xmax-2</code></td>
-<td class="right"> &nbsp;  of the box    </td>
+<td class="right"> &nbsp; &nbsp;  of the box    </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>jmin</code></td>
 <td class="left"><code>1</code></td>
-<td class="right"> &nbsp; to be displayed       </td>
+<td class="right"> &nbsp; &nbsp; to be displayed       </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>jmax</code></td>
 <td class="left"><code>ymax-2</code></td>
-<td class="right"> &nbsp;  (similar to <code>Space</code>   </td>
+<td class="right"> &nbsp; &nbsp; (similar to <code>Space</code>   </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>kmin</code></td>
 <td class="left"><code>1</code></td>
-<td class="right"> &nbsp; parameters <code>x0,...,z1</code>     </td>
+<td class="right"> &nbsp; &nbsp; parameters <code>x0,...,z1</code>     </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>kmax</code></td>
 <td class="left"><code>zmax-2</code></td>
-<td class="right"> &nbsp; but changeable in dialogue) </td>
+<td class="right"> &nbsp; &nbsp; but changeable in dialogue) </td>
 </tr>
 
 <tr>
@@ -6514,7 +6528,7 @@ More explanation
 <td class="left"><code>int</code></td>
 <td class="left"><code>ulayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> isosurface channel in input files </td>
+<td class="left"> isosurface layer </td>
 </tr>
 
 <tr>
@@ -6528,7 +6542,7 @@ More explanation
 <td class="left"><code>int</code></td>
 <td class="left"><code>vlayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> "other variable" channel in input files </td>
+<td class="left"> "other variable" layer </td>
 </tr>
 
 <tr>
@@ -6559,84 +6573,84 @@ More explanation
 <td class="left"><code>int</code></td>
 <td class="left"><code>rlayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> red       channel in input files </td>
+<td class="left"> red  component layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>rmin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> red       range lower end </td>
+<td class="left"> red component range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>rmax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left"> red       range upper end </td>
+<td class="left"> red component range upper end </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>glayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> green     channel in input files </td>
+<td class="left"> green component layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>gmin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> green     range lower end </td>
+<td class="left"> green component range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>gmax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left"> green     range upper end </td>
+<td class="left"> green component range upper end </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>blayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> blue      channel in input files </td>
+<td class="left"> blue component layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>bmin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> blue      range lower end </td>
+<td class="left"> blue component range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>bmax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left"> blue      range upper end </td>
+<td class="left"> blue component range upper end </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>alayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> alpha     channel in input files </td>
+<td class="left"> alpha (opacity) layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>amin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> alpha     range lower end </td>
+<td class="left"> alpha range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>amax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left"> alpha     range upper end </td>
+<td class="left"> alpha range upper end </td>
 </tr>
 
 <tr>
@@ -6650,14 +6664,14 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>alphamin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> minimal opaqueness </td>
+<td class="left"> minimal opacity </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>alphamax</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> maximal opaqueness </td>
+<td class="left"> maximal opacity </td>
 </tr>
 
 <tr>
@@ -6706,28 +6720,28 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>flm_g</code></td>
 <td class="left"><code>1</code></td>
-<td class="left">  &nbsp;  colour         </td>
+<td class="left">  &nbsp; &nbsp;  colour         </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>flm_b</code></td>
 <td class="left"><code>0.8</code></td>
-<td class="left">  &nbsp;  components     </td>
+<td class="left">  &nbsp; &nbsp;  components     </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>flm_wt</code></td>
 <td class="left"><code>3.0</code></td>
-<td class="left"> &nbsp;  and the linewidth </td>
+<td class="left"> &nbsp; &nbsp;  and the linewidth </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>flm_balls</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> .., plot it by spheres once=1 or twice=2 </td>
+<td class="left"> .., plot it by spheres </td>
 </tr>
 
 <tr>
@@ -6783,14 +6797,14 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>bg_g</code></td>
 <td class="left"><code>0.0</code></td>
-<td class="left"> &nbsp;   colour         </td>
+<td class="left"> &nbsp;  &nbsp;   colour         </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>bg_b</code></td>
 <td class="left"><code>0.0</code></td>
-<td class="left"> &nbsp;   components     </td>
+<td class="left"> &nbsp;  &nbsp;  components     </td>
 </tr>
 
 <tr>
@@ -6804,28 +6818,28 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>bbox_g</code></td>
 <td class="left"><code>0.5</code></td>
-<td class="left">  &nbsp;  colour         </td>
+<td class="left">  &nbsp;  &nbsp; colour         </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>bbox_b</code></td>
 <td class="left"><code>0.5</code></td>
-<td class="left"> &nbsp;   components,    </td>
+<td class="left"> &nbsp;  &nbsp;  components,    </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>bbox_a</code></td>
 <td class="left"><code>0.5</code></td>
-<td class="left"> &nbsp;   its transparency </td>
+<td class="left"> &nbsp;  &nbsp;  its opacity </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>bbox_wt</code></td>
 <td class="left"><code>2.0</code></td>
-<td class="left"> &nbsp;   and the linewidth </td>
+<td class="left"> &nbsp;  &nbsp;  and the linewidth </td>
 </tr>
 
 <tr>
@@ -6853,21 +6867,21 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>lighty</code></td>
 <td class="left"><code>+10.0</code></td>
-<td class="left"> &nbsp;  of the </td>
+<td class="left"> &nbsp;  &nbsp; of the </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>lightz</code></td>
 <td class="left"><code>+10.0</code></td>
-<td class="left"> &nbsp;  directional </td>
+<td class="left"> &nbsp;  &nbsp; directional </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>lightw</code></td>
 <td class="left"><code>1</code></td>
-<td class="left"> &nbsp;  light </td>
+<td class="left"> &nbsp;  &nbsp; light </td>
 </tr>
 
 <tr>
@@ -6881,21 +6895,21 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>amb_g</code></td>
 <td class="left"><code>0.5</code></td>
-<td class="left"> &nbsp;  of the </td>
+<td class="left"> &nbsp;  &nbsp; of the </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>amb_b</code></td>
 <td class="left"><code>0.5</code></td>
-<td class="left"> &nbsp;  ambient </td>
+<td class="left"> &nbsp;  &nbsp; ambient </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>amb_a</code></td>
 <td class="left"><code>0.5</code></td>
-<td class="left"> &nbsp;  light </td>
+<td class="left"> &nbsp;  &nbsp; light </td>
 </tr>
 
 <tr>
@@ -6971,63 +6985,63 @@ More explanation
 <td class="left"><code>int</code></td>
 <td class="left"><code>fib_rlayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left">fibres red channel in input files</td>
+<td class="left">fibres red component layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>fib_rmin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left"> fibre red range lower end </td>
+<td class="left"> fibre red component range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>fib_rmax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left"> fibre red range upper end </td>
+<td class="left"> fibre red component range upper end </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>fib_glayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left">fibre green channel in input files </td>
+<td class="left">fibre green component layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>fib_gmin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left">fibre green range lower end </td>
+<td class="left">fibre green component range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>fib_gmax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left">fibre green range upper end </td>
+<td class="left">fibre green component range upper end </td>
 </tr>
 
 <tr>
 <td class="left"><code>int</code></td>
 <td class="left"><code>fib_blayer</code></td>
 <td class="left"><code>0</code></td>
-<td class="left">fibre blue channel in input files </td>
+<td class="left">fibre blue component layer </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>fib_bmin</code></td>
 <td class="left"><code>0</code></td>
-<td class="left">fibre blue range lower end </td>
+<td class="left">fibre blue component range lower end </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>fib_bmax</code></td>
 <td class="left"><code>1</code></td>
-<td class="left">fibre blue range upper end </td>
+<td class="left">fibre blue component range upper end </td>
 </tr>
 
 <tr>
@@ -7055,21 +7069,21 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_x</code></td>
 <td class="left"><code>xmax/2-1</code></td>
-<td class="left">  &nbsp;  coordinates       </td>
+<td class="left">  &nbsp;  &nbsp; coordinates       </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_y</code></td>
 <td class="left"><code>ymax/2-1</code></td>
-<td class="left"> &nbsp;   of the marker     </td>
+<td class="left"> &nbsp;  &nbsp;  of the marker     </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_z</code></td>
 <td class="left"><code>zmax/2-1</code></td>
-<td class="left"> &nbsp;   position          </td>
+<td class="left"> &nbsp;  &nbsp;  position          </td>
 </tr>
 
 <tr>
@@ -7083,28 +7097,28 @@ More explanation
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_g</code></td>
 <td class="left"><code>1.0</code></td>
-<td class="left">  &nbsp;  colour            </td>
+<td class="left">  &nbsp;  &nbsp; colour            </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_b</code></td>
 <td class="left"><code>0.0</code></td>
-<td class="left">  &nbsp;  components,       </td>
+<td class="left">  &nbsp;  &nbsp; components,       </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_a</code></td>
 <td class="left"><code>1</code></td>
-<td class="left">  &nbsp;  its transparency  </td>
+<td class="left">  &nbsp;  &nbsp; its opacity  </td>
 </tr>
 
 <tr>
 <td class="left"><code>real</code></td>
 <td class="left"><code>marker_wt</code></td>
 <td class="left"><code>2.0</code></td>
-<td class="left"> &nbsp;   and the linewidth </td>
+<td class="left"> &nbsp;  &nbsp;  and the linewidth </td>
 </tr>
 
 
@@ -7135,26 +7149,31 @@ More explanation
 
 <h3> Further detail </h3>
 
-The surface is defined as isosurface of level <code>uc</code> of the field
+The surface is defined as the isosurface at the level <code>uc</code> of the field
 contained in the layer <code>ulayer</code>. Parameter values
-<code>color_mode=1,2,3</code> has similar meaning to the original, where
+<code>color_mode=1,2,3</code> have similar meaning to the original
+<code>EZSCROLL</code> implementaion, where
 <code>ulayer</code> plays the role of the u-variable and <code>vlayer</code>
-plays the role of the v-variable; <code>color_mode=4,5</code> is the same new
+plays the role of the v-variable; the values
+<code>color_mode=4,5</code> activate the same new colour-coding
 algorithm in which the colour components are defined by: for red,
 <code>rlayer</code> is the field, the value <code>rmin</code> maps to its zero
 and <code>rmax</code> to its full strength, and similarly for the green, blue
 and alpha (opacity) components. Additionally, "zero" and "full strength" of
 the opacity component are defined correspondingly by <code>alphamin</code> and
-<code>alphamax</code>. Other values of the <code>color_mode</code> correspond
-to the default algorithm where colour components are defined by spatial
-coordinates.  The filaments, when requested, are computed as intersection of
-isosurfaces of fields in <code>layer1</code> and <code>layer2</code> with at
-levels <code>const1</code> respectively <code>const2</code>. Unlike in the
+<code>alphamax</code>. Other values of the <code>color_mode</code>
+parameter correspond
+to the default algorithm where the three colour components are defined
+by the three spatial
+coordinates.  The filaments, when requested, are computed as intersections of
+isosurfaces of fields in <code>layer1</code> and <code>layer2</code> at
+levels <code>const1</code> and <code>const2</code> respectively. Unlike in the
 original, an attempt is made to connect the segments of the found filaments
 into contiguous chains, both for display and for text output purposes. There
 is an option to visualise filaments not by segments of straight lines but by
-balls, by parameter <code>flm_balls</code>.  Another new facility is "marker",
-whose position and size, in gridpoits, color and weight can be
+balls, by setting <code>flm_balls=1</code>.  Another new facility is
+the "marker",
+whose position and size (in gridpoits), color, and weight (linewidth) can be
 specified. Parameters of the directional and ambient light can also be
 specified. </p>
 
@@ -7208,8 +7227,8 @@ is explained briefly by a table below. Features different compared to
 <tr><td class="left"><code>F,f</code></td><td class="left"> toggle Filament plotting </td></tr>
 <tr><td class="left"><code>B,b</code></td><td class="left"> * toggle fiBres plotting </td></tr>
 <tr><td class="left"><code>M,m</code></td><td class="left"> * toggle Marker drawing </td></tr>
-<tr><td class="left"><code>K,k</code></td><td class="left"> * switch remoVal of fronts/backs/none </td></tr>
-<tr><td class="left"><code>V,v</code></td><td class="left"> toggle Clipping plane </td></tr>
+<tr><td class="left"><code>V,v</code></td><td class="left"> * switch remoVal of fronts/backs/none </td></tr>
+<tr><td class="left"><code>C,c</code></td><td class="left"> toggle Clipping plane </td></tr>
 <tr><td class="left"><code>D,d</code></td><td class="left"> toggle Depth buffer </td></tr>
 <tr><td class="left"><code>O,o</code></td><td class="left"> Original view <code>theta=theta0</code> etc </td></tr>
 <tr><td class="left"><code>R,r</code></td><td class="left"> Redraw </td></tr>
@@ -7233,18 +7252,19 @@ is explained briefly by a table below. Features different compared to
 The "removal" function is a slight extension of <code>EZSCROLL</code>'s
 function of "back removals". Here it is not a toggle but a three-position
 switch: remove "fronts" (polygons of the surface for which
-<code>v&lt;vc</code>), remove "backs" (<code>v&gt;</code>) or do not remove
+<code>v&lt;vc</code>), remove "backs" (<code>v&gt;vc</code>) or do not remove
 any, where <code>v</code> is the field value in the layer
 <code>vlayer</code>. 
 </p>
 
 <p>
-The (rather rudimentary) text dialogue that follows pressing a <code>=</code>
+The (rather rudimentary) text dialogue that follows pressing a "<code>=</code>"
 key takes place in the parent shell from which <code>BeatBox</code> was
 started, and requires the user to enter a parameter name to be changed
-following the <code>parameter=</code> prompt, and then the new value following
-<code>old value=XXX new value=</code> prompt. Trailing spaces in user inputs
-are ignored. Empty string entered as the value confirms the old value; empty
+following the "<code>parameter=</code>" prompt, and then the new value following
+"<code>old value=XXX new value=</code>" prompt. Trailing spaces in user inputs
+are ignored. An empty string entered as the value confirms the old
+value; an empty
 string entered as the parameter name finishes the dialogue and returns control
 to the <code>ezview</code> graphics window. Entering anything that is not a
 valid parameter name will print the list of known parameter names.
@@ -7252,8 +7272,9 @@ valid parameter name will print the list of known parameter names.
 
 <p>
 
-Finally, the window and icon name is composed of two parts, customizable and
-standard. The customizable part is defined in the script by parameters
+Finally, the window and icon name is composed of a
+customizable part and a
+standard part. The customizable part is defined in the script by parameters
 <code>title</code> and <code>titlecode</code> and interpreted in much the same
 way as for <a href="#ezpaint"><code>ezpaint</code></a> device. The standard
 part includes a "busy" indicator in angular brackets, a sequence of upper- or
@@ -7679,7 +7700,7 @@ direct linear mapping of the grid values.
 </table>
 
 <h3>Typical Syntax</h3>
-An example of the <code>imgout</code> syntax:
+An example of the <code>k_imgout</code> syntax:
 <pre>
 k_imgout when=out
   filter="pnmflip -tb | pnmtopng > [outdir]/udg%06.0f.png"
@@ -7691,7 +7712,7 @@ k_imgout when=out
     b=u(1+i,1+j,0,[g])/2.0;
   };
 </pre>
-<h3>Instances of ppmout in Example Scripts</h3>
+<h3>Instances of k_imgout in Example Scripts</h3>
 Examples of <code>k_imgout</code> device can be found in the following:
 <pre>
 beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn2.bbs
@@ -8280,7 +8301,7 @@ load when=begin v0=ode_layer0 v1=ode_layer1 append=0 file=my_dump_file.dmp;
 
 <p>
 All example scripts can be found in <code>beatbox/data/scripts</code> of the
-package distribution. Examples of dump device can be found in the
+package distribution. Examples of <code>load</code> device can be found in the
 following:
 </p>
 
@@ -8289,9 +8310,10 @@ beatbox/data/scripts/sequential/FitzHughNagumo_model/fhn1_load.bbs
 </pre>
 
 <p>
-The purpose of this file is to give an example of the use of load
+The purpose of this script is to give an example of the use of load
 device.  The input that this file expects is the dump
-file <code>fhn1.dmp</code>. The output of this script is a dump file
+file <code>fhn1.dmp</code>, say the one created by running the
+<code>fhn1.bbs</code>. The script also produces its own dump file
 at the end of the run. To run this script, use the following command:
 </p>
 
@@ -8719,7 +8741,7 @@ minumum, and mid-point values of user defined dynamical variables.
 
 <p>
 All example scripts can be found in data/scripts of the package
-distribution. Examples of dump device can be found in the following:
+distribution. Examples of <code>ppmout</code> device can be found in the following:
 </p>
 
 <pre>
@@ -8824,7 +8846,7 @@ record when=often file=output_record_file_name.rec append=0 x0=1 x1=xmax-1 y0=1 
 </pre>
 <h3>Instances of record in Example Scripts</h3>
 All example scripts can be found in data/scripts of the package distribution. Examples of
-record device can be found in the following:
+<code>record</code> device can be found in the following:
 <pre>
 beatbox/data/scripts/sequential/fhn0.bbs
 </pre>
@@ -8863,7 +8885,7 @@ reduce name=U_sample operation=max v0=[u] result=U;
 </pre>
 <h3>Instances of reduce in Example Scripts</h3>
 All example scripts can be found in data/scripts of the package distribution. Examples of
-record device can be found in the following:
+<code>reduce</code> device can be found in the following:
 <pre>
 beatbox/data/scripts/sequential/fhn0.bbs
 beatbox/data/scripts/sequential/fhn1.bbs
@@ -9260,7 +9282,7 @@ sample x0=x_loc y0=y_loc z0=z_loc v0=ode_layer result=name_of_place_holder;
 
 <h3>Instances of sample in Example Scripts</h3>
 All example scripts can be found in data/scripts of the package distribution. Examples of
-record device can be found in the following:
+<code>sample</code> device can be found in the following:
 <pre>
 beatbox/data/scripts/sequential/fhn0.bbs
 beatbox/data/scripts/sequential/fhn1.bbs

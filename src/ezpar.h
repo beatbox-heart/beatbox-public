@@ -67,7 +67,7 @@ _(REAL,flm_r,1,		0,0,0,1,1) /* filament          */
 _(REAL,flm_g,1,		0,0,0,1,1) /*    colour         */
 _(REAL,flm_b,0.8,	0,0,0,1,1) /*    components     */
 _(REAL,flm_wt,3.0,	0,0,0,1,1) /*    and the linewidth */
-_(INT,flm_balls,0,	0,0,0,1,1) /* "", plot it by spheres once=1 or twice=2 */
+_(INT,flm_balls,0,	0,0,0,1,1) /* "", plot it by spheres */
 _(REAL,flm_em,0,	0,0,0,1,1) /* emission property */
 
 /* T  N    I            R V L M D */
