@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -40,7 +40,8 @@ typedef struct {
   int vi;
 } STR;
 
-RHS_HEAD(flow2d,1) {
+RHS_HEAD(flow2d,1)
+{
   DEVICE_CONST(real,Dxx)
   DEVICE_CONST(real,Dxy)
   DEVICE_CONST(real,Dyx)
@@ -58,17 +59,20 @@ RHS_HEAD(flow2d,1) {
   jym=Cy*(u[0]+u[-DY]) + bet*(Dyy*(u[0]-u[-DY]) + Dyx*0.25*(u[+DX-DY]+u[DX]-u[-DX-DY]-u[-DX]));
   u[vi] = bet*(jxp-jxm+jyp-jym);
 
-} RHS_TAIL(flow2d)
+}
+RHS_TAIL(flow2d)
 
 RHS_CREATE_HEAD(flow2d)
-  ACCEPTP(Dxx,RNONE,0.,RNONE);
-  ACCEPTP(Dxy,0.,0.,RNONE);
-  ACCEPTP(Dyx,S->Dxy,0.,RNONE);
-  ACCEPTP(Dyy,S->Dxx,0.,RNONE);
+{
+  ACCEPTP(Dxx,0.,0.,RNONE);
+  ACCEPTP(Dxy,0.,RNONE,RNONE);
+  ACCEPTP(Dyx,S->Dxy,RNONE,RNONE);
+  ACCEPTP(Dyy,0,0.,RNONE);
   ACCEPTP(Cx,0,0,RNONE);
   ACCEPTP(Cy,0,0,RNONE);
-  ACCEPTR(hx,RNONE,0.,RNONE);
-  ACCEPTI(vi,RNONE,0.,RNONE);
+  ACCEPTR(hx,RNONE,0.,RNONE); ASSERT(hx != 0);
+  ACCEPTI(vi,INONE,0,INONE);
+}
 RHS_CREATE_TAIL(flow2d,1)
 
 

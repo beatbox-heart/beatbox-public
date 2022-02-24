@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -33,4 +33,7 @@ _(real,delta,0.,RNONE,RNONE)	/* shortcut/round-up tolerance			*/
 /* Compile-time macros made run-time flags */
 _(int,explicit,0,0,1)		/* if 1 then explicit u-kinetics, else implicit	*/
 _(int,split,1,0,1)		/* if 1 then split diffusion and kinetics steps	*/
-_(int,manypoint,0,0,1)		/* equivalent of NINEPOINT and NINETEENPT flags	 */
+_(int,manypoint,0,0,1)		/* equivalent of NINEPOINT and NINETEENPT flags	*/
+_(int,pbc_x,0,0,1)		/* equivalent of PBC_x				*/
+_(int,pbc_y,0,0,1)		/* equivalent of PBC_y				*/
+_(int,pbc_z,0,0,1)		/* equivalent of PBC_z				*/

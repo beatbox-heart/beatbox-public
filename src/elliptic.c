@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -864,9 +864,9 @@ static int list_points(STR *S,Space s) {
 		    dD[j][k] =
 		      (Dpar - Dtrans) * 
 		      (
-		       (Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+k-1) )] *
+		       (Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] *
 			Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+k-1) )] )-
-		       (Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+k-1) )] *
+		       (Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] *
 			Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+k-1) )] )
 		       );
 		  } /* for k */

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.

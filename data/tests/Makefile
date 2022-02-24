@@ -10,7 +10,7 @@ TEST=echo -n test $* :
 OK=echo ' ok'
 FAIL=echo ' failed'; ./admitfailure
 
-NEGATIVE=nodev depth nexist notype reserved declared divzero diff0d nomem nomem-4
+NEGATIVE=nodev depth nexist notype reserved noname declared divzero diff0d nomem nomem-4
 POSITIVE=funcs matout record reduce reduce-4 \
 	fhn0 fhn1 fhn2 fhn3 fhn3side fhn3side-16 \
 	bkl3cont-0 bkl3cont-4 br0 hh52mrl \

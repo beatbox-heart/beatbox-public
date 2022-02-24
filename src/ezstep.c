@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -174,6 +174,9 @@ CREATE_HEAD(ezstep)
     if (find_key("hx=",w)) MESSAGE("/* Warning: D=0 so the given hx value will be ignored */\n");
     if (find_key("split=",w)) MESSAGE("/* Warning: D=0 so the given split value will be ignored */\n");
     if (find_key("manypoint=",w)) MESSAGE("/* Warning: D=0 so the given manypoint value will be ignored */\n");
+    if (find_key("pbc_x=",w)) MESSAGE("/* Warning: D=0 so the given pbc_x value will be ignored */\n");
+    if (find_key("pbc_y=",w)) MESSAGE("/* Warning: D=0 so the given pbc_y value will be ignored */\n");
+    if (find_key("pbc_z=",w)) MESSAGE("/* Warning: D=0 so the given pbc_z value will be ignored */\n");
   }
   ASSERT(a != 0);
   ASSERT(eps != 0);
@@ -387,6 +390,8 @@ static void Step_ini_3D (Space s, STR *S)
 
 static void  Impose_boundary_conditions_2D (Space s, STR *S, real *w, real *sigma_w)
 {
+  DEVICE_CONST(int,pbc_x);
+  DEVICE_CONST(int,pbc_y);
   DEVICE_CONST(int,manypoint);
   DEVICE_CONST(int,s2);
   int x,y;
@@ -402,15 +407,29 @@ static void  Impose_boundary_conditions_2D (Space s, STR *S, real *w, real *sigm
    * case (x, y).  This is correct though a bit subtle. */
 
   /* Set fictitious points in x-direction */
-  for (y=s.y0;y<=s.y1;y++) { 
-    W(s.x0-1,y) = W(s.x0+1,y);  
-    W(s.x1+1,y) = W(s.x1-1,y);  
+  if (pbc_x) {
+    for (y=s.y0;y<=s.y1;y++) { 
+      W(s.x0-1,y) = W(s.x1-1,y);  
+      W(s.x1+1,y) = W(s.x0+1,y);  
+    }
+  } else {
+    for (y=s.y0;y<=s.y1;y++) { 
+      W(s.x0-1,y) = W(s.x0+1,y);  
+      W(s.x1+1,y) = W(s.x1-1,y);  
+    }
   }
 
   /* Set fictitious points in y-direction */
-  for (x=s.x0-1;x<=s.x1+1;x++) { 
-    W(x,s.y0-1) = W(x,s.y0+1);  
-    W(x,s.y1+1) = W(x,s.y1-1);  
+  if (pbc_y) {
+    for (x=s.x0-1;x<=s.x1+1;x++) { 
+      W(x,s.y0-1) = W(x,s.y1-1);  
+      W(x,s.y1+1) = W(x,s.y0+1);  
+    }
+  } else {
+    for (x=s.x0-1;x<=s.x1+1;x++) { 
+      W(x,s.y0-1) = W(x,s.y0+1);  
+      W(x,s.y1+1) = W(x,s.y1-1);  
+    }
   }
 
   if (manypoint) {
@@ -467,6 +486,9 @@ static void  Impose_boundary_conditions_2D (Space s, STR *S, real *w, real *sigm
 
 static void  Impose_boundary_conditions_3D (Space s, STR *S, real *w, real *sigma_w)
 {
+  DEVICE_CONST(int,pbc_x);
+  DEVICE_CONST(int,pbc_y);
+  DEVICE_CONST(int,pbc_z);
   DEVICE_CONST(int,manypoint);
   DEVICE_CONST(int,s2);
   int x,y,z;
@@ -482,26 +504,53 @@ static void  Impose_boundary_conditions_3D (Space s, STR *S, real *w, real *sigm
    * case (x, y, z).  This is correct though a bit subtle. */
 
   /* Set fictitious points in x-direction */
-  for (z=s.z0;z<=s.z1;z++) { 
-    for (y=s.y0;y<=s.y1;y++) { 
-      W(s.x0-1,y,z) = W(s.x0+1,y,z);  
-      W(s.x1+1,y,z) = W(s.x1-1,y,z);  
+  if (pbc_x) {
+    for (z=s.z0;z<=s.z1;z++) { 
+      for (y=s.y0;y<=s.y1;y++) { 
+	W(s.x0-1,y,z) = W(s.x1-1,y,z);  
+	W(s.x1+1,y,z) = W(s.x0+1,y,z);  
+      }
+    }
+  } else {
+    for (z=s.z0;z<=s.z1;z++) { 
+      for (y=s.y0;y<=s.y1;y++) { 
+	W(s.x0-1,y,z) = W(s.x0+1,y,z);  
+	W(s.x1+1,y,z) = W(s.x1-1,y,z);  
+      }
     }
   }
 
   /* Set fictitious points in y-direction */
-  for (z=s.z0;z<=s.z1;z++) { 
-    for (x=s.x0-1;x<=s.x1+1;x++) { 
-      W(x,s.y0-1,z) = W(x,s.y0+1,z);  
-      W(x,s.y1+1,z) = W(x,s.y1-1,z);  
+  if (pbc_y) {
+    for (z=s.z0;z<=s.z1;z++) { 
+      for (x=s.x0-1;x<=s.x1+1;x++) { 
+	W(x,s.y0-1,z) = W(x,s.y1-1,z);  
+	W(x,s.y1+1,z) = W(x,s.y0+1,z);  
+      }
+    }
+  } else {
+    for (z=s.z0;z<=s.z1;z++) { 
+      for (x=s.x0-1;x<=s.x1+1;x++) { 
+	W(x,s.y0-1,z) = W(x,s.y0+1,z);  
+	W(x,s.y1+1,z) = W(x,s.y1-1,z);  
+      }
     }
   }
 
   /* Set fictitious points in z-direction */
-  for (y=s.y0-1;y<=s.y1+1;y++) { 
-    for (x=s.x0-1;x<=s.x1+1;x++) { 
-      W(x,y,s.z0-1) = W(x,y,s.z0+1);  
-      W(x,y,s.z1+1) = W(x,y,s.z1-1);  
+  if (pbc_z) {
+    for (y=s.y0-1;y<=s.y1+1;y++) { 
+      for (x=s.x0-1;x<=s.x1+1;x++) { 
+	W(x,y,s.z0-1) = W(x,y,s.z1-1);  
+	W(x,y,s.z1+1) = W(x,y,s.z0+1);  
+      }
+    }
+  } else {
+    for (y=s.y0-1;y<=s.y1+1;y++) { 
+      for (x=s.x0-1;x<=s.x1+1;x++) { 
+	W(x,y,s.z0-1) = W(x,y,s.z0+1);  
+	W(x,y,s.z1+1) = W(x,y,s.z1-1);  
+      }
     }
   }
 

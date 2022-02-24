@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -331,9 +331,9 @@ CREATE_HEAD(diffstep)
 		  dD[i][j] =
 		    (Dpar - Dtrans) * 
 		    (
-		     (Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] *
+		     (Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+i-1) )] *
 		      Geom[geom_ind(px,py,pz,(GEOM_FIBRE_1+j-1) )] )-
-		     (Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] *
+		     (Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+i-1) )] *
 		      Geom[geom_ind(nx,ny,nz,(GEOM_FIBRE_1+j-1) )] )
 		     );
 		} /* for j */
