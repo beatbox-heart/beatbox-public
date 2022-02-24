@@ -1,4 +1,11 @@
-Version 1.14
+Version 1.15 (2022/02/24)
+
+- parameters pbx, pby, pbz addded to ezstep device to allow periodic boundary conditions;
+- devices torx, tory, torz added, to allow periodic boundary conditions in box geometries (to be documented);
+- an error in diff and diffstep devices corrected, which affected accuracy of calculations in anisotropic cases with variable diffusivity tensor;
+- a few minor errors corrected and inconsistencies removed. 
+
+Version 1.14 (2021/05/30)
 
 - In absence of X11 and/or OpenGL graphics, Beatbox now automatically configures so as to not depend on those libraries:
 -- In devices that have graphics as facultative functions, these are disabled;
