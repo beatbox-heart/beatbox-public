@@ -323,6 +323,8 @@ dist_tests = \
 		$(testdir)/nomem-4.errmsg \
 		$(testdir)/nomem.bbs \
 		$(testdir)/nomem.errmsg \
+		$(testdir)/noname.bbs \
+		$(testdir)/noname.errmsg \
 		$(testdir)/notype.bbs \
 		$(testdir)/notype.errmsg \
 		$(testdir)/record.bbs \
