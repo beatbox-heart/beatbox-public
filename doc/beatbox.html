@@ -138,12 +138,12 @@ parameters.
 </p>
 
 <p>
-A simulation will thus typically involve:
+A simulation will thus typically proceed in three stages: 
 </p>
 
 <ol>
 <li>
-The input script being read and the simulation initialised:
+Initiation: the input script being read and the simulation initialised:
 <ul>
 <li>
 The simulation grid is created with the specified dimensions, and if
@@ -156,7 +156,7 @@ Devices are added to the ring of devices with the specified parameters.
 </ul>
 </li>
 <li>
-The simulation is run:
+Run: the simulation proper proceeds:
 <ul>
 <li>
 Each device in the ring is called in turn to perform its part of the
@@ -169,7 +169,9 @@ Repeat until the stop condition is met, or an error occurs.
 </ul>
 </li>
 <li>
-The simulation is terminated.
+Termination: normally, or if the severity of the error allows, then
+any open files are closed and memory is freed, and the
+program exits.
 </li>
 </ol>
 <p>
@@ -1088,6 +1090,10 @@ run-time VGA graphics.</li>
 <li> <code>pi</code> - the real number pi=3.1415926...</li>
 <li> <code>always</code> - the real 1.0.</li>
 <li> <code>never</code> - the real 0.0.</li>
+<li> <code>advance</code> - the real 1.0 before the start of the main
+loop, and real 0.0 during the main loop; could be used as a
+<code>when=</code> device parameter if the 
+the device is to run during the initiation stage.</li>
 </ul>
 
 Apart from these, some devices have their own predefined variables
@@ -6237,7 +6243,8 @@ in EZSPIRAL's <code>ezstep</code> which make it noticeably
 faster. This possibility is realised by setting <code>D=0</code> in
 the parameter list, in which case it is expected that
 <code>Dv=0</code> as well. Naturally, this choice renders parameters
-<code>hx</code>, <code>split</code> and <code>manypoints</code>
+<code>hx</code>, <code>split</code>, <code>manypoints</code>,
+<code>pbc_x</code>,  <code>pbc_y</code> and <code>pbc_z</code>
 (described below) irrelevant, so setting them in the script will cause
 warning messages.
 </p>
@@ -6321,6 +6328,28 @@ warning messages.
 <td class="left">Equivalent of <code>NINEPOINT</code> and
   <code>NINETEENPT</code> flags from EZ software. Defaults to 0.</td>
 </tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>pbc_x</code></td>
+<td class="left">If nonzero, boundary conditions in the x direction are
+  periodic rather than non-flux. Defaults to 0.</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>pbc_y</code></td>
+<td class="left">If nonzero, boundary conditions in the y direction are
+  periodic rather than non-flux. Defaults to 0.</td>
+</tr>
+
+<tr>
+<td class="left"><code>int</code></td>
+<td class="left"><code>pbc_z</code></td>
+<td class="left">If nonzero, boundary conditions in the z direction are
+  periodic rather than non-flux. Defaults to 0.</td>
+</tr>
+
 </table>
 
 <h3>Instances of ezstep in Example Scripts</h3>
@@ -7368,14 +7397,20 @@ new file every time it is run, enumerated in a prescribed way.
       appropriate command-line tools. The mask can contain a C-style format
       field for printing a floating-point value, e.g. "%.0f" which can be used
       to enumerate the output files. </td>
-    </tr>
+  </tr>
   <tr>
     <td class="left"><code>k-expression</code></td>
     <td class="left"><code>code</code></td>
     <td class="left"><code>t</code></td>
-    <td class="left">a formula to compute the enumerator for the images: 
+    <td class="left">A formula to compute the enumerator for the images: 
       will be interpreted as a real and printed through the format defined
       by <code>filter</code> to produce the actuall shell command. </td>
+  </tr>
+  <tr>
+    <td class="left"><code>k-expression</code></td>
+    <td class="left"><code>filtercode</code></td>
+    <td class="left"><code>t</code></td>
+    <td class="left"> Synonym of the above <code>code</code> parameter. </td>
   </tr>
   <tr>
     <td><code>int</code></td>

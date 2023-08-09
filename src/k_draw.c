@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -45,6 +45,7 @@
 extern int Verbose;            /* defined in main */
 
 typedef struct {
+  BGIWindow wnd;
   #include "k_code.h"
   real absmin, absmax, ordmin, ordmax;
   real absold, ordold;
@@ -53,6 +54,8 @@ typedef struct {
 } STR;
 
 RUN_HEAD(k_draw)
+{
+  DEVICE_CONST(BGIWindow,wnd);
   #include "k_def.h"
   DEVICE_CONST(real,lines)
   DEVICE_VAR(real,abs) DEVICE_VAR(real,absold) DEVICE_CONST(real,absmin) DEVICE_CONST(real,absmax)
@@ -60,7 +63,7 @@ RUN_HEAD(k_draw)
   DEVICE_VAR(real,col)
   int c;
   #include "k_exec.h"
-  SetWindow(w);
+  SetWindow(wnd);
   if NOT(SetLimits(absmin,absmax,ordmin,ordmax)) return 0;
   c=((int)*col)%16;
   if( (*absold!=RNONE) && (*ordold!=RNONE)
@@ -70,13 +73,18 @@ RUN_HEAD(k_draw)
   else
     Pixel(*abs,*ord,c);
   *absold=*abs; *ordold=*ord;
+}
 RUN_TAIL(k_draw)
 
 DESTROY_HEAD(k_draw)
+{
   #include "k_free.h"
+}
 DESTROY_TAIL(k_draw)
 
-CREATE_HEAD(k_draw) {
+CREATE_HEAD(k_draw)
+{
+  ACCEPT_WINDOW(wnd);
   k_on();                                       CHK(NULL);
   memcpy(loctb,deftb,sizeof(*deftb));
   tb_insert_real(loctb,"abs",&(S->abs));	CHK("abs");
@@ -93,6 +101,7 @@ CREATE_HEAD(k_draw) {
   ACCEPTR(ordmin,0.0,RNONE,RNONE);
   ACCEPTR(ordmax,1.0,RNONE,RNONE); ASSERT(S->ordmin!=S->ordmax);
   S->absold=S->ordold=RNONE;
-} CREATE_TAIL(k_draw,0)
+}
+CREATE_TAIL(k_draw,0)
 
 #endif

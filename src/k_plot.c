@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -45,6 +45,7 @@
 extern int Verbose;            /* defined in main */
 
 typedef struct {
+  BGIWindow wnd;
   #include "k_code.h"
   INT i;
   int N;
@@ -57,6 +58,8 @@ typedef struct {
 } STR;
 
 RUN_HEAD(k_plot)
+{
+  DEVICE_CONST(BGIWindow,wnd);
   #include "k_def.h"
   DEVICE_CONST(int,N) 
   DEVICE_VAR(INT,i)
@@ -67,9 +70,9 @@ RUN_HEAD(k_plot)
   real absold, ordold;
   int c;
 
-  if (clean) {SetWindow(w); Clean();}
+  if (clean) {SetWindow(wnd); Clean();}
   absold=ordold=RNONE;
-  SetWindow(w);
+  SetWindow(wnd);
   if NOT(SetLimits(absmin,absmax,ordmin,ordmax)) return 0;
   setlinewidth(linewidth);
   k_on();
@@ -89,13 +92,18 @@ RUN_HEAD(k_plot)
   }
 				/*printf("\n\n", *abs, *ord);*/
   setlinewidth(1);
+}
 RUN_TAIL(k_plot)
 
 DESTROY_HEAD(k_plot)
+{
   #include "k_free.h"
+}
 DESTROY_TAIL(k_plot)
 
-CREATE_HEAD(k_plot) {
+CREATE_HEAD(k_plot)
+{
+  ACCEPT_WINDOW(wnd);
   k_on();				    CHK(NULL);
   memcpy(loctb,deftb,sizeof(*deftb));
   tb_insert_int (loctb,  "i",&(S->i));	    CHK("i");
@@ -115,6 +123,7 @@ CREATE_HEAD(k_plot) {
   ACCEPTR(ordmax,1,RNONE,RNONE); ASSERT(S->ordmin!=S->ordmax);
   /* FREE(loctb); */
   k_off();
-} CREATE_TAIL(k_plot,0)
+}
+CREATE_TAIL(k_plot,0)
 
 #endif

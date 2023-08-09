@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -65,27 +65,11 @@ _( CAPACITANCE , 0.185)
 _( Gkr , 0.096)
 /* Parameters for Iks */
 _( pKNa , 0.03)
-#ifdef EPI
-_( Gks , 0.245 )
-#endif
-#ifdef ENDO
-_( Gks , 0.245 )
-#endif
-#ifdef MCELL
-_( Gks , 0.062 )
-#endif
+_( Gks , _ver(0.245,0.245,0.062))
 /* Parameters for Ik1 */
 _( GK1 , 5.405)
 /* Parameters for Ito */
-#ifdef EPI
-_( Gto , 0.294 )
-#endif
-#ifdef ENDO
-_( Gto , 0.073 )
-#endif
-#ifdef MCELL
-_( Gto , 0.294 )
-#endif
+_( Gto , _ver(0.294,0.073,0.294))
 /* Parameters for INa */
 _( GNa , 14.838)
 /* Parameters for IbNa */

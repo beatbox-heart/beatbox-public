@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -297,9 +297,10 @@ int spaceParametersExist(char *parameterString);
  */
 int accept_space(Space *s, char *w);
 
-/*#ifdef IBMPC*/
+#ifdef X11
+#define ACCEPT_WINDOW(b) if (!accept_window(&(S->b),w)) return (0); BGIWindow b=S->b;
 int accept_window(BGIWindow *s, char *w);
-/*#endif*/
+#endif
 
 double _u(double _x, double _y, double _z, double _v);
 
@@ -312,7 +313,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param e Maximum value.
  *	\sa accepti()
  */
-#define ACCEPTI(b,c,d,e) if (!accepti(#b"=",&(S->b),c,d,e,w)) return(0); int b=S->b
+#define ACCEPTI(b,c,d,e) if (!accepti(#b"=",&(S->b),c,d,e,w)) return(0); int b=S->b;
 
 /*!
  *      Same, for a parameter (potentially) linked to a k-variable or k-expression
@@ -343,7 +344,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param e Maximum value.
  *	\sa acceptl()
  */
-#define ACCEPTL(b,c,d,e) if (!acceptl(#b"=",&(S->b),c,d,e,w)) return(0); long b=S->b
+#define ACCEPTL(b,c,d,e) if (!acceptl(#b"=",&(S->b),c,d,e,w)) return(0); long b=S->b;
 
 /*!
  *	Shortcut for accepting a real (double) parameter via acceptr()
@@ -355,7 +356,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param e Maximum value.
  *	\sa acceptr()
  */
-#define ACCEPTR(b,c,d,e) if (!acceptr(#b"=",&(S->b),c,d,e,w)) return(0); real b=S->b
+#define ACCEPTR(b,c,d,e) if (!acceptr(#b"=",&(S->b),c,d,e,w)) return(0); real b=S->b;
 
 
 /*!
@@ -375,7 +376,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param e Maximum value.
  *	\sa acceptre()
  */
-#define ACCEPTRE(m,a,i,c,d,e) if (!acceptre(m"=",a,i,c,d,e,w)) return(0)
+#define ACCEPTRE(m,a,i,c,d,e) if (!acceptre(m"=",a,i,c,d,e,w)) return(0);
 
 #if defined _rhs || defined _ionic
 /*!
@@ -389,7 +390,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param e Maximum value.
  *	\sa acceptp()
  */
-#define ACCEPTP(b,c,d,e) if (!acceptp(#b"=",&(S->b),c,d,e,w,var,&ivar,v0)) return(0); real b=S->b
+#define ACCEPTP(b,c,d,e) if (!acceptp(#b"=",&(S->b),c,d,e,w,var,&ivar,v0)) return(0); real b=S->b;
 #endif
 
 /*!
@@ -400,8 +401,8 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param c Default value.
  *	\sa accepts()
  */
-#define ACCEPTS(b,c)     if (!accepts(#b"=",&(S->b[0]),c,w)) return(0); char *b=&(S->b[0])
-#define ACCEPTSN(b,n,c)     if (!acceptsn(#b"=",&(S->b[0]),n,c,w)) return(0); char *b=&(S->b[0])
+#define ACCEPTS(b,c)     if (!accepts(#b"=",&(S->b[0]),c,w)) return(0); char *b=&(S->b[0]);
+#define ACCEPTSN(b,n,c)     if (!acceptsn(#b"=",&(S->b[0]),n,c,w)) return(0); char *b=&(S->b[0]);
 
 /*!
  *	Shortcut for accepting a file via acceptf()
@@ -412,7 +413,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param d Default value.
  *	\sa acceptf()
  */
-#define ACCEPTF(b,c,d)   if (!acceptf(#b"=",c,d,&(S->b##name[0]),&(S->b),w)) return(0); FILE *b=S->b; char *b##name=&(S->b##name[0])
+#define ACCEPTF(b,c,d)   if (!acceptf(#b"=",c,d,&(S->b##name[0]),&(S->b),w)) return(0); FILE *b=S->b; char *b##name=&(S->b##name[0]);
 
 /*!
  *	Shortcut for accepting a code string via acceptc()
@@ -422,7 +423,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\param d Default code string.
  *	\sa acceptc()
  */
-#define ACCEPTC(b,c,d)   if (!acceptc(#b"=",c,d,&(S->b[0]),&(S->b##code),w)) return(0)
+#define ACCEPTC(b,c,d)   if (!acceptc(#b"=",c,d,&(S->b[0]),&(S->b##code),w)) return(0);
 
 /*!
  *	Shortcut for accepting a real k_variable via accept_real_variable()
@@ -432,7 +433,7 @@ double _u(double _x, double _y, double _z, double _v);
  *	\sa accept_real_variable()
  */
 /* 8< mpi_acceptv_macro */
-#define ACCEPTV(a)   if (!accept_real_variable(&(S->a),&(S->a##name),#a,w)) return(0)
+#define ACCEPTV(a)   if (!accept_real_variable(&(S->a),&(S->a##name),#a,w)) return(0);
 /* >8 mpi_acceptv_macro */
 
 /*!

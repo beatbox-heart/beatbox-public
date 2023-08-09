@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -31,12 +31,7 @@
 PIPE *pipeto(char *cmd) {
   PIPE *p=calloc(1,sizeof(PIPE));
   int pid;
-  char temp6[] = "temp/bbx.XXXXXX";
    p->n=tempnam(NULL,NULL); // original code
-/*   system("mkdir -p tmp");
-     p->n = mkstemp(temp6); */ // trial: didnt work: p-> is a pointer of type char, mkstemp returns a file decriptor, i.e. an int.
-
-                                             /* fprintf(stderr, "piping to %s\n",cmd); */
 
   if (-1==mkfifo(p->n,0600)) {perror("pipeto could not make a fifo"); return NULL;}
   switch (pid=fork()) {
@@ -46,9 +41,8 @@ PIPE *pipeto(char *cmd) {
   case 0: {
      char *s=calloc(strlen(cmd)+strlen(p->n)+10,1);
      sprintf(s,"cat %s | %s",p->n,cmd); 
-                                             /* fprintf(stderr, "child about to execute %s\n",s); */
      system(s); 
-                                             /* fprintf(stderr, "child completed and about to exit\n"); */
+     free(s);
      _exit(0);					     
   }
   default: 
@@ -62,18 +56,10 @@ int pipeclose(PIPE *p) {
   int fcloseret=0;
   int killret=0;
   int status=0;
-  /*                              fprintf(stderr,"pipeclose entered\n"); */
   if (0!=(fcloseret=fclose(p->f))) perror("pipeclose fclose fifo input");
-  /*                              fprintf(stderr,"fifo input closed\n"); */
-  /* if (0!=(killret=kill(p->child,SIGQUIT))) perror("pipeclose kill child process"); / * - could be still workinglegitimately!? */
-  /* waitpid(p->child,&status,0); */
   waitpid(p->child,&status,WNOHANG); /* if child already finished, there is no one there to report the status */
   if (0==(WIFEXITED(status))) fprintf(stderr,"pipeclose child status %08x\n",status);
-
   unlink(p->n);			      
-  /*                              fprintf(stderr,"fifo erased\n"); */
   free(p->n);
-  /*                              fprintf(stderr,"name cleared\n"); */
-  /*                              fprintf(stderr,"about to return %d\n",fcloseret | killret); */
   return fcloseret | killret;
 }

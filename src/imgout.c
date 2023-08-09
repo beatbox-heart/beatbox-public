@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -37,10 +37,13 @@
 #include "byte.h"
 #include "mpi_io_choice.h"
 
+#define CODELENGTH 1024
+
 typedef struct {
   int append;
-  char filter[1024];		/* generated image will be piped to this unix command */
-  char code[1024];		/* calculate a number to make part of the filter */
+  char filter[CODELENGTH];	/* generated image will be piped to this unix command */
+  char code[CODELENGTH];	/* calculate a number to make part of the filter */
+  char filtercode[CODELENGTH];	/* .., alias of */
   pp_fn compiled;		/* k_code for the filter number calculation */
   int r, g, b;			/* layers wherefrom to extract the colour components */
   int autoscale;		/* will scale the components automatically */
@@ -60,18 +63,20 @@ typedef struct {
 static void getlimits(Space s,int c,real *c0,real *c1);
 
 RUN_HEAD(imgout)
-  DEVICE_ARRAY(char, filter)
-  DEVICE_CONST(pp_fn, compiled)
-  DEVICE_CONST(int,autoscale)
-  DEVICE_CONST(int,r) DEVICE_CONST(real,r0) DEVICE_CONST(real,r1)
-  DEVICE_CONST(int,g) DEVICE_CONST(real,g0) DEVICE_CONST(real,g1)
-  DEVICE_CONST(int,b) DEVICE_CONST(real,b0) DEVICE_CONST(real,b1)
-  DEVICE_CONST(int,bgr)
-  DEVICE_CONST(int,bgg)
-  DEVICE_CONST(int,bgb)
-  DEVICE_CONST(FILE *,debug)
-  int nx=s.x1-s.x0+1;
-  int ny=s.y1-s.y0+1;
+{
+  DEVICE_ARRAY(char, filter);
+  DEVICE_CONST(pp_fn, compiled);
+  DEVICE_CONST(int,autoscale);
+  DEVICE_CONST(int,r) DEVICE_CONST(real,r0) DEVICE_CONST(real,r1);
+  DEVICE_CONST(int,g) DEVICE_CONST(real,g0) DEVICE_CONST(real,g1);
+  DEVICE_CONST(int,b) DEVICE_CONST(real,b0) DEVICE_CONST(real,b1);
+  DEVICE_CONST(int,bgr);
+  DEVICE_CONST(int,bgg);
+  DEVICE_CONST(int,bgb);
+  DEVICE_CONST(FILE *,debug);
+  int x0=s.x0, x1=s.x1, nx=x1-x0+1;
+  int y0=s.y0, y1=s.y1, ny=y1-y0+1;
+  int z0=s.z0, z1=s.z1;
   int x, y, z;
   char l[2048];
   PIPE *p;
@@ -89,15 +94,15 @@ RUN_HEAD(imgout)
     if (debug) fprintf(debug,"imgout t=%ld r:%g..%g g:%g..%g b:%g..%g\n",t,r0,r1,g0,g1,b0,b1);
   }
 
-  for(z=s.z0;z<=s.z1;z++) {
+  for(z=z0;z<=z1;z++) {
     /* a separate image for each z-section */
     fprintf (p->f,"P6\n%d %d\n%d\n",nx,ny,MAXCHAR);
-    for(y=0;y<ny;y++) {
-      for(x=0;x<nx;x++) {
-	if (isTissue(s.x0+x,s.y0+y,z)) {
-	  putc(Byte(s.x0+x,s.y0+y,z,r,r0,r1),p->f);
-	  putc(Byte(s.x0+x,s.y0+y,z,g,g0,g1),p->f);
-	  putc(Byte(s.x0+x,s.y0+y,z,b,b0,b1),p->f);
+    for(y=y0;y<=y1;y++) {
+      for(x=x0;x<=x1;x++) {
+	if (isTissue(x,y,z)) {
+	  putc(Byte(x,y,z,r,r0,r1),p->f);
+	  putc(Byte(x,y,z,g,g0,g1),p->f);
+	  putc(Byte(x,y,z,b,b0,b1),p->f);
 	} else { /*  Void. Use background colour. */
 	  putc((unsigned) bgr,p->f);
 	  putc((unsigned) bgg,p->f);
@@ -107,18 +112,29 @@ RUN_HEAD(imgout)
     } /* for y */
   } /* for z */
   pipeclose(p);
+}
 RUN_TAIL(imgout)
 
 DESTROY_HEAD(imgout)
+{
   FREE(S->compiled);
+}
 DESTROY_TAIL(imgout)
 
-CREATE_HEAD(imgout) {
+CREATE_HEAD(imgout)
+{
+  int code_accepted=0;
+  
   ACCEPTS(filter,"cat - > t=%06.0f.ppm");
   ACCEPTS(code,"t");
+  ACCEPTS(filtercode,S->code);
+  if (find_key("code=",w) && find_key("filtercode=",w))
+      MESSAGE("/* both code= and filtercode= are present; the latter takes effect */\n");
+  memcpy(S->code,S->filtercode,CODELENGTH);
   k_on();
   S->compiled=compile(S->code,deftb,t_real); CHK(S->code);
   k_off();
+  
   ACCEPTI(r,INONE,-1,(int)vmax-1); 
   ACCEPTI(g,INONE,-1,(int)vmax-1);
   ACCEPTI(b,INONE,-1,(int)vmax-1);
@@ -156,7 +172,8 @@ CREATE_HEAD(imgout) {
     MESSAGE("Background colour parameters (bgr, bgg, bgb) are only used when geometry is active.\n\tThe value(s) provided will be ignored.");
   }
   ACCEPTF(debug,"wt","");
-} CREATE_TAIL(imgout,0)
+}
+CREATE_TAIL(imgout,0)
 
 
 static void getlimits(Space s,int c,real *c0,real *c1) {

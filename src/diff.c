@@ -1,4 +1,24 @@
 /**
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
+ * (see ../AUTHORS for the full list of contributors)
+ *
+ * This file is part of Beatbox.
+ *
+ * Beatbox is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Beatbox is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
  * Copyright (C) (2010-2022) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
@@ -100,8 +120,9 @@ RUN_HEAD(diff)
     DEVICE_CONST(real,D)
     real gam=D/(hx*hx);
     if (dim==3) {
+      Iso3Point P;
       for(ind=0;ind<numTissuePoints;ind++){
-	Iso3Point P=S->i3points[ind];
+	P=S->i3points[ind];
 	x = P.x;
 	y = P.y;
 	z = P.z;
@@ -117,8 +138,9 @@ RUN_HEAD(diff)
       } /* for ind */
     } /* shortened version for lesser dimensions */
     else if (dim==2) {
+      Iso2Point P;
       for(ind=0;ind<numTissuePoints;ind++){
-	Iso2Point P=S->i2points[ind];
+	P=S->i2points[ind];
 	x = P.x;
 	y = P.y;
 	z = P.z;
@@ -132,8 +154,9 @@ RUN_HEAD(diff)
 	u[DV*(s.v1-s.v0)] = gam*sum;
       } /* for ind */
     } else if (dim==1) {
+      Iso1Point P;
       for(ind=0;ind<numTissuePoints;ind++){
-	Iso1Point P=S->i1points[ind];
+	P=S->i1points[ind];
 	x = P.x;
 	y = P.y;
 	z = P.z;
@@ -253,13 +276,14 @@ CREATE_HEAD(diff)
     ACCEPTR(Dtrans,RNONE,0.,RNONE);
 
     /* There should be no single diffusion coefficient normally */
-    { /* Insulate this scalar D from the tensor D defined in the outside block */
-      ACCEPTR(D,pow(Dpar*Dpar*Dtrans,1.0/3.0),0.,RNONE);
+    Dscalar=pow(Dpar*Dpar*Dtrans,1.0/3.0);
+    if (find_key("D=",w)) { /* Insulate this scalar D from the tensor D defined in the outside block */
+      ACCEPTR(D,Dscalar,0.,RNONE);
       Dscalar=D;
+      MESSAGE("/* The isotropic diffusion coefficient 'D' "
+	      "is mostly unused when anisotropy is active. "
+	      "It will apply only at exceptional 'isotropic' points, if any. */\n");
     }	
-    MESSAGE("/* The isotropic diffusion coefficient 'D' "
-	    "is mostly unused when anisotropy is active. "
-	    "It will apply only at exceptional 'isotropic' points, if any. */\n");
 
     /* The current point's structure */
     AnisoPoint P;
@@ -289,7 +313,7 @@ CREATE_HEAD(diff)
 		  D[i][j] = (i==j)?Dscalar:0;
 		}
 	      }
-	      for (i=1;i<=3;i++) c[i] = 0; /* simple and ad hoc; rething it later */
+	      for (i=1;i<=3;i++) c[i] = 0; /* simple and ad hoc; rethink it later */
 	    } else {
 	      /* set up the tensor */
 	      for (i=1;i<=3;i++) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -220,6 +220,8 @@ int main (int argc, char **argv) {
   #undef MARK_ERROR
   #define MARK_ERROR   goto Exit;
 
+  advance = 1; /* "time has not started yet" */
+  
   #if MPI
     /*  Start the MPI processes. */
     mpi_errno = MPI_Init(NULL, NULL);
@@ -400,9 +402,10 @@ int main (int argc, char **argv) {
   /********************/
   #if MPI
     /*  Inactive processes can wait for the others at the exit barrier. */
-    if (I_AM_IDLE) goto Exit;
+  if (I_AM_IDLE) goto Exit;
   #endif
 
+  advance = 0; /* "time begins now" */
   t = 0; /* Set the main loop counter to 0 */
 
   /*  Initialize profiling */
@@ -438,25 +441,16 @@ int main (int argc, char **argv) {
       if (*(d.c)) { /* is the device condition met? */
 	DEBUG(" %d(%s",idev,d.n);
         if (Profile) device_start_time = Wtime();
-	#if MPI
-	  rc=d.p(d.s, d.w, d.par, d.sync, d.alwaysRun);
-          if (Profile) device_end_time = Wtime();
-	#else
-          if (Graph && (d.w.row1>d.w.row0 || d.w.col1>d.w.col0)) {
-            opengraph(); /* if X unavailable, proceed without */
-            if (!d.w.drawn) {
-               SetWindow(d.w);
-               Frame(d.s); 
-               d.w.drawn=1;
-            }
-          }
-          /*
-            The same structure is used in the serial and parallel codes.
-            So the structure dev[idev].XXXX has some dangling components.
-          */
-          rc=d.p(d.s, d.w, d.par);
-          if (Profile) device_end_time = Wtime();
-  	#endif
+	/*
+	  The same structure is used in the serial and parallel codes.
+	  So the structure dev[idev].XXXX has some dangling components.
+	*/
+#if MPI
+	rc=d.p(d.s, d.par, d.sync, d.alwaysRun);
+#else
+	rc=d.p(d.s, d.par);
+#endif
+	if (Profile) device_end_time = Wtime();
 
         if (Profile) {
           spent = (device_end_time - device_start_time);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -277,24 +277,27 @@ Axs=1100./(sqrt(1.+exp((-10.-svolt)/6)));
 Bxs=1./(1.+exp((svolt-60.)/20.));
 TAU_Xs=Axs*Bxs;
 
-#ifdef EPI
-    R_INF=1./(1.+exp((20-svolt)/6.));
-    S_INF=1./(1.+exp((svolt+20)/5.));
-    TAU_R=9.5*exp(-(svolt+40.)*(svolt+40.)/1800.)+0.8;
-    TAU_S=85.*exp(-(svolt+45.)*(svolt+45.)/320.)+5./(1.+exp((svolt-20.)/5.))+3.;
-#endif
-#ifdef ENDO
-    R_INF=1./(1.+exp((20-svolt)/6.));
-    S_INF=1./(1.+exp((svolt+28)/5.));
-    TAU_R=9.5*exp(-(svolt+40.)*(svolt+40.)/1800.)+0.8;
-    TAU_S=1000.*exp(-(svolt+67)*(svolt+67)/1000.)+8.;
-#endif
-#ifdef MCELL
-    R_INF=1./(1.+exp((20-svolt)/6.));
-    S_INF=1./(1.+exp((svolt+20)/5.));
-    TAU_R=9.5*exp(-(svolt+40.)*(svolt+40.)/1800.)+0.8;
-    TAU_S=85.*exp(-(svolt+45.)*(svolt+45.)/320.)+5./(1.+exp((svolt-20.)/5.))+3.;
-#endif
+switch(model) {
+ case model_EPI:	
+   R_INF=1./(1.+exp((20-svolt)/6.));
+   S_INF=1./(1.+exp((svolt+20)/5.));
+   TAU_R=9.5*exp(-(svolt+40.)*(svolt+40.)/1800.)+0.8;
+   TAU_S=85.*exp(-(svolt+45.)*(svolt+45.)/320.)+5./(1.+exp((svolt-20.)/5.))+3.;
+   break;
+ case model_ENDO:
+   R_INF=1./(1.+exp((20-svolt)/6.));
+   S_INF=1./(1.+exp((svolt+28)/5.));
+   TAU_R=9.5*exp(-(svolt+40.)*(svolt+40.)/1800.)+0.8;
+   TAU_S=1000.*exp(-(svolt+67)*(svolt+67)/1000.)+8.;
+   break;
+ case model_MCELL:
+   R_INF=1./(1.+exp((20-svolt)/6.));
+   S_INF=1./(1.+exp((svolt+20)/5.));
+   TAU_R=9.5*exp(-(svolt+40.)*(svolt+40.)/1800.)+0.8;
+   TAU_S=85.*exp(-(svolt+45.)*(svolt+45.)/320.)+5./(1.+exp((svolt-20.)/5.))+3.;
+   break;
+ default: ABORT("\n unknown model %d */", S->model);
+ };
 
 
 D_INF=1./(1.+exp((-5-svolt)/7.5));

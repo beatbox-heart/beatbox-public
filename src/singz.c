@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -97,6 +97,9 @@ typedef struct {
   char *zstddevname;
   /* Integer flag showing whether k-variables are used */
   int k_output;
+#ifdef X11
+  BGIWindow wnd;
+#endif
 } STR;
 
 
@@ -292,11 +295,13 @@ static int isocross(STR *S,Space *s, int z) {
   return 1; 		/* successfull */
 }
 
-RUN_HEAD(singz) {
+RUN_HEAD(singz)
+{
   int i;
   int z;
 #ifdef X11
-  int graphics=(w.row1>w.row0) && (w.col1>w.col0);
+  DEVICE_CONST(BGIWindow,wnd);
+  int graphics=(wnd.row1>wnd.row0) && (wnd.col1>wnd.col0);
 #endif
 #if MPI
   int imroot=(mpi_rank==S->root);
@@ -307,10 +312,10 @@ RUN_HEAD(singz) {
   /* Graphic output: repaint the old tip(s) to the foreground color */
 #ifdef X11
   if (graphics) {
-    SetWindow(w);
+    SetWindow(wnd);
     if NOT(SetLimits(s.x0, s.x1, s.y0, s.y1)) return 0;
     for (i=0;i<S->ntip;i++)
-      Pixel (S->xtip[i],S->ytip[i],w.color%16);
+      Pixel (S->xtip[i],S->ytip[i],wnd.color%16);
   }
 #endif
   S->ntip=0;
@@ -329,7 +334,7 @@ RUN_HEAD(singz) {
 #ifdef X11
   if (graphics) {
     for (i=0;i<S->ntip;i++) 
-      Pixel (S->xtip[i],S->ytip[i],w.color/16);
+      Pixel (S->xtip[i],S->ytip[i],wnd.color/16);
   }
 #endif
 
@@ -358,14 +363,16 @@ RUN_HEAD(singz) {
   }
   
 #undef s
-} RUN_TAIL(singz)
+}
+RUN_TAIL(singz)
 
 DESTROY_HEAD(singz)
   SAFE_CLOSE(S->file);
 DESTROY_TAIL(singz)
 
 /********************************************/
-CREATE_HEAD(singz) {
+CREATE_HEAD(singz)
+{
   DEVICE_REQUIRES_SYNC;
   ACCEPTR(c0,RNONE,RNONE,RNONE);
   ACCEPTR(c1,RNONE,RNONE,RNONE);
@@ -378,7 +385,7 @@ CREATE_HEAD(singz) {
     S->precise_orientation=0;
   }
 #endif
-  #if MPI
+#if MPI
   /* TODO: make it work for arbitrary user's choice of everys. */
   /* For now, it does not work in any other way.               */
   ACCEPTS(pointsep,"\n");
@@ -387,14 +394,14 @@ CREATE_HEAD(singz) {
   ACCEPTI(everypoint,1,1,1);
   ACCEPTI(everysection,0,0,0);
   ACCEPTI(everyrecord,0,0,0);
-  #else
+#else
   ACCEPTS(pointsep," ");
   ACCEPTS(sectionsep,"\t");
   ACCEPTS(recordsep,"\n");
   ACCEPTI(everypoint,0,0,1);
   ACCEPTI(everysection,0,0,1);
   ACCEPTI(everyrecord,1,0,1);
-  #endif
+#endif
   S->ntip = 0;
   {
     int everypoint=S->everypoint;
@@ -420,9 +427,9 @@ CREATE_HEAD(singz) {
     (S->ystddev!=NULL) ||
     (S->zstddev!=NULL);
   
-
+  
   S->p = &(S->buf[0]);
-
+  
   ACCEPTI(append,1,0,1);
 #if MPI
   if (!deviceCommunicatorWithFirstRank(dev->s.runHere, &(S->comm), &(S->root)))
@@ -446,4 +453,8 @@ CREATE_HEAD(singz) {
   S->fileout=(S->file!=NULL);
 #endif
 
-} CREATE_TAIL(singz,1)
+#ifdef X11
+  ACCEPT_WINDOW(wnd);
+#endif
+}
+CREATE_TAIL(singz,1)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -1118,8 +1118,6 @@ int accept_window(BGIWindow *S, char *w) {
   ACCEPTI(col0, 0,    0, INONE);
   ACCEPTI(col1, 0,    0, INONE);
   ACCEPTI(color,15,  0,   255);
-  /*ACCEPTI(area,   1,  0,     1);*/
-  S->drawn=0;
   return 1;
 }
 
@@ -1314,6 +1312,7 @@ int init_const(void) {
   RO(pi);
   RO(always); 
   RO(never); 
+  RO(advance); 
   RO(real_inf);
   #undef RO
 

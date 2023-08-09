@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -70,13 +70,6 @@ static real cropZ(real z,BGIWindow w,int zmin,int zmax) {
 extern int ndev;		/* num of devices in current run */
 extern Device dev[MAXDEV];	/* the array of devices */
 
-/* Mark all devices as with spoiled images */
-void Spoil(void) {
-  int idev;
-  for (idev=0; idev<ndev; idev++)
-      dev[idev].w.drawn=0;
-}
-
 void SetWindow(BGIWindow W) {w=W;}
 
 int SetLimits(real Absmin, real Absmax, real Ordmin, real Ordmax){
@@ -121,7 +114,6 @@ void Bar (int x, int y, colortype c) {
   case 2: bar(X(x)+1,Z(y)-1,X(x+1),Z(y+1)); break;
   }
   update_now=1;
-  Spoil();
 }
 
 void Bar1 (int x,int y, colortype c) {
@@ -129,7 +121,6 @@ void Bar1 (int x,int y, colortype c) {
   setfillstyle(SOLID_FILL,c);
   bar(X(x),Y(y+1),X(x+1),Y(y));
   update_now=1;
-  Spoil();
 }
 
 void  _putpixel(int x, int y, int color) {
@@ -149,7 +140,6 @@ void Mark (real x, real y, colortype color, int size) {
   setfillstyle(SOLID_FILL,color);
   setcolor(color);
   fillellipse(X(x),Y(y),size,size);
-  Spoil();
 }
 
 void _line(int x1, int y1, int x2, int y2) {

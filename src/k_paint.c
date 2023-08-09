@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -45,6 +45,7 @@
 extern int Verbose;            /* defined in main */
 
 typedef struct {
+  BGIWindow wnd;
   #include "k_code.h"
   int nabs, absmin, absmax;
   int nord, ordmin, ordmax;
@@ -57,6 +58,8 @@ typedef struct {
 } STR;
 
 RUN_HEAD(k_paint)
+{
+  DEVICE_CONST(BGIWindow,wnd);
   #include "k_def.h"
   DEVICE_CONST(int,absmin) DEVICE_CONST(int,absmax) DEVICE_VAR(double,abs) DEVICE_CONST(int,nabs) 
   DEVICE_CONST(int,ordmin) DEVICE_CONST(int,ordmax) DEVICE_VAR(double,ord) DEVICE_CONST(int,nord) 
@@ -66,7 +69,7 @@ RUN_HEAD(k_paint)
   DEVICE_CONST(FILE *,file) DEVICE_ARRAY(char,filename) DEVICE_CONST(int,ver) DEVICE_CONST(int,append)
   int c, i, iapp, iord, iabs;
 
-  SetWindow(w);
+  SetWindow(wnd);
   if NOT(SetLimits(0,nabs,0,nord)) return 0;
   k_on();
   for(iabs=0;iabs<nabs;iabs++) { *abs=absmin+iabs*(absmax-absmin)/(nabs-1);
@@ -85,15 +88,20 @@ RUN_HEAD(k_paint)
     if (!append) rewind(file);
     fwrite(screen,nabs*nord,1,file);
   }
+}
 RUN_TAIL(k_paint)
 
 DESTROY_HEAD(k_paint)
+{
   #include "k_free.h"
   FREE(S->screen);
+}
 DESTROY_TAIL(k_paint)
 
-CREATE_HEAD(k_paint) {
-
+CREATE_HEAD(k_paint)
+{
+  ACCEPT_WINDOW(wnd);
+  
   k_on();									CHK(NULL);
 
   memcpy(loctb,deftb,sizeof(*deftb));
@@ -122,6 +130,7 @@ CREATE_HEAD(k_paint) {
 
   CALLOC(S->screen,S->nabs*S->nord,1);
   
-} CREATE_TAIL(k_paint,0)
+}
+CREATE_TAIL(k_paint,0)
 
 #endif

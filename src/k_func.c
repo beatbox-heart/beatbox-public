@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -268,9 +268,9 @@ CREATE_HEAD(k_func) {
   k_off();
 
   #if MPI
-  if (advance) run_k_func (dev->s,dev->w,S,dev->sync,dev->alwaysRun);
+  if (advance) run_k_func (dev->s,S,dev->sync,dev->alwaysRun);
   #else
-  if (advance) run_k_func (dev->s,dev->w,S);
+  if (advance) run_k_func (dev->s,S);
   #endif
 
   

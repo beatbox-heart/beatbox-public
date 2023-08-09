@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -59,6 +59,7 @@ EXTERN real *New;
 EXTERN real *Geom;
 
 EXTERN INT t;				/* device loops counter */
+EXTERN INT advance;			/* nonzero "before the time" */
 EXTERN INT vmax,xmax,ymax,zmax;		/* the sizes of a state */
 EXTERN size_t xlen,ylen,zlen;		/* Lengths of axes in memory (including halos) */
 EXTERN INT GEOMETRY_ON;			/* is geometry on?		*/

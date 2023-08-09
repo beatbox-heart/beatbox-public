@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* SHOW/PRINT THE STATE OF A TIMER */
 
@@ -37,9 +36,12 @@ typedef struct {
   char format[80];
   char code[80];
   pp_fn compiled;
+  BGIWindow wnd;
 } STR;
 
-RUN_HEAD(k_clock) {
+RUN_HEAD(k_clock)
+{
+  DEVICE_CONST(BGIWindow,wnd);
   DEVICE_ARRAY(char, format)
   DEVICE_CONST(pp_fn, compiled)
   char l[80];
@@ -47,19 +49,25 @@ RUN_HEAD(k_clock) {
   if (strchr(format,'%')) sprintf(l,format,*(real *)execute(compiled));
   else sprintf(l,"%s%s",format,prt(execute(compiled),t_real));
   k_off();
-  crt_text(l,w.row0,w.col0,w.color);
-} RUN_TAIL(k_clock)
+  crt_text(l,wnd.row0,wnd.col0,wnd.color);
+}
+RUN_TAIL(k_clock)
 
 DESTROY_HEAD(k_clock)
+{
   FREE(S->compiled);
+}
 DESTROY_TAIL(k_clock)
 
 CREATE_HEAD(k_clock)
+{
+  ACCEPT_WINDOW(wnd);
   k_on();
   ACCEPTS(format,"t=%-6lf");
   ACCEPTS(code,"t");
   S->compiled=compile(S->code,deftb,t_real); CHK(S->code);
   k_off();
+}
 CREATE_TAIL(k_clock,0)
 
 

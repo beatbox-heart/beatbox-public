@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -23,8 +23,6 @@
    Am J Physiol Heart Circ Physiol, 286: pp. H1573-H1589, 2004,
    The code was obtained from TenTusscher's own code from http://www-binf.bio.uu.nl/khwjtuss/SourceCodes/HVM/Source/
    as of retrieved 2013/02/02 */
-
-#define EPI
 
 #include <assert.h>
 #include <math.h>
@@ -60,7 +58,15 @@ typedef struct {                	/* First go the cell parameters as listed in K.
   ! so e.g. IV can be = D \nabla^2 V, where D is the voltage diffusion coefficient !!		!
   */
   real ht;			/* the time step, needed for RL steps */
+  char variant[16];		/* epi/mcell/endo : string read */
+  int model; 			/* the variant's number 0..2 */
 } STR;
+
+enum {
+  model_EPI,
+  model_ENDO,
+  model_MCELL
+};
 
 
 /*
@@ -72,16 +78,33 @@ typedef struct {                	/* First go the cell parameters as listed in K.
  * which will be used by euler to initialise the whole medium.                    *
  **********************************************************************************
  */
-RHS_CREATE_HEAD(ttnnp04) {
+RHS_CREATE_HEAD(ttnnp04)
+{
+  /* Model should be selected first as the parameter defaults depend on that */
+  int model; /* 0..2: the variant of the model */
+  ACCEPTS(variant, "EPI");
+  STRSWITCH(S->variant);
+  STRCASE("EPI")   model=model_EPI;
+  STRCASE("epi")   model=model_EPI;
+  STRCASE("ENDO")  model=model_ENDO;
+  STRCASE("endo")  model=model_ENDO;
+  STRCASE("MCELL") model=model_MCELL;
+  STRCASE("mcell") model=model_MCELL;
+  STRDEFAULT	MESSAGE("/* unknown model; using EPI */"); model=model_EPI;
+  STRENDSW;
+  S->model=model;
+  
   /* Here we assign the parameter values to the structure AND to namesake local variable */
   #define _(name,default) ACCEPTP(name,default,0,RNONE);
+  #define _ver(a1,a2,a3) (model==model_EPI?(a1):model==model_ENDO?(a2):model==model_MCELL?(a3):RNONE)
   #include "ttnnp04_par.h"
   #undef _
 
   /* Now the values of the local variables are assigned to the structure S elements */
-  #define _(name,default) S->name=name;
-  #include "ttnnp04_par.h"
-  #undef _
+  /*   - this is obsolete with the current definition pf ACCEPTP */
+  /* #define _(name,default) S->name=name; */
+  /* #include "ttnnp04_par.h" */
+  /* #undef _ */
 
   /* Accept the non-cell parameter values by the standard macro */
   ACCEPTP(IV,0,RNONE,RNONE);		/* By default, no stimulation */
@@ -97,7 +120,8 @@ RHS_CREATE_HEAD(ttnnp04) {
   #include "ttnnp04_var.h"
   #undef _
 
-} RHS_CREATE_TAIL(ttnnp04,N)
+}
+RHS_CREATE_TAIL(ttnnp04,N)
 
 /*
  *******************************************************************************
@@ -106,18 +130,20 @@ RHS_CREATE_HEAD(ttnnp04) {
  * Made as an rhs module to take advantage of parameter substitution mechanism.*
  *******************************************************************************
  */
-RHS_HEAD(ttnnp04,N) {
+RHS_HEAD(ttnnp04,N)
+{
   /* Declare the constant parameters and take their values from structure S==par (a formal parameter) */
-  #define _(name,default) DEVICE_CONST(real,name)
-  #include "ttnnp04_par.h"
-  #undef _
-  DEVICE_CONST(real,IV)
-  DEVICE_CONST(real,ht)
-    
-  #define       HT          ht
+#define _(name,default) DEVICE_CONST(real,name)
+#include "ttnnp04_par.h"
+#undef _
+  DEVICE_CONST(real,IV);
+  DEVICE_CONST(real,ht);
+  DEVICE_CONST(int, model);
+  
+#define       HT          ht
 
   /* Here go all actual computations for 1 time step */
-  #include "ttnnp04_step.h"
+#include "ttnnp04_step.h"
   (u[ttnnp04_Volt]) += ht*IV;
 
   /* Assign the derivatives to zero as the values are already fully updated */

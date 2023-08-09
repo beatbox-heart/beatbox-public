@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -35,11 +35,15 @@ typedef struct {
   real rhs; /* the right-hand side */
 } STR;
 
-RHS_HEAD(trivial,1) {
+RHS_HEAD(trivial,1)
+{
   DEVICE_CONST(real,rhs)
   du[0] = rhs;
-} RHS_TAIL(rhs)
+}
+RHS_TAIL(rhs)
 
 RHS_CREATE_HEAD(trivial)
+{
   ACCEPTP(rhs,RNONE,RNONE,RNONE);
+}
 RHS_CREATE_TAIL(trivial,1)

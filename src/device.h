@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -55,7 +55,7 @@ typedef struct {
 } Space;
 
 /* Graphics display information for the Device */
-typedef struct {int row0,col0,row1,col1,color,area,drawn;} BGIWindow;
+typedef struct {int row0,col0,row1,col1,color,area;} BGIWindow;
 
 /* Internal persistent storage used by the Device */
 typedef void *Par;
@@ -63,9 +63,9 @@ typedef void *Par;
 #if MPI
 /**********************/
 /* PARALLEL */
-#define PROC(name) int name(Space s,BGIWindow w,Par par,int sync,int alwaysRun)
+#define PROC(name) int name(Space s,Par par,int sync,int alwaysRun)
 #else
-#define PROC(name) int name(Space s,BGIWindow w,Par par)
+#define PROC(name) int name(Space s,Par par)
 #endif
 typedef PROC(Proc);
 
@@ -76,7 +76,6 @@ typedef char Name[32];
 typedef struct {	
     Condition c; /* When the device is to be run */
     Space s;     /* Coordinate bounds on which the device operates */
-    BGIWindow w;    /* Describes the on-screen display of the device */
     Par par;     /* Store for persistent data within the device */
     Proc *p;     /* Pointer to the device's run function */
     Proc *d;     /* Pointer to the device's destroy function */
@@ -172,7 +171,6 @@ int create_##name (Device *dev, char *w)  {	\
   dev->p = (Proc *) run_##name;		\
   dev->d = (Proc *) destroy_##name;	\
   dev->par  = S;			\
-  dev->w.area = areaval;		\
   return(1);				\
 }
 

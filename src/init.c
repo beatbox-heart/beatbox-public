@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Beatbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 /* INITIALIZATION: READING PARAMETERS AND FORMING THE COMPUTATION LOOP */
 
@@ -56,7 +55,6 @@ static int create (Name name, Create c, Device *d, char *rest)
 {
   if (!accept_condition(&(d->c),rest)) return 0;
   if (!accept_space(&(d->s),rest)) return 0;
-  if (!accept_window(&(d->w),rest)) return 0;
   if (!accepts("name=",&(d->n[0]),name,rest)) return 0;
   if (strcmp(d->n,name)) if(!def_dev(d)) return 0;
 #if MPI
@@ -227,9 +225,9 @@ void term(void) {               /* free all dynamical objects */
   if (ndev) for (idev=ndev-1;idev>=0;idev--) {
     d=dev[idev];
 #if MPI
-    d.d(d.s,d.w,d.par,d.sync,d.alwaysRun);
+    d.d(d.s,d.par,d.sync,d.alwaysRun);
 #else
-    d.d(d.s,d.w,d.par);
+    d.d(d.s,d.par);
 #endif
   }
   state_free();                 /* free the state array(s) */
