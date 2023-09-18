@@ -130,6 +130,7 @@ void  _putpixel(int x, int y, int color) {
 void Pixel (real x, real y, colortype color) {
   if (!graphon) return;
    _putpixel(X(x),Y(y),color);
+  update_now=1;
 }
 
 				#include <stdio.h>
@@ -140,6 +141,7 @@ void Mark (real x, real y, colortype color, int size) {
   setfillstyle(SOLID_FILL,color);
   setcolor(color);
   fillellipse(X(x),Y(y),size,size);
+  update_now=1;
 }
 
 void _line(int x1, int y1, int x2, int y2) {
@@ -150,6 +152,7 @@ void Line(real x0, real y0, real x1, real y1, colortype color) {
   if (!graphon) return;
   setcolor(color);
   _line(X(x0),Y(y0),X(x1),Y(y1));
+  update_now=1;
 }
 
 void MoveTo(real x, real y) {
@@ -163,4 +166,5 @@ void LineTo(real x, real y, colortype color) {
 				DB "LineTo %f %f %d\n",x,y,color BD
   setcolor(color);
   lineto(X(x),Y(y));
+  update_now=1;
 }

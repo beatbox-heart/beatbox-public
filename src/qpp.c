@@ -1158,6 +1158,7 @@ static double _mod(double a, double b) {return fmod(a,b);}
 static double _max(double a, double b) {return (a>b)?a:b;}
 static double _min(double a, double b) {return (a<b)?a:b;}
 static double _crop(double a, double b, double c) {return (a<b)?b:(a>c)?c:a;}
+static double _crop01(double a, double b, double c) {return (a<b)?0:(a>c)?1:(a-b)/(c-b);}
 static double j2(double x) {return jn(2,x);}
 static double j3(double x) {return jn(3,x);}
 /* A long way to define a function giving value at a certain point */
@@ -1266,7 +1267,7 @@ int init_const(void) {
   FU(ifsign,4); FU(if,3); 
   FU(ifeq0,3); FU(ifne0,3); FU(ifgt0,3); FU(ifge0,3); FU(iflt0,3); FU(ifle0,3);
   FU(eq,2); FU(ne,2); FU(gt,2); FU(ge,2); FU(lt,2); FU(le,2);
-  FU(mod,2); FU(max,2); FU(min,2); FU(crop,3); FU(u,4); FU(geom,4);
+  FU(mod,2); FU(max,2); FU(min,2); FU(crop,3); FU(crop01,3); FU(u,4); FU(geom,4);
 
   #if MPI
   #else
