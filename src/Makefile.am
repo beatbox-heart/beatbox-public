@@ -125,6 +125,8 @@ common_sources = \
 	mpi_io_choice.h \
 	ms.c \
 	n62.c n62.h \
+	neum2d.c \
+	neum3d.c \
 	noble.c noble.h noblecns.h nobleft1.h nobleft2.h nobleft3.h nobleftn.c nobleftn.h nobleglb.h nobleini.h nobleloc.h noblest2.c noblest2.h noblestu.c noblestu.h \
 	noble2.c noble2.h \
 	noblen.c noblen.h \

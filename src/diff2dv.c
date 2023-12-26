@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2018) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -50,10 +50,10 @@ RUN_HEAD(diff2dv)
     u=New+ind(x,y,z,s.v0);
     D=New+ind(x,y,z,vD);
     out=New+ind(x,y,z,s.v1);
-    *out = gam*( 
-      (D[+DX]+D[0])*u[+DX] + 
-      (D[-DX]+D[0])*u[-DX] + 
-      (D[+DY]+D[0])*u[+DY] + 
+    *out = gam*(
+      (D[+DX]+D[0])*u[+DX] +
+      (D[-DX]+D[0])*u[-DX] +
+      (D[+DY]+D[0])*u[+DY] +
       (D[-DY]+D[0])*u[-DY]
        - (D[+DX]+D[-DX]+D[+DY]+D[-DY]+4*D[0])*u[0]
     );

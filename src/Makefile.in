@@ -136,6 +136,7 @@ am__objects_1 = Beatbox-beatbox.$(OBJEXT) Beatbox-activation.$(OBJEXT) \
 	Beatbox-lrd.$(OBJEXT) Beatbox-mchtb.$(OBJEXT) \
 	Beatbox-mouse.$(OBJEXT) Beatbox-mousevent.$(OBJEXT) \
 	Beatbox-ms.$(OBJEXT) Beatbox-n62.$(OBJEXT) \
+	Beatbox-neum2d.$(OBJEXT) Beatbox-neum3d.$(OBJEXT) \
 	Beatbox-noble.$(OBJEXT) Beatbox-nobleftn.$(OBJEXT) \
 	Beatbox-noblest2.$(OBJEXT) Beatbox-noblestu.$(OBJEXT) \
 	Beatbox-noble2.$(OBJEXT) Beatbox-noblen.$(OBJEXT) \
@@ -190,7 +191,8 @@ am__objects_2 = Beatbox_SEQ-beatbox.$(OBJEXT) \
 	Beatbox_SEQ-load.$(OBJEXT) Beatbox_SEQ-lrd.$(OBJEXT) \
 	Beatbox_SEQ-mchtb.$(OBJEXT) Beatbox_SEQ-mouse.$(OBJEXT) \
 	Beatbox_SEQ-mousevent.$(OBJEXT) Beatbox_SEQ-ms.$(OBJEXT) \
-	Beatbox_SEQ-n62.$(OBJEXT) Beatbox_SEQ-noble.$(OBJEXT) \
+	Beatbox_SEQ-n62.$(OBJEXT) Beatbox_SEQ-neum2d.$(OBJEXT) \
+	Beatbox_SEQ-neum3d.$(OBJEXT) Beatbox_SEQ-noble.$(OBJEXT) \
 	Beatbox_SEQ-nobleftn.$(OBJEXT) Beatbox_SEQ-noblest2.$(OBJEXT) \
 	Beatbox_SEQ-noblestu.$(OBJEXT) Beatbox_SEQ-noble2.$(OBJEXT) \
 	Beatbox_SEQ-noblen.$(OBJEXT) Beatbox_SEQ-noble_gbk.$(OBJEXT) \
@@ -274,6 +276,7 @@ am__depfiles_remade = ./$(DEPDIR)/Beatbox-activation.Po \
 	./$(DEPDIR)/Beatbox-lrd.Po ./$(DEPDIR)/Beatbox-mchtb.Po \
 	./$(DEPDIR)/Beatbox-mouse.Po ./$(DEPDIR)/Beatbox-mousevent.Po \
 	./$(DEPDIR)/Beatbox-ms.Po ./$(DEPDIR)/Beatbox-n62.Po \
+	./$(DEPDIR)/Beatbox-neum2d.Po ./$(DEPDIR)/Beatbox-neum3d.Po \
 	./$(DEPDIR)/Beatbox-noble.Po ./$(DEPDIR)/Beatbox-noble2.Po \
 	./$(DEPDIR)/Beatbox-noble_gbk.Po \
 	./$(DEPDIR)/Beatbox-nobleftn.Po ./$(DEPDIR)/Beatbox-noblen.Po \
@@ -361,6 +364,8 @@ am__depfiles_remade = ./$(DEPDIR)/Beatbox-activation.Po \
 	./$(DEPDIR)/Beatbox_SEQ-mouse.Po \
 	./$(DEPDIR)/Beatbox_SEQ-mousevent.Po \
 	./$(DEPDIR)/Beatbox_SEQ-ms.Po ./$(DEPDIR)/Beatbox_SEQ-n62.Po \
+	./$(DEPDIR)/Beatbox_SEQ-neum2d.Po \
+	./$(DEPDIR)/Beatbox_SEQ-neum3d.Po \
 	./$(DEPDIR)/Beatbox_SEQ-noble.Po \
 	./$(DEPDIR)/Beatbox_SEQ-noble2.Po \
 	./$(DEPDIR)/Beatbox_SEQ-noble_gbk.Po \
@@ -697,6 +702,8 @@ common_sources = \
 	mpi_io_choice.h \
 	ms.c \
 	n62.c n62.h \
+	neum2d.c \
+	neum3d.c \
 	noble.c noble.h noblecns.h nobleft1.h nobleft2.h nobleft3.h nobleftn.c nobleftn.h nobleglb.h nobleini.h nobleloc.h noblest2.c noblest2.h noblestu.c noblestu.h \
 	noble2.c noble2.h \
 	noblen.c noblen.h \
@@ -914,6 +921,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-mousevent.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-ms.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-n62.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-neum2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-neum3d.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-noble.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-noble2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox-noble_gbk.Po@am__quote@ # am--include-marker
@@ -1026,6 +1035,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-mousevent.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-ms.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-n62.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-neum2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-neum3d.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-noble.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-noble2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Beatbox_SEQ-noble_gbk.Po@am__quote@ # am--include-marker
@@ -1930,6 +1941,34 @@ Beatbox-n62.obj: n62.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='n62.c' object='Beatbox-n62.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox-n62.obj `if test -f 'n62.c'; then $(CYGPATH_W) 'n62.c'; else $(CYGPATH_W) '$(srcdir)/n62.c'; fi`
+
+Beatbox-neum2d.o: neum2d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox-neum2d.o -MD -MP -MF $(DEPDIR)/Beatbox-neum2d.Tpo -c -o Beatbox-neum2d.o `test -f 'neum2d.c' || echo '$(srcdir)/'`neum2d.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox-neum2d.Tpo $(DEPDIR)/Beatbox-neum2d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum2d.c' object='Beatbox-neum2d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox-neum2d.o `test -f 'neum2d.c' || echo '$(srcdir)/'`neum2d.c
+
+Beatbox-neum2d.obj: neum2d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox-neum2d.obj -MD -MP -MF $(DEPDIR)/Beatbox-neum2d.Tpo -c -o Beatbox-neum2d.obj `if test -f 'neum2d.c'; then $(CYGPATH_W) 'neum2d.c'; else $(CYGPATH_W) '$(srcdir)/neum2d.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox-neum2d.Tpo $(DEPDIR)/Beatbox-neum2d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum2d.c' object='Beatbox-neum2d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox-neum2d.obj `if test -f 'neum2d.c'; then $(CYGPATH_W) 'neum2d.c'; else $(CYGPATH_W) '$(srcdir)/neum2d.c'; fi`
+
+Beatbox-neum3d.o: neum3d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox-neum3d.o -MD -MP -MF $(DEPDIR)/Beatbox-neum3d.Tpo -c -o Beatbox-neum3d.o `test -f 'neum3d.c' || echo '$(srcdir)/'`neum3d.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox-neum3d.Tpo $(DEPDIR)/Beatbox-neum3d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum3d.c' object='Beatbox-neum3d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox-neum3d.o `test -f 'neum3d.c' || echo '$(srcdir)/'`neum3d.c
+
+Beatbox-neum3d.obj: neum3d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox-neum3d.obj -MD -MP -MF $(DEPDIR)/Beatbox-neum3d.Tpo -c -o Beatbox-neum3d.obj `if test -f 'neum3d.c'; then $(CYGPATH_W) 'neum3d.c'; else $(CYGPATH_W) '$(srcdir)/neum3d.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox-neum3d.Tpo $(DEPDIR)/Beatbox-neum3d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum3d.c' object='Beatbox-neum3d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox-neum3d.obj `if test -f 'neum3d.c'; then $(CYGPATH_W) 'neum3d.c'; else $(CYGPATH_W) '$(srcdir)/neum3d.c'; fi`
 
 Beatbox-noble.o: noble.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox-noble.o -MD -MP -MF $(DEPDIR)/Beatbox-noble.Tpo -c -o Beatbox-noble.o `test -f 'noble.c' || echo '$(srcdir)/'`noble.c
@@ -3303,6 +3342,34 @@ Beatbox_SEQ-n62.obj: n62.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-n62.obj `if test -f 'n62.c'; then $(CYGPATH_W) 'n62.c'; else $(CYGPATH_W) '$(srcdir)/n62.c'; fi`
 
+Beatbox_SEQ-neum2d.o: neum2d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-neum2d.o -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-neum2d.Tpo -c -o Beatbox_SEQ-neum2d.o `test -f 'neum2d.c' || echo '$(srcdir)/'`neum2d.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-neum2d.Tpo $(DEPDIR)/Beatbox_SEQ-neum2d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum2d.c' object='Beatbox_SEQ-neum2d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-neum2d.o `test -f 'neum2d.c' || echo '$(srcdir)/'`neum2d.c
+
+Beatbox_SEQ-neum2d.obj: neum2d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-neum2d.obj -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-neum2d.Tpo -c -o Beatbox_SEQ-neum2d.obj `if test -f 'neum2d.c'; then $(CYGPATH_W) 'neum2d.c'; else $(CYGPATH_W) '$(srcdir)/neum2d.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-neum2d.Tpo $(DEPDIR)/Beatbox_SEQ-neum2d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum2d.c' object='Beatbox_SEQ-neum2d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-neum2d.obj `if test -f 'neum2d.c'; then $(CYGPATH_W) 'neum2d.c'; else $(CYGPATH_W) '$(srcdir)/neum2d.c'; fi`
+
+Beatbox_SEQ-neum3d.o: neum3d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-neum3d.o -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-neum3d.Tpo -c -o Beatbox_SEQ-neum3d.o `test -f 'neum3d.c' || echo '$(srcdir)/'`neum3d.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-neum3d.Tpo $(DEPDIR)/Beatbox_SEQ-neum3d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum3d.c' object='Beatbox_SEQ-neum3d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-neum3d.o `test -f 'neum3d.c' || echo '$(srcdir)/'`neum3d.c
+
+Beatbox_SEQ-neum3d.obj: neum3d.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-neum3d.obj -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-neum3d.Tpo -c -o Beatbox_SEQ-neum3d.obj `if test -f 'neum3d.c'; then $(CYGPATH_W) 'neum3d.c'; else $(CYGPATH_W) '$(srcdir)/neum3d.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-neum3d.Tpo $(DEPDIR)/Beatbox_SEQ-neum3d.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='neum3d.c' object='Beatbox_SEQ-neum3d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Beatbox_SEQ-neum3d.obj `if test -f 'neum3d.c'; then $(CYGPATH_W) 'neum3d.c'; else $(CYGPATH_W) '$(srcdir)/neum3d.c'; fi`
+
 Beatbox_SEQ-noble.o: noble.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(Beatbox_SEQ_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Beatbox_SEQ-noble.o -MD -MP -MF $(DEPDIR)/Beatbox_SEQ-noble.Tpo -c -o Beatbox_SEQ-noble.o `test -f 'noble.c' || echo '$(srcdir)/'`noble.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Beatbox_SEQ-noble.Tpo $(DEPDIR)/Beatbox_SEQ-noble.Po
@@ -4390,6 +4457,8 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/Beatbox-mousevent.Po
 	-rm -f ./$(DEPDIR)/Beatbox-ms.Po
 	-rm -f ./$(DEPDIR)/Beatbox-n62.Po
+	-rm -f ./$(DEPDIR)/Beatbox-neum2d.Po
+	-rm -f ./$(DEPDIR)/Beatbox-neum3d.Po
 	-rm -f ./$(DEPDIR)/Beatbox-noble.Po
 	-rm -f ./$(DEPDIR)/Beatbox-noble2.Po
 	-rm -f ./$(DEPDIR)/Beatbox-noble_gbk.Po
@@ -4502,6 +4571,8 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-mousevent.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-ms.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-n62.Po
+	-rm -f ./$(DEPDIR)/Beatbox_SEQ-neum2d.Po
+	-rm -f ./$(DEPDIR)/Beatbox_SEQ-neum3d.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-noble.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-noble2.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-noble_gbk.Po
@@ -4652,6 +4723,8 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/Beatbox-mousevent.Po
 	-rm -f ./$(DEPDIR)/Beatbox-ms.Po
 	-rm -f ./$(DEPDIR)/Beatbox-n62.Po
+	-rm -f ./$(DEPDIR)/Beatbox-neum2d.Po
+	-rm -f ./$(DEPDIR)/Beatbox-neum3d.Po
 	-rm -f ./$(DEPDIR)/Beatbox-noble.Po
 	-rm -f ./$(DEPDIR)/Beatbox-noble2.Po
 	-rm -f ./$(DEPDIR)/Beatbox-noble_gbk.Po
@@ -4764,6 +4837,8 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-mousevent.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-ms.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-n62.Po
+	-rm -f ./$(DEPDIR)/Beatbox_SEQ-neum2d.Po
+	-rm -f ./$(DEPDIR)/Beatbox_SEQ-neum3d.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-noble.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-noble2.Po
 	-rm -f ./$(DEPDIR)/Beatbox_SEQ-noble_gbk.Po
