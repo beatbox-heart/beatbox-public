@@ -55,7 +55,7 @@ else
   CFLAGS="$CFLAGS -D X11"
 fi
 
-if test "$GL_AVAIL" = "no"; then
+if test "x$GL_AVAIL" = "xno"; then
   echo "***************"
   echo "Reminder: OpenGL libraries not found, Beatbox will be built without GL graphical extention. If you need graphical displays you will need to configure Beatbox with X11, please contact the Beatbox developers for further information."
   echo "***************"

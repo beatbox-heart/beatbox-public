@@ -1,8 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([gsl],[1.16])
 AC_CONFIG_AUX_DIR([.])
-LT_INIT(disable-shared)
+LT_INIT([disable-shared])
 AC_CONFIG_SRCDIR(gsl_math.h)
+AC_CONFIG_MACRO_DIRS([m4])
 
 AM_INIT_AUTOMAKE([gnu])
 AC_CONFIG_HEADERS([config.h])
@@ -93,7 +94,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PROG_LIBTOOL
+dnl AC_PROG_LIBTOOL - obsoleted by LT_INIT, see at the top
 
 dnl Check compiler features
 AC_TYPE_SIZE_T

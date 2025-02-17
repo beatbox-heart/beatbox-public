@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -150,7 +150,7 @@ IONIC_FTAB_HEAD(ttp2006) {
   #define _(n) values[_##n]=n;
   #include "ttp2006_fun.h"
   #undef _
-} IONIC_FTAB_TAIL(ttp2006);
+} IONIC_FTAB_TAIL;
 
 IONIC_FDDT_HEAD(ttp2006,NV,NTAB,NO,NN) {
   /* Declare the const pars and take their values from struct S==par (a formal parameter) */
@@ -188,7 +188,7 @@ IONIC_FDDT_HEAD(ttp2006,NV,NTAB,NO,NN) {
   #undef _
   /* Finally add the "external current" parameter values */
   du[V_index]+=IV;
-} IONIC_FDDT_TAIL(brc);
+} IONIC_FDDT_TAIL;
 
 
 /*
@@ -220,4 +220,4 @@ IONIC_CREATE_HEAD(ttp2006) {
   #include "ttp2006_ngate.h"
   #include "ttp2006_tgate.h"
   #undef _
-} IONIC_CREATE_TAIL(ttp2006,NV)
+} IONIC_CREATE_TAIL;

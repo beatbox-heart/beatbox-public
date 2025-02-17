@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -121,7 +121,7 @@ IONIC_FTAB_HEAD(br77) {
   #define _(n) values[_##n]=n;
   #include "br77_fun.h"
   #undef _
-} IONIC_FTAB_TAIL(br77);	  
+} IONIC_FTAB_TAIL;
 
 IONIC_FDDT_HEAD(br77,NV,NTAB,NO,NN) {
   /* Declare the const pars and take their values from struct S==par (a formal parameter) */
@@ -153,13 +153,13 @@ IONIC_FDDT_HEAD(br77,NV,NTAB,NO,NN) {
   #define _(name,initial) du[other_##name]=d_##name;
   #include "br77_other.h"
   #undef _
-  /* And copy the non-tab transition rates into the output arraysn nalp[] and nbet[] */
+  /* And copy the non-tab transition rates into the output arrays nalp[] and nbet[] */
   #define _(name,initial) nalp[ngate_##name]=alp_##name; nbet[ngate_##name]=bet_##name; 
   #include "br77_ngate.h"
   #undef _
   /* Finally add the "external current" parameter values */
   du[V_index]+=IV;
-} IONIC_FDDT_TAIL(brc);
+} IONIC_FDDT_TAIL;
 
 /*
  **********************************************************************************
@@ -182,5 +182,93 @@ IONIC_CREATE_HEAD(br77) {
   #include "br77_ngate.h"
   #include "br77_tgate.h"
   #undef _
-} IONIC_CREATE_TAIL(br77,NV);
+} IONIC_CREATE_TAIL;
 
+
+real nalp[NN];
+real nbet[NN];
+real values[NTAB];
+int br77rhs (real *u, real *du, Par par, Var var, int ln)
+{
+  STR *S = (STR *)par;
+  int ivar;
+  assert(ln==NV);
+  if (var.n) for(ivar=0;ivar<var.n;ivar++) *(var.dst[ivar])=u[var.src[ivar]];
+  real V;			/* voltage used in tabulated gates definitions */
+  int in, it, iv;		/* vector components counters */
+
+  /* printf("#### t=%ld",t); for (iv=0;iv<NV;iv++) printf("\t%g",u[iv]); printf("\n"); */
+  
+  V=u[V_index];
+  /* In: V, ntab */
+  /* Out: values */
+  if (!ftab_br77(V,values,NTAB)) {
+    ABORT("\nerror calculating ftab(%s) at t=%ld: V=%g\n","br77",t,V);
+  } /*  if !ftab... */
+
+  /* In: u, nv, ntab, nn, no, values, par, var */
+  /* Out: du;  nalp, nbet - potentially, not in this model */
+  if (!fddt_br77(u,NV,values,NTAB,par,var,du,NO,nalp,nbet,NN)) {
+    URGENT_MESSAGE("\nerror calculating fddt(%s) at t=%ld: u=","br77",t);
+    for(iv=0;iv<NV;iv++) URGENT_MESSAGE(" %lg",u[iv]);
+    ABORT("\n");
+  } /*  if !faddy... */
+
+  /* values::  0..NT-1: alp; NT..2*NT-1: bet; 2*NT..NTAB-1: fun */
+  /* u, du:: 0..NO-1: other, NO..NO+NG-1: ngate, NO+NG+NT-1=NV-1: tgate */
+  /* ngate=u+no; */
+  /* tgate=u+no+nn; */
+  /* markov=u+no+nn+nt; */
+  
+  /* nontab gates */
+  if (NN>0) for (in=0;in<NN;in++) {
+    real a=nalp[in];
+    real b=nbet[in];
+    du[NO+in]=a-(a+b)*u[NO+in];
+  }
+
+  /* tab gates */
+  if (NT>0) for (it=0;it<NT;it++) {
+    real a=values[it];
+    real b=values[NT+it];
+    du[NO+NN+it]=a-(a+b)*u[NO+NN+it];
+  }
+
+  return 1;
+}
+
+
+int create_br77rhs (Par *par, Var *var, char *w, real **u, int v0)
+{
+  /* printf("xxxxxxxxxxxxxxxx create_br77rhs entered\n"); */
+  STR *S = (STR *)Calloc(1,sizeof(STR));
+  char *ptr=w;
+  int ivar=0;
+  if (!S) ABORT("cannot create %s","br77rhs");
+  for(var->n=0;*ptr;var->n+=(*(ptr++)==AT));
+  if(var->n){CALLOC(var->dst,var->n,sizeof(real *));
+  CALLOC(var->src,var->n,sizeof(int));}
+  else{var->src=NULL;(var->dst)=NULL;}
+  
+  #define _(name,default) ACCEPTP(name,default,0,RNONE);
+  #include "br77_par.h"
+  #undef _
+  ACCEPTP(IV,0,RNONE,RNONE);
+
+  CALLOC(*u,NV,sizeof(real));
+
+  /* Assign the initial values as given the following *.h files */
+  #define _(name,initial) (*u)[var_##name]=initial;
+  #include "br77_other.h"
+  #include "br77_ngate.h"
+  #include "br77_tgate.h"
+  #undef _
+  
+  {int i; printf("xxxx t=%ld",t); for (i=0;i<NV;i++) printf("\t%g",(*u)[i]); printf("\n");}
+  var->n=ivar;
+  if(ivar){REALLOC(var->dst,1L*ivar*sizeof(real *));
+  REALLOC(var->src,1L*ivar*sizeof(int));}
+  else{FREE(var->dst);FREE(var->src);}
+  *par = S;
+  return NV;
+}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -181,7 +181,7 @@ IONIC_FTAB_HEAD (hh52m)
 #include "hh52_tgate.h"
 #undef _
 #endif /* GATE */
-} IONIC_FTAB_TAIL (hh52m);
+} IONIC_FTAB_TAIL;
 
 #if (GATE == 2)
 /* CHANNEL_TR_MATRIX expands to a function which fills the transition
@@ -311,7 +311,7 @@ real dot_V = -1.0 / C_m * (I_Na + I_K + I_l);
 #undef _
   /* Finally add the "external current" parameter values */
   du[V_index] += IV;
-} IONIC_FDDT_TAIL (hh52m);
+} IONIC_FDDT_TAIL;
 
 /* IONIC_CREATE_HEAD expands to a function which initialises\
    an instance of the model.
@@ -378,4 +378,4 @@ IONIC_CREATE_HEAD (hh52m)
   #include "hh52_tgate.h"
   #endif /* GATE */
   #undef _
-} IONIC_CREATE_TAIL (hh52m, NV);
+} IONIC_CREATE_TAIL;

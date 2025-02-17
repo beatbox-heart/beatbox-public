@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -133,7 +133,7 @@ IONIC_FTAB_HEAD(crn98) {
   #define _(n) values[_##n]=n;
   #include "crn98_fun.h"
   #undef _
-} IONIC_FTAB_TAIL(crn98);	  
+} IONIC_FTAB_TAIL;
 
 IONIC_FDDT_HEAD(crn98,NV,NTAB,NO,NN) {
   /* Declare the const pars and take their values from struct S==par (a formal parameter) */
@@ -171,7 +171,7 @@ IONIC_FDDT_HEAD(crn98,NV,NTAB,NO,NN) {
   #undef _
   /* Finally add the "external current" parameter values */
   du[V_index]+=IV;
-} IONIC_FDDT_TAIL(brc);
+} IONIC_FDDT_TAIL;
 
 /*
  **********************************************************************************
@@ -194,7 +194,7 @@ IONIC_CREATE_HEAD(crn98) {
   #include "crn98_ngate.h"
   #include "crn98_tgate.h"
   #undef _
-} IONIC_CREATE_TAIL(crn98,NV)
+} IONIC_CREATE_TAIL;
 
 
 /* /\* */

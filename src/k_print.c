@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -43,6 +43,7 @@ typedef struct {
   char filename[MAXPATH];	/* name of the output file 	*/
   FILE *file;			/* file descriptor 		*/
   int append;			/* 1 if append to the file	*/
+  char format[1024];		/* format of outputs if non-std */
   char filehead[80];		/* beginning of the file	*/
   char headformat[80];		/* beginning of the record	*/
   char headcode[80];		/* ..may contain numerical part */
@@ -63,6 +64,7 @@ RUN_HEAD(k_print) {
 #define output(...) {if(mpi_rank==S->root) fprintf(file,__VA_ARGS__);}
 #define outputs(s) {if(mpi_rank==S->root) fputs(s,file);}
   DEVICE_CONST(FILE *,file)
+  DEVICE_ARRAY(char,format)
   DEVICE_ARRAY(char,headformat)
   DEVICE_CONST(pp_fn,headcompiled)
   DEVICE_CONST(INT,N) DEVICE_VAR(INT,i)
@@ -87,7 +89,11 @@ RUN_HEAD(k_print) {
       if ((*i)>0) output("%s", fieldsep);
   	for(icode=0;icode<ncode;icode++) {
   	  if (icode) output("%s", valuesep);
-	  output("%s",prt(execute(code[icode]),res_type(code[icode])));
+	  if (*format) {
+	    output(format,*(REAL *)execute(code[icode]));
+	  } else {
+	    output("%s",prt(execute(code[icode]),res_type(code[icode])));
+	  }
   	} /* for */
       } /* for *i */
     } /* if ncode */
@@ -128,6 +134,7 @@ CREATE_HEAD(k_print) {
     accepts("file=",&(S->filename[0]), "", w);
     S->file=NULL;
   }
+  ACCEPTS(format,"");
   
   k_on();				
   CHK(NULL);

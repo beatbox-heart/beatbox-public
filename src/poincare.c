@@ -87,7 +87,7 @@ RUN_HEAD(poincare)
 	  (sign != NEGATIVE && (then < cross && cross <= now)) ){ /* Positive crossing */
 	crossingDetected = 1;
 	/* printf("Crossing detected at t=%ld.\n",t); */
-	if(timestep!=NULL) *timestep=(t*then-lasttime*now)/(then-now);
+	if(timestep!=NULL) *timestep=(t*then+lasttime*now)/(then+now);
       }
       *result = crossingDetected;
       

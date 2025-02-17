@@ -8,7 +8,7 @@
 GSL = gsl-1.16.extract
 SUBDIRS = $(GSL)
 
-bin_PROGRAMS = Beatbox Beatbox_SEQ
+bin_PROGRAMS = Beatbox Beatbox_SEQ bbxd
 Beatbox_CPPFLAGS = -D MPI -D NO_TMPFILES ${common_cppflags} -I$(builddir)/$(GSL)
 Beatbox_LDADD = ${LDFLAGS}
 Beatbox_LDADD +=  $(GSL)/.libs/libgsl.a $(GSL)/cblas/.libs/libgslcblas.a
@@ -45,6 +45,7 @@ common_sources = \
 	chtbpar.h \
 	chtbvar.h \
 	clock.c \
+	conv2d.c \
 	crn98.c crn98_fun.h  crn98_ngate.h crn98_other.h crn98_par.h crn98_tgate.h crn98_const.h crn98_ftab.h crn98_fddt.h \
 	crn.c crn_par.h crn_step.h crn_var.h \
 	crnach.c crnach_par.h crnach_step.h crnach_var.h \
@@ -56,6 +57,7 @@ common_sources = \
 	diff.c \
 	diff2dv.c \
 	diff3dv.c \
+	diffconv2d.c \
 	diffstep.c \
 	displayName.h \
 	dump.c \
@@ -70,6 +72,7 @@ common_sources = \
 	fhncub.c \
 	fhnbkl.c \
 	fhncubpar.c \
+	fhnrmc.c \
 	fk.c \
 	fk.h \
 	fkmod.c \
@@ -111,6 +114,8 @@ common_sources = \
 	k_func.c \
 	k_poincare.c \
 	k_print.c \
+	linear1.c\
+	linear2.c\
 	load.c \
 	lrd.c \
 	lrd_par.h \
@@ -137,6 +142,7 @@ common_sources = \
 	pause.c \
 	pipe.c pipe.h \
 	poincare.c \
+	ppcpash18.c ppcpash18_fun.h  ppcpash18_ngate.h ppcpash18_other.h ppcpash18_par.h ppcpash18_tgate.h ppcpash18_const.h ppcpash18_ftab.h ppcpash18_fddt.h \
 	ppmout.c \
 	pw_mult.c \
 	qpp.c qpp.h \
@@ -192,3 +198,5 @@ Beatbox_SEQ_SOURCES = \
 	torx.c \
 	tory.c \
 	torz.c
+
+bbxd_SOURCES = bbxd.c

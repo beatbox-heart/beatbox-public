@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2016) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -35,8 +35,9 @@ typedef struct {		/* description of dependent parameters */
 #define IONICFTAB(name) int name(real V, real *values, int ntab)
 typedef IONICFTAB(IonicFtab);
 #define IONIC_FTAB_HEAD(name)	\
-IONICFTAB(ftab_##name) {
-#define IONIC_FTAB_TAIL(name)	\
+IONICFTAB(ftab_##name) {	\
+  ASSERT(ntab==NTAB);
+#define IONIC_FTAB_TAIL		\
   return 1;             	\
 }
 
@@ -65,13 +66,13 @@ typedef IONICFDDT(IonicFddt);
 IONICFDDT(fddt_##name) {	\
   STR *S = (STR *)par;	\
   int ivar;		\
-  if(nv!=NV) ABORT("nv=%d != NV=%d\n",nv,NV);	\
+  ASSERT(nv==NV);	\
   ASSERT(ntab==NTAB);	\
   ASSERT(no==NO);	\
   ASSERT(nn==NN);	\
   if (var.n) for(ivar=0;ivar<var.n;ivar++) *(var.dst[ivar])=u[var.src[ivar]];
 
-#define IONIC_FDDT_TAIL(name)		\
+#define IONIC_FDDT_TAIL	\
   return 1;             \
 }
 
@@ -123,7 +124,7 @@ IONICCREATE(create_##name) {				\
   for (ii=0; ii <NMC; ii++)				\
     CALLOC(I->channel[ii].subchain, MAX_SUBCHAINS, sizeof(subchain_str));\
 
-#define IONIC_CREATE_TAIL(name,rc)    	\
+#define IONIC_CREATE_TAIL		\
   var->n=ivar;				\
   if(ivar){REALLOC(var->dst,1L*ivar*sizeof(real *));\
   REALLOC(var->src,1L*ivar*sizeof(int));}	\
@@ -133,14 +134,14 @@ IONICCREATE(create_##name) {				\
   I->nn = NN;				\
   I->nt = NT;				\
   I->ntab = NTAB;			\
-  I->nmc = NMC;								\
-  int nmv=0;					\
-  for (ii=0; ii < NMC; ii++){						\
-    nmv += I->channel[ii].dimension;					\
-  }									\
-  I->nmv=nmv;								\
-  ASSERT(NV==NO+NN+NT+nmv);						\
-  return rc;								\
+  I->nmc = NMC;				\
+  int nmv=0;				\
+  for (ii=0; ii < NMC; ii++){		\
+    nmv += I->channel[ii].dimension;	\
+  }					\
+  I->nmv=nmv;				\
+  ASSERT(NV==NO+NN+NT+nmv);		\
+  return NV;				\
 }
 
 #define IONIC_CONST(type,name) type name=S->I.name;

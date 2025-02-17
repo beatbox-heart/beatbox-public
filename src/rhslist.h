@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2025) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -32,6 +32,7 @@ D(crnach)
 D(fhncub)
 D(fhncubpar)
 D(fhnbkl)
+D(fhnrmc)
 D(fk)
 D(fkmod)
 D(front)
@@ -39,6 +40,8 @@ D(gpcell)
 D(ha)
 D(hh)
 D(lrd)
+D(mouse)
+D(mousevent)
 D(ms)
 D(n62)
 D(noble)
@@ -55,6 +58,6 @@ D(chtb)
 D(chrecruit)
 D(mchtb)
 D(zfk)
-D(mouse)
-D(mousevent)
 D(flow2d)
+D(conv2d)
+D(diffconv2d)

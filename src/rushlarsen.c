@@ -1,5 +1,5 @@
 /**
- * Copyright (C) (2010-2021) Vadim Biktashev, Irina Biktasheva et al. 
+ * Copyright (C) (2010-2023) Vadim Biktashev, Irina Biktasheva et al. 
  * (see ../AUTHORS for the full list of contributors)
  *
  * This file is part of Beatbox.
@@ -698,20 +698,20 @@ static inline int rushlarsen_step(real *u,int nv,STR *S,int x,int y,int z)
   real *values;				/* vector of values of tabulated functions */
   real *a, *b;				/* pointers to subvectors of Rush-Larsen step coefficients */
   real gateold;				/* aux variable */
-  real *markov,*markov_cur;				/* subvector of markov chain values */
-  real *dmarkov,*dmarkov_cur;			/* subvector of markov chain values increments */
-  real markov_entry;				/* auxilary markov state */
-  real *mrl; /* matrix for rush-larsen computations */
-  int im,jm,km;					/* vector components counters */
-  int ii;			/* MC counter */
-  real *curr_chain;		/* pointer to current chain matrix */
+  real *markov,*markov_cur;		/* subvector of markov chain values */
+  real *dmarkov,*dmarkov_cur;		/* subvector of markov chain values increments */
+  real markov_entry;			/* auxilary markov state */
+  real *mrl;				/* matrix for rush-larsen computations */
+  int im,jm,km;				/* vector components counters */
+  int ii;				/* MC counter */
+  real *curr_chain;			/* pointer to current chain matrix */
   subchain_str * subchain;
   int dimension, nT;
-  int on_fly; 			/* flag to specify if the markov_adhoc was done on fly or obtained from tabulated data */
-  real * dchain, *hchain, *trm, * markov_adhoc, * val ; 
+  int on_fly; 				/* flag to specify if the markov_adhoc was done on fly or obtained from tabulated data */
+  real *dchain, *hchain, *trm, *markov_adhoc, *val; 
   real valscale[1];
   real dvar, tmax, tmin;
-  real sum;			/* variable to check the sum of states */
+  real sum;				/* variable to check the sum of states */
   int ch_exp_mc;    
 
 
