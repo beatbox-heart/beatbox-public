@@ -8,12 +8,14 @@
 *.o
 *.rec
 *.tar.gz
+*.tmp
 *.vtg
 .DS_Store
 .deps
 Makefile
 Makefile.in
 autom4te.cache
+bb2-public
 config.h
 config.log
 config.status
